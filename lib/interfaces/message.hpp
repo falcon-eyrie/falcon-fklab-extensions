@@ -17,19 +17,23 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "dummydio.hpp"
+#ifndef INTERFACES_MESSAGE_HPP
+#define INTERFACES_MESSAGE_HPP
 
-uint32_t DummyDIO::nchannels() const {
-    
-    return state_.nchannels();
-}
-    
-DigitalState DummyDIO::read_state() const {
-    
-    return state_;
-}
 
-void DummyDIO::write_state( DigitalState& state ) {
-    
-    state_ = state;
-}
+#include <string>
+
+class MessageOut { 
+public:
+    // required interface methods
+    virtual bool message_out_send(const std::string & message) = 0;
+};
+
+class MessageIn{ 
+public:
+    // required interface methods
+    virtual bool message_in_retrieve(std::string & message) = 0;
+};
+
+
+#endif  // INTERFACES_MESSAGE_HPP

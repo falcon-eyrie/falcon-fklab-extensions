@@ -17,24 +17,10 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#ifndef DUMMYDIO_H
-#define DUMMYDIO_H
 
-#include "dio.hpp"
+#include "arduino.hpp"
 
-class DummyDIO : public DigitalDevice {
+REGISTERDEVICE(Arduino)
 
-public:
-    DummyDIO( uint32_t nchannels ) : DigitalDevice("dummy"), state_(nchannels) {}
-    
-    uint32_t nchannels() const;
-    
-    DigitalState read_state() const;
-    void write_state( DigitalState& state );
-    
-protected:
-    DigitalState state_;
-};
-
-
-#endif // DUMMYDIO_H
+REGISTER_DEVICE_ADAPTER(Arduino,ArduinoDigitalOutAdapter)
+REGISTER_DEVICE_INTERFACE(ArduinoDigitalOutAdapter,DigitalOut,ArduinoDOInterface)

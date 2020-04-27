@@ -19,9 +19,6 @@
 
 #include "digitaloutput.hpp"
 
-#include "dio/dummydio.hpp"
-//#include "dio/advantechdio.hpp"
-
 #include <iostream>
 
 void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& context) {
@@ -46,28 +43,29 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
     unsigned int pulse_width =
         node["pulse_width"].as<unsigned int>( DEFAULT_PULSE_WIDTH_MICROSEC );
     
-    if (!node["device"] || !node["device"].IsMap() || !node["device"]["type"]) {
-        throw ProcessingConfigureError(
-            "No valid digital output device specified.", name() );
-    }
     
-    std::string device_type = node["device"]["type"].as<std::string>( );
-    if (device_type=="dummy") {
-        std::uint32_t nchannels =
-            node["device"]["nchannels"].as<std::uint32_t>( DEFAULT_DUMMY_NCHANNELS );
-        device_ = std::unique_ptr<DigitalDevice>( new DummyDIO( nchannels ) );
-    //} else if (device_type=="advantech") {
-    //    int port = node["device"]["port"].as<int>( DEFAULT_ADVANTECH_PORT );
-    //    std::uint64_t delay =
-    //        node["device"]["delay"].as<std::uint64_t>( DEFAULT_ADVANTECH_DELAY );
-    //    device_ =
-    //        std::unique_ptr<DigitalDevice>( new AdvantechDIO( port, delay ) );
+    YAML::Node options;
+    std::string device_id;
+    
+    if (!node["device"]) { 
+        throw ProcessingConfigureError(
+            "No digital output device specified.", name() );
+    } else if (node["device"].IsMap()) {
+        if (!node["device"]["id"]) {
+            throw ProcessingConfigureError(
+                "No valid digital output device specified.", name() );
+        }
+        
+        device_id = node["device"]["id"].as<std::string>();
+        
+        if (node["device"]["options"]) {
+            options = node["device"]["options"];
+        }
     } else {
-        throw ProcessingConfigureError(
-            "No valid digital output device specified.", name() );
+        device_id = node["device"].as<std::string>();
     }
-    
-    LOG(INFO) << "Opened digital output device " << device_->description() << ".";
+        
+    interface_ = subscription_.ReserveInterface<DigitalOut>(device_id, "DigitalOut", options);
     
     ProtocolYAMLMap p;
     if (node["protocols"]) {
@@ -76,7 +74,7 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
     
     for (auto const & it : p) {
         protocols_[it.first] = std::unique_ptr<DigitalOutputProtocol>(
-            new DigitalOutputProtocol( device_->nchannels(), pulse_width ) );
+            new DigitalOutputProtocol( interface_->digital_out_num_channels(), pulse_width ) );
         for (auto const & it2 : it.second ) {
             if (it2.first == "toggle") {
                 protocols_[it.first]->set_mode( it2.second, DigitalOutputMode::TOGGLE );
@@ -158,11 +156,16 @@ void DigitalOutput::Process( ProcessingContext& context ) {
                         test_source_timestamps_[nprotocol_executions_] = Clock::now();
                     }
                     
-                    protocols_[ data_in->event() ]->execute( *device_ );
+                    //protocols_[ data_in->event() ]->execute( *device_ );
+                    
+                    protocols_[ data_in->event() ]->execute( interface_ );
+                    
+                    //interface()->digital_out_write_channel(0,true);
+                    
                     ++ nprotocol_executions_;
                     LOG_IF(UPDATE, print_protocol_execution_updates_) << name()
                         << ". Protocol executed for " << data_in->event() << " event.";
-                } catch ( DigitalDeviceError & e ) {
+                } catch ( std::exception & e ) {
                     LOG(WARNING) << ". Could not execute protocol for event ("
                         << data_in->event() << ") : " << e.what();
                 }

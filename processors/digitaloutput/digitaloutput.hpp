@@ -71,10 +71,13 @@
 
 #include "iprocessor.hpp"
 #include "eventdata/eventdata.hpp"
-#include "dio/dio.hpp"
 #include "utilities/time.hpp"
 
-typedef std::map<std::string,std::map<std::string,std::vector<uint32_t>>> ProtocolYAMLMap;
+#include "device_manager.hpp"
+#include "interfaces/dio.hpp"
+#include "dio/protocol.hpp"
+
+typedef std::map<std::string,std::map<std::string,std::vector<size_t>>> ProtocolYAMLMap;
 typedef std::map<std::string,std::unique_ptr<DigitalOutputProtocol>> ProtocolMap;
 
 class DigitalOutput : public IProcessor {
@@ -102,7 +105,9 @@ protected:
     bool save_stim_events_;
     std::wstring device_name_;
     
-    std::unique_ptr<DigitalDevice> device_;
+    device::Subscription subscription_;
+    DigitalOut* interface_;
+    
     ProtocolMap protocols_;
     
     bool print_protocol_execution_updates_;
@@ -129,4 +134,4 @@ protected:
     const std::string STIM_EVENT_S = "stim_";
 };
 
-#endif // digitaloutput.hpp
+#endif // DIGITALOUTPUT_HPP

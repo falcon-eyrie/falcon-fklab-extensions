@@ -18,193 +18,234 @@
 // ---------------------------------------------------------------------
 
 #include "dio.hpp"
-
+#include "interfaces/dio.hpp"
 #include "utilities/time.hpp"
 
-uint32_t DigitalState::nchannels() const {
-    
-    return state_.size();
+DigitalState::reference::operator bool() const {
+    return (*parent_) & mask_;
 }
-
-std::vector<bool>& DigitalState::state() {
-    
-    return state_;
+DigitalState::reference& DigitalState::reference::operator= (bool x) {
+    if (x) { *parent_ |= mask_;}
+    else { *parent_ &= ~mask_; }
+    return *this;
 }
-
-bool DigitalState::state( uint32_t channel ) const {
+DigitalState::reference& DigitalState::reference::operator= (const DigitalState::reference& x) {
+    if (*(x.parent_) & x.mask_) { *parent_ |= mask_; }
+    else { *parent_ &= ~mask_; }
+    return *this;
+}
+DigitalState::reference& DigitalState::reference::flip() {
+    *parent_ ^= mask_;
+    return *this;
+}
+bool DigitalState::reference::operator~() const {
+    return !bool(*this);
+}
     
-    if (channel>=nchannels()) {
-        throw DigitalStateError("Invalid channel number.");
+DigitalState::DigitalState(size_t n, uint64_t value) : n_(n), value_(value) {
+    if (n == 0 || n > MAX_NUM_BITS) {
+        throw DigitalStateError("DigitalState represents at least 1 and at most " + std::to_string(MAX_NUM_BITS) + " bits.");
     }
     
-    return state_[channel];
+    default_mask_ = n == MAX_NUM_BITS ? std::numeric_limits<value_type>::max() : (1 << n) - 1;
+    mask_= default_mask_;
+}
+   
+size_t DigitalState::size() const { return n_; }
+
+bool DigitalState::operator[](size_t n) const {
+    check_index(n);
+    return value_ & (1<<n);
 }
 
-typename std::vector<bool>::reference DigitalState::operator[]( uint32_t channel ) {
-    
-    return state_[channel];
+DigitalState::reference DigitalState::operator[](size_t n) {
+    check_index(n);
+    return DigitalState::reference(&value_, n);
 }
 
-std::vector<bool> DigitalState::state( std::vector<uint32_t> channels ) const {
-    
-    std::vector<bool> ret;
-    
-    for (auto & it : channels) {
-        if (it>=nchannels()) {
-            throw DigitalStateError("Invalid channel number");
-        }
-        ret.push_back( state_[it] );
-    }
-    
-    return ret;
-}
-
-void DigitalState::set_state( uint32_t channel, bool value ) {
-    
-    if (channel>=nchannels()) {
-        throw DigitalStateError("Invalid channel number.");
-    }
-    state_[channel] = value;
-}
-
-void DigitalState::set_state( std::vector<uint32_t> channels, bool value ) {
-    
-    for (auto & it : channels) {
-        if (it >= nchannels()) { continue; } // fail silently
-        state_[it] = value;
-    }
-}
-
-void DigitalState::set_state( bool value ) {
-    
-    state_.assign( nchannels(), value );
-}
-
-void DigitalState::set_state( std::vector<bool> values ) {
-    
-    if (values.size() != nchannels() ) {
-        throw DigitalStateError("Incorrect size of vector.");
-    }
-    state_ = values;
-}
-
-void DigitalState::set_state( std::vector<uint32_t> channels, std::vector<bool> values ) {
-    
-    if (channels.size() != values.size()) { 
-        throw DigitalStateError("Incompatible size of vectors.");
-    }
-    
-    for (unsigned int k=0; k<channels.size(); ++k) {
-        if (channels[k]>=nchannels()) { continue; } // fail silently
-        state_[channels[k]] = values[k];
-    }
-}
-
-void DigitalState::toggle_state( uint32_t channel ) {
-    
-    set_state( channel, !state( channel ) );
-}
-
-void DigitalState::toggle_state( std::vector<uint32_t> channels ) {
-    
-    for (auto & it : channels) {
-        if (it >= nchannels()) { continue; } // fail silently
-        state_[it] = !state_[it];
-    }
-}
-  
-std::string DigitalState::to_string( std::string high, std::string low, std::string spacer) const {
+std::string DigitalState::to_string(std::string high, std::string low, std::string spacer, std::string omit) const {
     
     std::string s = "";
     
-    for ( uint32_t k=0; k<nchannels(); ++k ) {
-        if (k>0) { s += spacer; }
-        s += state_[k] ? high : low;
+    for ( size_t k=size(); k>0; --k ) {
+        if (k<size()) { s += spacer; }
+        if (mask_ & (1<<(k-1))) { s += (value_ & (1<<(k-1))) ? high : low; }
+        else { s += omit; }
     }
     
     return s;
 }
 
-std::string DigitalDevice::type() const {
-    
-    return type_;
+DigitalState& DigitalState::set(bool b) {
+    if (b) { value_ |= mask_; }  // value_ = mask_
+    else { value_ &= ~mask_; }  //value_ = 0
+    return *this;
 }
 
-std::string DigitalDevice::description() const {
-    
-    return type() + " (" + std::to_string(nchannels()) + " channels)";
+DigitalState& DigitalState::set(size_t n, bool b) {
+    check_index(n);  // should we check mask?
+    if (b) { value_ |= (1<<n); }
+    else { value_ &= ~(1<<n); }
+    return *this;
 }
 
-DigitalOutputProtocol::DigitalOutputProtocol( uint32_t nchannels, unsigned int pulse_width, DigitalOutputMode default_mode )
-    : nchannels_(nchannels), pulse_width_(pulse_width) {
-    
-    mode_.assign( nchannels_, default_mode );
+DigitalState& DigitalState::masked_set(const DigitalState & mask, bool b) {
+    // the masks are combined!!
+    check_size(mask);
+    if (b) { value_ |= (mask.value_ & mask.mask_ & mask_); }  // value_ |= mask.value_
+    else { value_ &= ~(mask.value_ & mask.mask_ & mask_); }  // value_ &= ~mask.value_
+    return *this;
 }
 
-void DigitalOutputProtocol::set_mode( uint32_t channel, DigitalOutputMode mode ) {
+DigitalState& DigitalState::set(const DigitalState & value) {
+    check_size(value);
+    uint64_t m = value.mask_ & mask_;
+    value_ = ( value.value_ & m ) | (value_ & ~m);
+    return *this;
+}
+
+DigitalState& DigitalState::reset() { return set(false); }
+
+DigitalState& DigitalState::reset(size_t n) { return set(n, false); }
+
+DigitalState& DigitalState::masked_reset(const DigitalState & mask) { return masked_set(mask, false); }
+
+DigitalState& DigitalState::flip() {
+    value_ ^= mask_;
+    return *this;
+}
+
+DigitalState& DigitalState::flip(size_t n) {
+    check_index(n);  // should we check mask?
+    value_ ^= (1<<n);
+    return *this;
+}
+
+bool DigitalState::any() const {
+    return (value_ & mask_) > 0;
+}
+
+bool DigitalState::none() const {
+    return (value_ & mask_) == 0;
+}
+
+bool DigitalState::all() const {
+    return value_ == mask_;
+}
+
+bool DigitalState::mask_any() const {
+    return mask_ > 0;
+}
+
+bool DigitalState::mask_none() const {
+    return mask_ == 0;
+}
+
+bool DigitalState::mask_all() const {
+    return mask_ == default_mask_;
+}
+
+size_t DigitalState::count() const {
+    size_t count = 0;
+    uint64_t n = value_ & mask_;
+    while (n) {
+        n &= (n-1) ;
+        count++;
+    }
+    return count;
+}
+
+DigitalState& DigitalState::operator&= (const DigitalState& rhs) {
+    check_size(rhs);
+    //value_ &= rhs.value_;
+    value_ &= (rhs.value_ | ~(rhs.mask_& mask_));
+    return *this;
+}
+
+DigitalState& DigitalState::operator|= (const DigitalState& rhs) {
+    check_size(rhs);
+    //value_ |= rhs.value_;
+    value_ |= (rhs.value_ & rhs.mask_ & mask_);
+    return *this;
+}
+
+DigitalState& DigitalState::operator^= (const DigitalState& rhs) {
+    check_size(rhs);
+    //value_ ^= rhs.value_;
+    value_ ^= (rhs.value_ & rhs.mask_ & mask_);
+    return *this;
+}
+
+DigitalState& DigitalState::operator<<= (size_t pos) {
+    // we shift value, but not mask
+    check_index(pos);
+    value_ <<= pos;
+    value_ &= default_mask_;
+    return *this;
+}
     
-    if (channel<=nchannels_) { // fail silently
-        mode_[channel] = mode;
+DigitalState& DigitalState::operator>>= (size_t pos) {
+    // we shift value, but not mask
+    check_index(pos);
+    value_ >>= pos;
+    return *this;
+}
+
+DigitalState DigitalState::operator~() const {
+    DigitalState d(*this);
+    return d.flip();
+}
+
+DigitalState DigitalState::operator<<(size_t pos) const {
+    DigitalState d(*this);
+    d <<= pos;
+    return d;
+}
+
+DigitalState DigitalState::operator>>(size_t pos) const {
+    DigitalState d(*this);
+    d >>= pos;
+    return d;
+}
+
+bool DigitalState::operator== (const DigitalState& rhs) const {
+    check_size(rhs);
+    return (value_ & mask_) == (rhs.value_ & rhs.mask_);
+}
+
+bool DigitalState::operator!= (const DigitalState& rhs) const {
+    check_size(rhs);
+    return (value_ & mask_) != (rhs.value_ & rhs.mask_);
+}
+
+void DigitalState::check_size(const DigitalState & other) const {
+    if (size() != other.size()) {
+        throw DigitalStateError("Number of bits is not equal.");
     }
 }
 
-unsigned int DigitalOutputProtocol::pulse_width() const {
-    
-    return pulse_width_;
-}
-
-void DigitalOutputProtocol::set_pulse_width( unsigned int value ) {
-    
-    pulse_width_ = value;
-}
-
-void DigitalOutputProtocol::set_mode( std::vector<uint32_t> channels, DigitalOutputMode mode ) {
-    
-    for (const uint32_t & c : channels) {
-        if (c<=nchannels_) {
-            mode_[c] = mode;
-        }
+void DigitalState::check_index(size_t n, bool mask) const {
+    if (n>=n_ || (mask && (mask_ & (1<<n)) == 0) ) {
+        throw std::out_of_range("Bit index out of range or bit is masked.");
     }
 }
 
-std::vector<uint32_t> DigitalOutputProtocol::find_channels( DigitalOutputMode mode ) {
-    
-    std::vector<uint32_t> channels;
-    for (uint32_t k=0; k<mode_.size(); ++k) {
-        if (mode_[k]==mode) {
-            channels.push_back(k);
-        }
-    }
-    return channels;    
+DigitalState operator& (const DigitalState& lhs, const DigitalState& rhs) {
+    DigitalState d(lhs);
+    d &= rhs;
+    return d;
 }
 
-void DigitalOutputProtocol::execute( DigitalDevice & device ) {
-    
-    DigitalState state(nchannels_);
-    std::vector<uint32_t> channels;
-    
-    state = device.read_state();
-    
-    channels = find_channels( DigitalOutputMode::HIGH );
-    state.set_state( channels, true );
-    
-    channels = find_channels( DigitalOutputMode::LOW );
-    state.set_state( channels, false );
-    
-    channels = find_channels( DigitalOutputMode::TOGGLE );
-    state.toggle_state( channels );
-    
-    channels = find_channels( DigitalOutputMode::PULSE );
-    state.set_state( channels, true );
-    
-    device.write_state( state );
-    
-    if (channels.size()>0) { // some channels are pulsed
-        custom_sleep_for( pulse_width_ );
-        state.set_state( channels, false );
-        device.write_state( state );
-    }
-    
+DigitalState operator| (const DigitalState& lhs, const DigitalState& rhs) {
+    DigitalState d(lhs);
+    d |= rhs;
+    return d;
+}
+
+DigitalState operator^ (const DigitalState& lhs, const DigitalState& rhs) {
+    DigitalState d(lhs);
+    d ^= rhs;
+    return d;
 }
 
 
