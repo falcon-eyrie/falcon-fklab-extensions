@@ -19,7 +19,7 @@
 
 #include "eventsource.hpp"
 
-#include <chrono>
+
 #include <thread>
 #include <random>
 
@@ -40,40 +40,25 @@ void EventSource::Configure( const YAML::Node& node, const GlobalContext& contex
     LOG(INFO) << name() << ". Event rate set to " << event_rate_ << " Hz.";
 }
 
-void EventSource::CreatePorts() {
-    event_port_ = create_output_port<EventData>(
-        EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters(DEFAULT_EVENT),
-        PortOutPolicy( SlotRange(1) ) );
+bool EventSource::Process_start( ProcessingContext& context ) {
+
+    if (event_list_.size()==0) { return false;}
+
+    delay = std::chrono::milliseconds( static_cast<unsigned int>(1000.0/event_rate_) );
+
+    return true;
 }
 
-
-void EventSource::Process( ProcessingContext& context ) {
-    
-    EventData *data = nullptr;
-    
-    if (event_list_.size()==0) { return; }
-    
-    std::default_random_engine generator;
-    std::uniform_int_distribution<unsigned int> distribution(0, event_list_.size()-1);
-    
-    auto delay = std::chrono::milliseconds( static_cast<unsigned int>(1000.0/event_rate_) );
-    
-    while (!context.terminated()) {
-        
+void EventSource::Process_loop( ProcessingContext& context ) {
         std::this_thread::sleep_for( delay );
         
-        data = event_port_->slot(0)->ClaimData(false);
+        data = data_port_->slot(0)->ClaimData(false);
         
         data->set_source_timestamp();
         data->set_hardware_timestamp(
             static_cast<uint64_t>( data->time_since( context.run().start_time() ).count() ) );
         
-        data->set_event( event_list_[distribution(generator)] );
-        event_port_->slot(0)->PublishData();
-        
-    }
+        data->set_event( event_list_[std::uniform_int_distribution<unsigned int>{0, event_list_.size()-1}(generator)] );
 }
 
 REGISTERPROCESSOR(EventSource)

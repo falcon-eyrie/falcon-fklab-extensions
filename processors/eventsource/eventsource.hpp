@@ -41,25 +41,27 @@
 #ifndef EVENTSOURCE_HPP
 #define EVENTSOURCE_HPP
 
-#include "iprocessor.hpp"
+#include "isource.hpp"
 #include "eventdata/eventdata.hpp"
+#include <chrono>
 
-class EventSource : public IProcessor {
+class EventSource : public ISource<EventData> {
     
 public:
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
+    virtual void SetPortName() override {port_name = EVENTDATA_S;};
+    virtual void SetPortParam() override {port_param = "default_eventsource_event";};
+    virtual bool Process_start( ProcessingContext& context ) override;
+    virtual void Process_loop( ProcessingContext& context ) override;
     
 protected:
-    PortOut<EventData>* event_port_;
-    
     std::vector<std::string> event_list_;
     double event_rate_;
-    
+    std::chrono::milliseconds delay ;
+    std::default_random_engine generator;
+
 public:
     const decltype(event_rate_) DEFAULT_EVENT_RATE = 1.0;
-    const std::string DEFAULT_EVENT = "default_eventsource_event";
 };
 
 #endif // eventsource.hpp

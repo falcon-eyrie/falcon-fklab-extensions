@@ -69,7 +69,7 @@
 #ifndef DIGITALOUTPUT_HPP
 #define DIGITALOUTPUT_HPP
 
-#include "iprocessor.hpp"
+#include "isink.hpp"
 #include "eventdata/eventdata.hpp"
 #include "dio/dio.hpp"
 #include "utilities/time.hpp"
@@ -77,13 +77,15 @@
 typedef std::map<std::string,std::map<std::string,std::vector<uint32_t>>> ProtocolYAMLMap;
 typedef std::map<std::string,std::unique_ptr<DigitalOutputProtocol>> ProtocolMap;
 
-class DigitalOutput : public IProcessor {
+class DigitalOutput : public ISink<EventData> {
     
 public:
     virtual void Configure(const YAML::Node& node, const GlobalContext& context) override;
-    virtual void CreatePorts() override;
+    virtual void SetPortName() override {port_name = EVENTDATA_S;};
+    virtual void CreateStates() override;
     virtual void Preprocess( ProcessingContext& context ) override;
-    virtual void Process( ProcessingContext& context ) override;
+    virtual bool Process_start( ProcessingContext& context ) override;
+    virtual bool Process_loop( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
     
 
@@ -91,8 +93,7 @@ protected:
     bool to_lock_out( const uint64_t current_timestamp );
     
 protected:
-    PortIn<EventData>* data_in_port_;
-    
+
     bool default_enabled_;
     ReadableState<decltype(default_enabled_)>* enabled_state_;
     
@@ -114,6 +115,11 @@ protected:
     
     uint64_t previous_TS_nostim_;
     decltype(default_lockout_period_ms_) delta_TS_ms_;
+
+    uint64_t ts;
+
+    std::string prefix;
+    std::string filename;
     
 public:
     const decltype(default_enabled_) DEFAULT_ENABLED = true;

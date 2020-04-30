@@ -25,35 +25,20 @@ void EventSink::Configure( const YAML::Node& node, const GlobalContext& context)
     target_event_ = EventData(node["target_event"].as<std::string>( DEFAULT_EVENT ));
 }
 
-void EventSink::CreatePorts() {
-    
-    event_port_ = create_input_port<EventData>(
-        EVENTDATA_S,
-        EventData::Capabilities(),
-        PortInPolicy( SlotRange(1) ) );
-}
 
-void EventSink::Process( ProcessingContext& context ) {
-    
-    EventData *data;
-    
-    while (!context.terminated()) {
+bool EventSink::Process_loop( ProcessingContext& context ) {
+
+    ++ event_counter_.all_received;
         
-        if (!event_port_->slot(0)->RetrieveData(data)) {break;}
-        
-        ++ event_counter_.all_received;
-        
-        if (*data == target_event_) {
-            ++ event_counter_.target;
-            LOG(UPDATE) << name() << ": received target event " << data->event() << ".";
-        } else {
-            ++ event_counter_.non_target;
-            LOG(UPDATE) << name() << ": skipped event " << data->event() << ".";
-        }
-        
-        event_port_->slot(0)->ReleaseData();
-        
+    if (*data == target_event_) {
+        ++ event_counter_.target;
+        LOG(UPDATE) << name() << ": received target event " << data->event() << ".";
+    } else {
+        ++ event_counter_.non_target;
+        LOG(UPDATE) << name() << ": skipped event " << data->event() << ".";
     }
+
+    return true;
 }
 
 void EventSink::Postprocess( ProcessingContext& context ) {

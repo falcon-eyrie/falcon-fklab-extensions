@@ -89,13 +89,8 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
         node["print_protocol_execution_updates"].as<decltype(print_protocol_execution_updates_)>( true );
 }
 
-void DigitalOutput::CreatePorts() {
-    
-    data_in_port_ = create_input_port<EventData>(
-        EVENTDATA_S,
-        EventData::Capabilities(),
-        PortInPolicy( SlotRange(1) ) );
-    
+void DigitalOutput::CreateStates() {
+
     enabled_state_ = create_readable_shared_state(
         ENABLED_S,
         default_enabled_,
@@ -123,26 +118,21 @@ void DigitalOutput::Preprocess( ProcessingContext& context ) {
     }
 }
     
-void DigitalOutput::Process( ProcessingContext& context ) {
-     
-    EventData* data_in = nullptr;
-    uint64_t ts;
-    
-    std::string path = context.resolve_path( "run://", "run" );
-    auto prefix = path + name();
-    std::string filename;
-    
-    while (!context.terminated()) {
+bool DigitalOutput::Process_start( ProcessingContext& context ) {
+    prefix = context.resolve_path( "run://", "run" ) + name();
+    return true;
+}
 
-        if (!data_in_port_->slot(0)->RetrieveData( data_in )) {break;}
-        ++ nreceived_events_;
+bool DigitalOutput::Process_loop( ProcessingContext& context ) {
 
-        // select and execute protocol based on event name
-        if (enabled_state_->get() && protocols_.count( data_in->event() ) > 0 ) {
+    ++ nreceived_events_;
+
+    // select and execute protocol based on event name
+    if (enabled_state_->get() && protocols_.count( data->event() ) > 0 ) {
 
             ++ntarget_events_;
 
-            if ( not to_lock_out( data_in->hardware_timestamp() ) ) {
+            if ( not to_lock_out( data->hardware_timestamp() ) ) {
                 
                 try {
                     
@@ -150,24 +140,24 @@ void DigitalOutput::Process( ProcessingContext& context ) {
                         test_source_timestamps_[nprotocol_executions_] = Clock::now();
                     }
                     
-                    protocols_[ data_in->event() ]->execute( *device_ );
+                    protocols_[ data->event() ]->execute( *device_ );
                     ++ nprotocol_executions_;
                     LOG_IF(UPDATE, print_protocol_execution_updates_) << name()
-                        << ". Protocol executed for " << data_in->event() << " event.";
+                        << ". Protocol executed for " << data->event() << " event.";
                 } catch ( DigitalDeviceError & e ) {
                     LOG(WARNING) << ". Could not execute protocol for event ("
-                        << data_in->event() << ") : " << e.what();
+                        << data->event() << ") : " << e.what();
                 }
                 
                 if ( save_stim_events_ ) { //save stim events to disk
                     
-                    filename = STIM_EVENT_S + data_in->event();
+                    filename = STIM_EVENT_S + data->event();
                     // filename will also be the key to the container of files
                     // check if this type of event has been saved before
-                    if ( streams_.count( STIM_EVENT_S + data_in->event() ) == 0 ) {
+                    if ( streams_.count( STIM_EVENT_S + data->event() ) == 0 ) {
                         create_file( prefix, filename );
                     }
-                    ts = data_in->serial_number();
+                    ts = data->serial_number();
                     streams_[filename]->write(
                         reinterpret_cast<const char*>( &ts ), sizeof( decltype( ts ) ) );
                 }
@@ -177,9 +167,7 @@ void DigitalOutput::Process( ProcessingContext& context ) {
             }
         }
 
-       data_in_port_->slot(0)->ReleaseData();
-   }
-    
+     return true;
  }
 
 void DigitalOutput::Postprocess( ProcessingContext& context ) {

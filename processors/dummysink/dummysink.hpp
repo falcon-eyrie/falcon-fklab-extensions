@@ -40,19 +40,29 @@
 #ifndef DUMMYSINK_H
 #define DUMMYSINK_H
 
-#include "iprocessor.hpp"
+#include "isink.hpp"
+#include "idata.hpp"
 
-class DummySink : public IProcessor
+class DummySink : public ISink<IData>
 {
 public:
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    
+    virtual void SetPortName() override {port_name = "data";};
+    virtual void CreateStates() override;
+    virtual bool Process_start( ProcessingContext& context ) override;
+    virtual bool Process_loop( ProcessingContext& context ) override;
+    virtual void Postprocess( ProcessingContext& context )  override;
+
     YAML::Node Kick( const YAML::Node & node );
 
 protected:
-    PortIn<IData>* data_port_;
+
     ReadableState<bool>* tickle_state_;
+    std::vector<IData*> data_in;
+    uint64_t packet_counter = 0;
+    uint64_t retrieve_counter = 0;
+
+    bool eos = false;
+    bool tickling = false;
 };
 
 #endif

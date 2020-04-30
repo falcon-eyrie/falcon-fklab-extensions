@@ -22,19 +22,9 @@
 #include "utilities/time.hpp"
 
 #include "dummysink.hpp"
-#include "idata.hpp"
 
-#include "multichanneldata/multichanneldata.hpp"
-
-void DummySink::CreatePorts() {
-    
-    data_port_ = create_input_port<IData>(
-        "data",
-        IData::Capabilities(),
-        PortInPolicy( SlotRange(1) ) );
-    
+void DummySink::CreateStates() {
     tickle_state_ = create_readable_shared_state( "tickle", false, Permission::READ, Permission::WRITE);
-    
     expose_method( "kick", &DummySink::Kick );
 }
 
@@ -43,46 +33,33 @@ YAML::Node DummySink::Kick( const YAML::Node & node ) {
     return YAML::Node();
 }
 
-void DummySink::Process(ProcessingContext& context) {
-      
-    uint64_t packet_counter = 0;
-    uint64_t retrieve_counter = 0;
-    
-    std::vector<IData*> data;
-    
-    auto address = data_port_->slot(0)->upstream_address();
-    
-    LOG(DEBUG) << "slot is connected to " << address.string();
-    
-    bool eos = false;
-    
-    auto start = Clock::now();
-    
-    bool tickling = false;
-    
-    while (!context.terminated()) {
+bool DummySink::Process_start(ProcessingContext& context) {
+    packet_counter = 0;
+    retrieve_counter = 0;
 
-        if (!data_port_->slot(0)->RetrieveDataAll( data )) { 
-            LOG(DEBUG) << name() << " : received finish signal while waiting for data!";
-            break;
-        }
+    auto address = data_port_->slot(0)->upstream_address();
+    LOG(DEBUG) << "slot is connected to " << address.string();
+
+    eos = false;
+    tickling = false;
+    return true;
+}
+
+bool DummySink::Process_loop(ProcessingContext& context) {
         
-        for (auto & it : data ) {
+        for (auto & it : data_in ) {
             if ( it->eos() ) {
                 LOG(DEBUG) << name() << " received end of stream signal.";
-                eos = true;
-                break;
+                eos = false;
+                return false;
             }
         }
         
-        if (eos) { break; }
-        
-       
+        if (eos) { return false; }
+
         ++retrieve_counter;
-        packet_counter += data.size();
-        
-        data_port_->slot(0)->ReleaseData();
-        
+        packet_counter += data_in.size();
+
         if (tickle_state_->get()!=tickling) {
             tickling=!tickling;
             if (tickling) {
@@ -91,11 +68,12 @@ void DummySink::Process(ProcessingContext& context) {
                 LOG(INFO) << "Why stop tickling?";
             }
         }
-        
-    }
-    
-    std::chrono::milliseconds runtime( std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - start) );
-    
+
+        return true;
+}
+
+void DummySink::Postprocess( ProcessingContext& context )  {
+    std::chrono::milliseconds runtime(std::chrono::duration_cast<std::chrono::milliseconds>(duration) );
     LOG(UPDATE) << name() << ": retrieved " << packet_counter << " packets in " << retrieve_counter << " batches over " << (double)runtime.count()/1000.0 << "seconds (" << (double)packet_counter/retrieve_counter << " packets/batch and " << packet_counter/((double)runtime.count()/1000.0) << " packets/second).";
 }
 

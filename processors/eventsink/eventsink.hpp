@@ -39,20 +39,20 @@
 #ifndef EVENTSINK_HPP
 #define EVENTSINK_HPP
 
-#include "iprocessor.hpp"
+#include "isink.hpp"
 #include "eventdata/eventdata.hpp"
 #include "utilities/general.hpp"
 
-class EventSink : public IProcessor
+class EventSink : public ISink<EventData>
 {
 public:
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    virtual void Postprocess( ProcessingContext& context ) override; 
+    virtual void SetPortName() override {port_name = EVENTDATA_S;};
+    virtual bool Process_loop( ProcessingContext& context ) override;
+    virtual void Postprocess( ProcessingContext& context ) override;
 
 protected:
-    PortIn<EventData>* event_port_;
+
     EventData target_event_;
     
     EventCounter event_counter_;
