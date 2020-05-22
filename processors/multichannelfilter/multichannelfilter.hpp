@@ -58,31 +58,24 @@
 #ifndef MULTICHANNELFILTER_HPP
 #define MULTICHANNELFILTER_HPP
 
-#include "iprocessor.hpp"
+#include "ifilter.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 
 #include <memory>
-#include <dsp/filter.hpp>
 
 
-class MultiChannelFilter : public IProcessor
+
+class MultiChannelFilter : public IFilter<MultiChannelData<double>>
 {
 public:
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
+
     virtual void CreatePorts( ) override;
-    virtual void Prepare( GlobalContext& context ) override;
-    virtual void Unprepare( GlobalContext& context ) override;
+
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
-    virtual void CompleteStreamInfo( ) override;
 
-protected:
-    std::unique_ptr<dsp::filter::IFilter> filter_template_;
-    std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
-    
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<MultiChannelData<double>>* data_out_port_;
+
 };
 
 #endif // multichannelfilter.hpp
