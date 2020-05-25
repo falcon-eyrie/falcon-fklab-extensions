@@ -49,8 +49,10 @@ class EventSource : public ISource<EventData> {
     
 public:
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
+
     virtual void SetPortName() override {port_name = EVENTDATA_S;};
     virtual void SetPortParam() override {port_param = "default_eventsource_event";};
+
     virtual bool Process_start( ProcessingContext& context ) override;
     virtual void Process_loop( ProcessingContext& context ) override;
     
@@ -62,6 +64,7 @@ protected:
 
 public:
     const decltype(event_rate_) DEFAULT_EVENT_RATE = 1.0;
+    const std::string DEFAULT_EVENT = "default_eventsource_event";
 };
 
 #endif // eventsource.hpp
