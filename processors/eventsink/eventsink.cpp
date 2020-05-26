@@ -22,7 +22,7 @@
 
 void EventSink::Configure( const YAML::Node& node, const GlobalContext& context) {
     
-    target_event_ = EventData(node["target_event"].as<std::string>( "none" ));
+    target_event_ = EventData(node["target_event"].as<std::string>( DEFAULT_EVENT ));
 }
 
 void EventSink::CreatePorts() {
