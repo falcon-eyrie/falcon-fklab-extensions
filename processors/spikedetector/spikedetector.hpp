@@ -72,8 +72,8 @@ protected:
     PortOut<SpikeData>* data_out_port_spikes_;
     PortOut<EventData>* data_out_port_events_;
     
-    WritableState<double>* threshold_;
-    WritableState<unsigned int>* peak_lifetime_;
+    ReadableState<double>* threshold_;
+    ReadableState<unsigned int>* peak_lifetime_;
     
     unsigned int n_channels_;
     double initial_threshold_;
@@ -90,7 +90,7 @@ protected:
     std::unique_ptr<MultiChannelData<double>> inverted_signals_;
     SpikeData* spike_data_out_;
     EventData* event_data_out_;
-    
+
     uint64_t n_streamed_events_;
     
 public:
