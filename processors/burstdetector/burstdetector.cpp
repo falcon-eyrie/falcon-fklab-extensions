@@ -62,7 +62,7 @@ void BurstDetector::CreatePorts() {
         PortInPolicy( SlotRange(1) ) );
     
     data_out_port_ = create_output_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         EventData::Parameters( "burst" ),
         PortOutPolicy( SlotRange(1) ) );

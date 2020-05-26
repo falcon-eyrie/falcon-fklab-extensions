@@ -21,11 +21,11 @@
 
 void LevelCrossingDetector::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
-    initial_threshold_ = node["threshold"].as<decltype(initial_threshold_)>(
+    initial_threshold_ = node[THRESHOLD_S].as<decltype(initial_threshold_)>(
         DEFAULT_THRESHOLD);
-    initial_upslope_ = node["upslope"].as<decltype(initial_upslope_)>(
+    initial_upslope_ = node[UPSLOPE_S].as<decltype(initial_upslope_)>(
         DEFAULT_UPSLOPE);
-    initial_post_detect_block_ = node["post_detect_block"].as<decltype(
+    initial_post_detect_block_ = node[POST_DETECT_BLOCK_S].as<decltype(
         initial_post_detect_block_)>(DEFAULT_POST_DETECT_BLOCK);
     
     std::string event_name = node["event"].as<std::string>(DEFAULT_EVENT);
@@ -41,24 +41,25 @@ void LevelCrossingDetector::CreatePorts( ) {
         PortInPolicy( SlotRange(1) ) );
     
     data_out_port_ = create_output_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         EventData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_readable_shared_state(
-        "threshold", initial_threshold_,
+        THRESHOLD_S,
+        initial_threshold_,
         Permission::READ,
         Permission::WRITE);
     
     upslope_ = create_readable_shared_state(
-        "upslope",
+        UPSLOPE_S,
         initial_upslope_,
         Permission::READ,
         Permission::WRITE);
     
     post_detect_block_ = create_readable_shared_state(
-        "post_detect_block",
+        POST_DETECT_BLOCK_S,
         initial_post_detect_block_,
         Permission::READ,
         Permission::WRITE);

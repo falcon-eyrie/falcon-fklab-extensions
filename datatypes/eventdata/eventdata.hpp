@@ -25,6 +25,8 @@
 typedef unsigned int EventIDType;
 
 const std::string DEFAULT_EVENT = "none";
+const std::string EVENTDATA_S = "events"; // to be used for port names using spike data
+
 
 class EventData : public IData {
 public:

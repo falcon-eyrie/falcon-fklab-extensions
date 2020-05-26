@@ -18,19 +18,17 @@
 // ---------------------------------------------------------------------
 
 #include "digitaloutput.hpp"
-
 #include "dio/dummydio.hpp"
-//#include "dio/advantechdio.hpp"
 
 #include <iostream>
 
 void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& context) {
     
     default_enabled_ =
-        node["enabled"].as<decltype(default_enabled_)>( DEFAULT_ENABLED );
+        node[ENABLED_S].as<decltype(default_enabled_)>( DEFAULT_ENABLED );
     
     default_lockout_period_ms_ =
-        node["lockout_period"].as<decltype(default_lockout_period_ms_)>(
+        node[LOCKOUT_PERIOD_S].as<decltype(default_lockout_period_ms_)>(
         DEFAULT_LOCKOUT_PERIOD_MS );
     
     if ( default_lockout_period_ms_ <= 0 ) {
@@ -56,12 +54,6 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
         std::uint32_t nchannels =
             node["device"]["nchannels"].as<std::uint32_t>( DEFAULT_DUMMY_NCHANNELS );
         device_ = std::unique_ptr<DigitalDevice>( new DummyDIO( nchannels ) );
-    //} else if (device_type=="advantech") {
-    //    int port = node["device"]["port"].as<int>( DEFAULT_ADVANTECH_PORT );
-    //    std::uint64_t delay =
-    //        node["device"]["delay"].as<std::uint64_t>( DEFAULT_ADVANTECH_DELAY );
-    //    device_ =
-    //        std::unique_ptr<DigitalDevice>( new AdvantechDIO( port, delay ) );
     } else {
         throw ProcessingConfigureError(
             "No valid digital output device specified.", name() );
@@ -100,18 +92,18 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
 void DigitalOutput::CreatePorts() {
     
     data_in_port_ = create_input_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
     enabled_state_ = create_readable_shared_state(
-        "enabled",
+        ENABLED_S,
         default_enabled_,
         Permission::READ,
         Permission::WRITE);
     
     lockout_period_ms_ = create_readable_shared_state(
-        "lockout_period",
+        LOCKOUT_PERIOD_S,
         default_lockout_period_ms_,
         Permission::READ,
         Permission::WRITE);

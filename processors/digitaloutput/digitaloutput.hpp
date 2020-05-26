@@ -120,11 +120,11 @@ public:
     const decltype(default_lockout_period_ms_) DEFAULT_LOCKOUT_PERIOD_MS = 300;
     const decltype(save_stim_events_) DEFAULT_SAVE_STIM_EVENTS = true;
     const unsigned int DEFAULT_PULSE_WIDTH_MICROSEC = 400;
-    const std::string DEFAULT_ADVANTECH_DEVICE = "USB-4750, BID#0";
     const unsigned int DEFAULT_DUMMY_NCHANNELS = 16;
-    const int DEFAULT_ADVANTECH_PORT = -1;
-    const std::uint64_t DEFAULT_ADVANTECH_DELAY = 10;
-    
+
+    const std::string ENABLED_S = "enabled";
+    const std::string LOCKOUT_PERIOD_S = "lockout_period";
+
 protected:
     const std::string STIM_EVENT_S = "stim_";
 };

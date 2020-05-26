@@ -30,7 +30,7 @@ void SpikeDetector::Configure( const YAML::Node & node, const GlobalContext& con
     strict_time_bin_check_ =
         node["strict_time_bin_check"].as<decltype(strict_time_bin_check_)>(
         DEFAULT_STRICT_TIME_BIN_CHECK );
-    initial_peak_lifetime_ = node["peak_lifetime"].as<decltype(initial_peak_lifetime_)>(
+    initial_peak_lifetime_ = node[PEAK_LIFETIME_S].as<decltype(initial_peak_lifetime_)>(
         DEFAULT_PEAK_LIFETIME );  
 }
 
@@ -48,19 +48,19 @@ void SpikeDetector::CreatePorts( ) {
         PortOutPolicy( SlotRange(1), RINGBUFFER_SIZE ) );
     
     data_out_port_events_ = create_output_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         EventData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_writable_shared_state(
-        "threshold",
+        THRESHOLD_S,
         initial_threshold_,
         Permission::READ,
         Permission::WRITE);
     
     peak_lifetime_ = create_writable_shared_state(
-        "peak_lifetime",
+        PEAK_LIFETIME_S,
         initial_peak_lifetime_,
         Permission::READ,
         Permission::WRITE);

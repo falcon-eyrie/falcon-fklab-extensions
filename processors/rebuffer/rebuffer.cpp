@@ -51,6 +51,7 @@ void Rebuffer::Configure( const YAML::Node & node, const GlobalContext& context 
     LOG( INFO ) << name() << ". Downsample factor set to " << downsample_factor_ << ".";
     
     buffer_unit_ = node["buffer_unit"].as<decltype(buffer_unit_)>( DEFAULT_BUFFER_UNIT );
+
     if (buffer_unit_ == "samples") {
         buffer_size_samples_ = node["buffer_size"].as<decltype(buffer_size_samples_)>
             ( DEFAULT_BUFFER_SIZE_SAMPLES );

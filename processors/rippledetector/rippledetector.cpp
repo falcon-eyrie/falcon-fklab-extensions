@@ -72,7 +72,7 @@ void RippleDetector::CreatePorts( ) {
         PortInPolicy( SlotRange(1) ) );
     
     event_out_port_ = create_output_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         EventData::Parameters("ripple"),
         PortOutPolicy( SlotRange(1) ) );

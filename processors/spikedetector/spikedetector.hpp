@@ -100,6 +100,9 @@ public:
     const decltype(buffer_size_ms_) DEFAULT_BUFFER_SIZE_MS = 0.5;
     const decltype(strict_time_bin_check_) DEFAULT_STRICT_TIME_BIN_CHECK = true;
     const decltype(n_channels_) MAX_N_CHANNELS = 8;
+
+    const std::string PEAK_LIFETIME_S = "peak_lifetime";
+    const std::string THRESHOLD_S = "threshold";
     
 protected:
     const int RINGBUFFER_SIZE = 1e5;

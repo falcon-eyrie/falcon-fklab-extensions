@@ -1,5 +1,4 @@
 #include "template_processor.hpp"
-//#include "g3log/src/g2log.hpp"
 
 constexpr datatype FalconProcessor::DEFAULT_ARGUMENT3;
 constexpr datatype FalconProcessor::DEFAULT_ARGUMENT4;

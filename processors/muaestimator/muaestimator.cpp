@@ -23,13 +23,13 @@
 
 void MUAEstimator::Configure( const YAML::Node  & node, const GlobalContext& context) {
 
-    initial_bin_size_ = node["bin_size_ms"].as<decltype(initial_bin_size_)>( DEFAULT_BIN_SIZE );
+    initial_bin_size_ = node[BIN_SIZE_S].as<decltype(initial_bin_size_)>( DEFAULT_BIN_SIZE );
 }
 
 void MUAEstimator::CreatePorts() {
     
     data_in_port_ = create_input_port<SpikeData>(
-        "spikes",
+        SPIKEDATA_S,
         SpikeData::Capabilities(),
         PortInPolicy( SlotRange(1, 64) ) );
     
@@ -40,7 +40,7 @@ void MUAEstimator::CreatePorts() {
         PortOutPolicy( SlotRange(1) ) );
     
     bin_size_ = create_readable_shared_state(
-        "bin_size_ms",
+        BIN_SIZE_S,
         initial_bin_size_,
         Permission::READ,
         Permission::WRITE );

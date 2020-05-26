@@ -73,6 +73,7 @@ protected:
     
 public:
     decltype(initial_bin_size_) DEFAULT_BIN_SIZE = 10;
+    const std::string BIN_SIZE_S = "bin_size_ms";
     
 };
 

@@ -92,7 +92,11 @@ public:
     const decltype(initial_post_detect_block_) DEFAULT_POST_DETECT_BLOCK = 2;
     const std::string DEFAULT_EVENT = "threshold_crossing";  
     const decltype(initial_post_detect_block_) LOW_POST_DETECTION_BLOCK_US = 30;
-    
+
+    const std::string THRESHOLD_S = "threshold";
+    const std::string UPSLOPE_S = "upslope";
+    const std::string POST_DETECT_BLOCK_S = "post_detect_block";
+
 };
 
 #endif // levelcrossingdetector.hpp

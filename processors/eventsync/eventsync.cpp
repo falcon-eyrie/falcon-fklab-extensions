@@ -27,12 +27,12 @@ void EventSync::Configure(const YAML::Node& node, const GlobalContext& context )
 void EventSync::CreatePorts() {
     
     data_in_port_ = create_input_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         PortInPolicy( SlotRange(1, 256) ) );
     
     data_out_port_ = create_output_port<EventData>(
-        "events",
+        EVENTDATA_S,
         EventData::Capabilities(),
         EventData::Parameters( target_event_.event() ),
         PortOutPolicy( SlotRange(1) ) );
