@@ -92,10 +92,10 @@ protected:
     bool initial_stats_out_;
     
     ReadableState<decltype(initial_threshold_dev_)>* threshold_dev_;
+    ReadableState<decltype(initial_smooth_time_)>* smooth_time_;
     ReadableState<decltype(initial_detection_lockout_time_)>*
         detection_lockout_time_;
     ReadableState<decltype(default_stream_events_)>* stream_events_;
-    ReadableState<decltype(initial_smooth_time_)>* smooth_time_;
     ReadableState<decltype(initial_stats_out_)>* stats_out_;
     
     bool stats_out_enabled_;
@@ -118,6 +118,7 @@ public:
         DEFAULT_DETECTION_LOCKOUT_TIME = 30;
     const decltype(default_stream_events_) DEFAULT_STREAM_EVENTS = true;
     const decltype(initial_stats_out_) DEFAULT_STREAM_STATISTICS = true;
+
     const decltype(stats_buffer_size_) DEFAULT_STATISTICS_BUFFER_SIZE = 0.5; // in seconds
     
 public:
@@ -128,7 +129,6 @@ public:
     const std::string STREAM_EVENTS_S = "stream_events";
     const std::string STREAM_STATISTICS_S = "stream_statistics";
     const std::string STATISTICS_BUFFER_SIZE_S = "statistics_buffer_size";
-    const std::string STATISTICS_DOWNSAMPLE_FACTOR_S = "statistics_downsample_factor";
     
 protected:
     const unsigned int N_STATS_OUT = 2;
