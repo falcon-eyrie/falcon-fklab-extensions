@@ -17,14 +17,14 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "eventsync.hpp"
+#include "eventlogger.hpp"
 
-void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
+void EventLogger::Configure(const YAML::Node& node, const GlobalContext& context ) {
     
     target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
 }
 
-void EventSync::CreatePorts() {
+void EventLogger::CreatePorts() {
     
     data_in_port_ = create_input_port<EventData>(
         EVENTDATA_S,
@@ -38,7 +38,7 @@ void EventSync::CreatePorts() {
         PortOutPolicy( SlotRange(1) ) );
 }
 
-void EventSync::Process( ProcessingContext& context ) {
+void EventLogger::Process( ProcessingContext& context ) {
     
     EventData* data_in = nullptr;
     EventData* data_out = nullptr;
@@ -84,7 +84,7 @@ void EventSync::Process( ProcessingContext& context ) {
     }
 }
 
-void EventSync::Postprocess( ProcessingContext& context ) {
+void EventLogger::Postprocess( ProcessingContext& context ) {
     
     log_and_reset_counters( data_in_port_, event_counter_ );
     
@@ -92,7 +92,7 @@ void EventSync::Postprocess( ProcessingContext& context ) {
     n_events_synced_ = 0;
 }
     
-void EventSync::update_latest_ts(EventData* data_in) {
+void EventLogger::update_latest_ts(EventData* data_in) {
         
     if ( data_in->source_timestamp() > timestamps_.source ) {
         timestamps_.source = data_in->source_timestamp();
@@ -102,7 +102,7 @@ void EventSync::update_latest_ts(EventData* data_in) {
     } 
 }
 
-void EventSync::log_and_reset_counters( PortIn<EventData>* in_port, 
+void EventLogger::log_and_reset_counters( PortIn<EventData>* in_port,
     EventCounter& counter ) {
     
     auto msg = ". '" + in_port->name() + "' counters.\n\t\t\t\t" +
@@ -119,4 +119,4 @@ void EventSync::log_and_reset_counters( PortIn<EventData>* in_port,
 }
 
 
-REGISTERPROCESSOR(EventSync)
+REGISTERPROCESSOR(EventLogger)

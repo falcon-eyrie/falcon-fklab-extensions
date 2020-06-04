@@ -39,16 +39,15 @@ void MUAEstimator::CreatePorts() {
         MUAData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
-    bin_size_ = create_readable_shared_state(
+    bin_size_ = create_static_state(
         BIN_SIZE_S,
         initial_bin_size_,
-        Permission::READ,
+        true,
         Permission::WRITE );
     
-    mua_ = create_writable_shared_state(
+    mua_ = create_broadcaster_state(
         "MUA",
         0.0,
-        Permission::READ,
         Permission::READ);
 }
 

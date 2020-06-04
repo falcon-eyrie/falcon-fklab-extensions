@@ -94,10 +94,10 @@ protected:
     PortIn<EventData>* data_in_port_;
     
     bool default_enabled_;
-    ReadableState<decltype(default_enabled_)>* enabled_state_;
+    StaticState<decltype(default_enabled_)>* enabled_state_;
     
     int default_lockout_period_ms_;
-    ReadableState<decltype(default_lockout_period_ms_)>* lockout_period_ms_; 
+    StaticState<decltype(default_lockout_period_ms_)>* lockout_period_ms_;
     
     bool save_stim_events_;
     std::wstring device_name_;

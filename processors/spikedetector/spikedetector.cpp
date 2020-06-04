@@ -53,16 +53,16 @@ void SpikeDetector::CreatePorts( ) {
         EventData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
-    threshold_ = create_readable_shared_state(
+    threshold_ = create_static_state(
         THRESHOLD_S,
         initial_threshold_,
-        Permission::READ,
+        true,
         Permission::WRITE);
     
-    peak_lifetime_ = create_readable_shared_state(
+    peak_lifetime_ = create_static_state(
         PEAK_LIFETIME_S,
         initial_peak_lifetime_,
-        Permission::READ,
+        true,
         Permission::WRITE);
 }
 

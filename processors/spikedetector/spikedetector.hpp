@@ -72,8 +72,8 @@ protected:
     PortOut<SpikeData>* data_out_port_spikes_;
     PortOut<EventData>* data_out_port_events_;
     
-    ReadableState<double>* threshold_;
-    ReadableState<unsigned int>* peak_lifetime_;
+    StaticState<double>* threshold_;
+    StaticState<unsigned int>* peak_lifetime_;
     
     unsigned int n_channels_;
     double initial_threshold_;
