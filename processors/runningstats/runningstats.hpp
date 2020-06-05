@@ -20,10 +20,10 @@
 /* RunningStats: computes running statistics
  * 
  * input ports:
- * data <MultiChannelData> (1 slot)
+ * data <MultiChannelType> (1 slot)
  *
  * output ports:
- * data <MultiChannelData> (1 slot)
+ * data <MultiChannelType> (1 slot)
  *
  * exposed states:
  * none
@@ -64,8 +64,8 @@ public:
 
 protected:
   
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<MultiChannelData<double>>* data_out_port_;
+    PortIn<MultiChannelType<double>>* data_in_port_;
+    PortOut<MultiChannelType<double>>* data_out_port_;
     
     double integration_time_;
     bool outlier_protection_;

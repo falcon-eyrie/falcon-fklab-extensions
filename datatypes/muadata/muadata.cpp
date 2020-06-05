@@ -21,50 +21,51 @@
 
 #include "utilities/string.hpp"
 
+using namespace nsMUAType;
 
-void MUAData::Initialize( double bin_size) {
+void Data::Initialize( double bin_size) {
     
     bin_size_ = bin_size;
 }
 
-void MUAData::Initialize( const Parameters & parameters ) {
+void Data::Initialize( const Parameters & parameters ) {
     Initialize( parameters.bin_size );
 }
 
-void MUAData::ClearData() {
+void Data::ClearData() {
     
     bin_size_ = 0;
     n_spikes_ = 0;
 }
 
-void MUAData::set_n_spikes( unsigned int n_spikes ) {
+void Data::set_n_spikes( unsigned int n_spikes ) {
     
     n_spikes_ = n_spikes;
 }
 
-double MUAData::mua() const {
+double Data::mua() const {
     
     return n_spikes_ / bin_size_ * 1e3;
 }
 
-void MUAData::set_bin_size( double bin_size ) {
+void Data::set_bin_size( double bin_size ) {
     
     bin_size_ = bin_size;
 }
 
-double MUAData::bin_size() {
+double Data::bin_size() {
     
     return bin_size_;
 }
 
-unsigned int MUAData::n_spikes() {
+unsigned int Data::n_spikes() {
     
     return n_spikes_;
 }
 
-void MUAData::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
+void Data::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
     
-    IData::SerializeBinary( stream, format );
+    Base::Data::SerializeBinary( stream, format );
     if ( format==Serialization::Format::FULL || format==Serialization::Format::COMPACT ) {       
         auto _mua = mua();
         stream.write( reinterpret_cast<const char*>( &_mua ), sizeof(decltype(_mua)) );
@@ -75,9 +76,9 @@ void MUAData::SerializeBinary( std::ostream& stream, Serialization::Format forma
     }
 }
 
-void MUAData::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
+void Data::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
     
-    IData::SerializeYAML( node, format );
+    Base::Data::SerializeYAML( node, format );
     if ( format==Serialization::Format::FULL || format==Serialization::Format::COMPACT ) {
         node["MUA"] = mua();
     }
@@ -87,9 +88,9 @@ void MUAData::SerializeYAML( YAML::Node & node, Serialization::Format format ) c
     }
 }
 
-void MUAData::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
+void Data::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
     
-    IData::YAMLDescription( node, format );
+    Base::Data::YAMLDescription( node, format );
     
     if ( format==Serialization::Format::FULL || format==Serialization::Format::COMPACT ) {
         node.push_back( "MUA " + get_type_string<double>() + " (1)" );
@@ -99,4 +100,5 @@ void MUAData::YAMLDescription( YAML::Node & node, Serialization::Format format )
         node.push_back( "bin_size " + get_type_string<double>() + " (1)" );
     }
 }
+
 

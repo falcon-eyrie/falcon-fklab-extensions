@@ -91,9 +91,9 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
 
 void DigitalOutput::CreatePorts() {
     
-    data_in_port_ = create_input_port<EventData>(
+    data_in_port_ = create_input_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
+        EventType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
     enabled_state_ = create_readable_shared_state(
@@ -125,7 +125,7 @@ void DigitalOutput::Preprocess( ProcessingContext& context ) {
     
 void DigitalOutput::Process( ProcessingContext& context ) {
      
-    EventData* data_in = nullptr;
+    EventType::Data* data_in = nullptr;
     uint64_t ts;
     
     std::string path = context.resolve_path( "run://", "run" );

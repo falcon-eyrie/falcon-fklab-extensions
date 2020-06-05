@@ -56,21 +56,21 @@ void BurstDetector::Configure(const YAML::Node& node, const GlobalContext& conte
 
 void BurstDetector::CreatePorts() {
     
-    data_in_port_ = create_input_port<MUAData>(
+    data_in_port_ = create_input_port<MUAType>(
         "mua",
-        MUAData::Capabilities(),
+        MUAType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_ = create_output_port<EventData>(
+    data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters( "burst" ),
+        EventType::Capabilities(),
+        EventType::Parameters( "burst" ),
         PortOutPolicy( SlotRange(1) ) );
 
-    stats_out_port_ = create_output_port<MultiChannelData<double>>(
+    stats_out_port_ = create_output_port<MultiChannelType<double>>(
         "statistics",
-        MultiChannelData<double>::Capabilities(ChannelRange(N_STATS_OUT)),
-        MultiChannelData<double>::Parameters(),
+        MultiChannelType<double>::Capabilities(ChannelRange(N_STATS_OUT)),
+        MultiChannelType<double>::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_writable_shared_state(
@@ -143,7 +143,7 @@ void BurstDetector::CompleteStreamInfo( ) {
     
     stats_out_port_->streaminfo(0).set_stream_rate( data_in_port_->streaminfo(0).stream_rate() );
     stats_out_port_->streaminfo(0).set_parameters(
-        MultiChannelData<double>::Parameters(
+        MultiChannelType<double>::Parameters(
             N_STATS_OUT, stats_nsamples_,
             1. / data_in_port_->streaminfo(0).parameters().bin_size * 1e3 ) );
     
@@ -179,9 +179,9 @@ void BurstDetector::Preprocess( ProcessingContext& context ) {
 
 void BurstDetector::Process(ProcessingContext& context) {
     
-    MUAData* data_in = nullptr;
-    EventData* event_out = nullptr;
-    MultiChannelData<double>* stats_out = nullptr;
+    typename MUAType::Data* data_in = nullptr;
+    typename EventType::Data* event_out = nullptr;
+    typename MultiChannelType<double>::Data* stats_out = nullptr;
     
     double value, test_value;
     auto stats_nsamples_counter = stats_nsamples_;

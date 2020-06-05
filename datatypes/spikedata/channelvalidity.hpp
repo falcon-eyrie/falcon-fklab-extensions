@@ -17,42 +17,43 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* DummySink: takes an any data stream and eats it. Mainly used to show 
- * and test basic graph processing functionality.
- * 
- * input ports:
- * data <AnyType> (1 slot)
- *
- * output ports:
- * none
- *
- * exposed states:
- * tickle <bool> - logs message
- *
- * exposed methods:
- * kick - logs message
- *
- * options:
- * none
- * 
- */
+#ifndef CHANNELVALIDITY_H
+#define CHANNELVALIDITY_H
 
-#ifndef DUMMYSINK_H
-#define DUMMYSINK_H
+#include "spikedata_common.hpp"
+#include <vector>
 
-#include "iprocessor.hpp"
-
-class DummySink : public IProcessor
-{
-public:
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    
-    YAML::Node Kick( const YAML::Node & node );
-
-protected:
-    PortIn<AnyType>* data_port_;
-    ReadableState<bool>* tickle_state_;
+struct ChannelDetection {
+    enum Validity {
+    UNKNOWN,
+    VALID,
+    BROKEN,
+    NO_PEAK
+    };
 };
 
-#endif
+class ChannelValidityMask {
+public:
+    ChannelValidityMask( unsigned int n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
+        ChannelDetection::Validity validity = ChannelDetection::Validity::UNKNOWN ); 
+    
+    ~ChannelValidityMask() {}
+    
+    unsigned int n_channels() const;
+    
+    std::vector<ChannelDetection::Validity>& validity_mask();
+    
+    void set_validity( size_t channel_index, ChannelDetection::Validity value);
+    
+    bool is_channel_valid( size_t channel_index) const;
+    
+    bool all_channels_valid() const;
+    
+    void reset(ChannelDetection::Validity value = ChannelDetection::Validity::UNKNOWN);
+            
+protected:
+    std::vector<ChannelDetection::Validity> mask_; 
+    
+};
+
+#endif // channelvalidity.hpp

@@ -28,9 +28,9 @@
 
 void DummySink::CreatePorts() {
     
-    data_port_ = create_input_port<IData>(
+    data_port_ = create_input_port<AnyType>(
         "data",
-        IData::Capabilities(),
+        AnyType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
     tickle_state_ = create_readable_shared_state( "tickle", false, Permission::READ, Permission::WRITE);
@@ -48,7 +48,7 @@ void DummySink::Process(ProcessingContext& context) {
     uint64_t packet_counter = 0;
     uint64_t retrieve_counter = 0;
     
-    std::vector<IData*> data;
+    std::vector<AnyType::Data*> data;
     
     auto address = data_port_->slot(0)->upstream_address();
     

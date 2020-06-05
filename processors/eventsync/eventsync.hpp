@@ -21,10 +21,10 @@
  * its input slots, before emitting the same target event
  * 
  * input ports:
- * events <EventData> (1-256 slots)
+ * events <EventType> (1-256 slots)
  *
  * output ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  *
  * exposed states:
  * none
@@ -55,13 +55,13 @@ public:
 
 protected:
     void reset_timestamps(TimestampRegister timestamp_reg);
-    void update_latest_ts(EventData* data_in);
-    void log_and_reset_counters( PortIn<EventData>* in_port, EventCounter& counter );
+    void update_latest_ts(EventType::Data* data_in);
+    void log_and_reset_counters( PortIn<EventType>* in_port, EventCounter& counter );
     
 protected:
-    PortIn<EventData>* data_in_port_;
-    PortOut<EventData>* data_out_port_;
-    EventData target_event_;
+    PortIn<EventType>* data_in_port_;
+    PortOut<EventType>* data_out_port_;
+    EventType::Data target_event_;
 
     EventCounter event_counter_;
     uint64_t n_events_synced_;

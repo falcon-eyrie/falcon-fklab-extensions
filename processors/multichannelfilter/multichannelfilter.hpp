@@ -20,10 +20,10 @@
 /* MultiChannelFilter: filters multiple MultiChannelData streams
  * 
  * input ports:
- * data <MultiChannelData> (1-256 slots)
+ * data <MultiChannelType> (1-256 slots)
  *
  * output ports:
- * data <MultiChannelData> (1-256 slots)
+ * data <MultiChannelType> (1-256 slots)
  *
  * exposed states:
  * none
@@ -81,8 +81,8 @@ protected:
     std::unique_ptr<dsp::filter::IFilter> filter_template_;
     std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
     
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<MultiChannelData<double>>* data_out_port_;
+    PortIn<MultiChannelType<double>>* data_in_port_;
+    PortOut<MultiChannelType<double>>* data_out_port_;
 };
 
 #endif // multichannelfilter.hpp

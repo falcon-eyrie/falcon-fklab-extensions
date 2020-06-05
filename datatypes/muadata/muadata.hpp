@@ -22,27 +22,27 @@
 
 #include "idata.hpp"
 
+namespace nsMUAType {
 
-class MUAData : public IData {
+using Base = AnyType;
+
+struct Parameters : Base::Parameters {
+    Parameters(double bin = 0)
+        : Base::Parameters(), bin_size(bin) {}
+    
+    double bin_size;
+};
+
+class Capabilities : public Base::Capabilities {
 public:
-    struct Parameters : IData::Parameters {
-        Parameters(double bin = 0)
-          : IData::Parameters(), bin_size(bin) {}
-        
-        double bin_size;
-    };
-    
-    class Capabilities : public IData::Capabilities {
-    public:
-        virtual void Validate( const Parameters & parameters ) const {
-            if (parameters.bin_size<=0) {
-                throw std::runtime_error( "Bin size cannot be smaller or equal to zero." );
-            }
+    virtual void Validate( const Parameters & parameters ) const {
+        if (parameters.bin_size<=0) {
+            throw std::runtime_error( "Bin size cannot be smaller or equal to zero." );
         }
-    };
-    
-    static const std::string datatype() { return "mua"; }
-    
+    }
+};
+
+class Data : public Base::Data {
 public:
     void Initialize( double bin_size );
     void Initialize( const Parameters & parameters );
@@ -71,6 +71,21 @@ public:
 protected:
     double bin_size_; // in ms
     unsigned int n_spikes_;
+};
+
+}
+
+class MUAType {
+public:
+
+    static const std::string datatype() { return "mua"; }
+    static const std::string dataname() { return "mua"; }
+
+    using Base = nsMUAType::Base;
+    using Parameters = nsMUAType::Parameters;
+    using Capabilities = nsMUAType::Capabilities;
+    using Data = nsMUAType::Data;
+    
 };
 
 

@@ -20,7 +20,7 @@
 /* EventSink: takes an EventData stream and logs the arrival of a target event
  * 
  * input ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  *
  * output ports:
  * none
@@ -52,8 +52,8 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override; 
 
 protected:
-    PortIn<EventData>* event_port_;
-    EventData target_event_;
+    PortIn<EventType>* event_port_;
+    EventType::Data target_event_;
     
     EventCounter event_counter_;
 };

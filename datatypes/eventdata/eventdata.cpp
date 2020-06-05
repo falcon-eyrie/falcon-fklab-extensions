@@ -19,55 +19,60 @@
 
 #include "eventdata.hpp"
 
-EventData::EventData( std::string event ) {
+using namespace nsEventType;
+
+Data::Data( std::string event ) {
     
     set_event( event );
 }
 
-void EventData::Initialize( std::string event ) {
+void Data::Initialize( std::string event ) {
     
     set_event( event );
 }
 
-void EventData::ClearData() {
+void Data::ClearData() {
 
     set_event( "none" );
 }
 
-std::string EventData::event() const {
+std::string Data::event() const {
     
     return event_;
 }
 
-size_t EventData::hash() const {
+size_t Data::hash() const {
     
     return hash_;
 }
 
-void EventData::set_event( std::string event ) {
+void Data::set_event( std::string event ) {
     
     event_ = event;
     hash_ = std::hash<std::string>()( event_ );
 }
 
-void EventData::set_event( const EventData &source ) {
+void Data::set_event( const Data &source ) {
     event_ = source.event();
     hash_ = source.hash();
 }
 
-bool operator==(EventData &e1, EventData &e2) {
+namespace nsEventType {
+
+bool operator==(Data &e1, Data &e2) {
     
     return e1.hash_==e2.hash_;
 }
 
-bool operator!=(EventData &e1, EventData &e2) {
+bool operator!=(Data &e1, Data &e2) {
     
     return e1.hash_!=e2.hash_;
 }
+}
 
-void EventData::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
+void Data::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
     
-    IData::SerializeBinary( stream, format );
+    Base::Data::SerializeBinary( stream, format );
     if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
         std::string buffer = event_;
         buffer.resize(EVENT_STRING_LENGTH);
@@ -75,28 +80,20 @@ void EventData::SerializeBinary( std::ostream& stream, Serialization::Format for
     }
 }
 
-void EventData::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
+void Data::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
     
-   IData::SerializeYAML( node, format );
+   Base::Data::SerializeYAML( node, format );
    if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
        node["event"] = event_;
    }
 }
 
-void EventData::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
+void Data::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
     
-    IData::YAMLDescription( node, format );
+    Base::Data::YAMLDescription( node, format );
     if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
         node.push_back("event_string str (" + std::to_string( EVENT_STRING_LENGTH ) + ")" );
     }
 }
 
-//std::string EventDataType::default_event() const {
-    
-    //return default_event_;
-//}
-    
-//void EventDataType::InitializeData( EventData& item ) const {
-    
-    //item.Initialize( default_event_ );
-//}
+

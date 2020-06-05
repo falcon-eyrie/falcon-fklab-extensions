@@ -28,15 +28,15 @@ constexpr decltype(Rebuffer::buffer_size_seconds_) Rebuffer::DEFAULT_BUFFER_SIZE
 
 void Rebuffer::CreatePorts( ) {
     
-    data_in_port_ = create_input_port<MultiChannelData<double>>(
+    data_in_port_ = create_input_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(0,256) ) );
     
-    data_out_port_ = create_output_port<MultiChannelData<double>>(
+    data_out_port_ = create_output_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
-        MultiChannelData<double>::Parameters(),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Parameters(),
         PortOutPolicy( SlotRange(0,256) ) );
 }
 
@@ -102,7 +102,7 @@ void Rebuffer::CompleteStreamInfo( ) {
     
     // finalize
     for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
-        data_out_port_->streaminfo(k).set_parameters( MultiChannelData<double>::Parameters(
+        data_out_port_->streaminfo(k).set_parameters( MultiChannelType<double>::Parameters(
             data_in_port_->streaminfo(k).parameters().nchannels,
             buffer_size_[k],
             data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_ ));
@@ -117,8 +117,8 @@ void Rebuffer::Process( ProcessingContext& context ) {
     
     auto nslots = data_in_port_->number_of_slots();
     
-    MultiChannelData<double>* data_in = nullptr;
-    std::vector<MultiChannelData<double>*> data_out;
+    MultiChannelType<double>::Data* data_in = nullptr;
+    std::vector<MultiChannelType<double>::Data*> data_out;
     data_out.assign(nslots, nullptr);
 
     decltype(buffer_size_) sample_out_counter = buffer_size_;

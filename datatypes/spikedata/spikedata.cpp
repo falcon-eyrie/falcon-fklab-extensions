@@ -18,64 +18,16 @@
 // ---------------------------------------------------------------------
 
 #include "spikedata.hpp"
+#include "channelvalidity.hpp"
 
 #include "utilities/string.hpp"
 #include "vector_operations/vector_io.hpp"
 #include <typeinfo>
 
-//constexpr double SpikeDataType::DEFAULT_SAMPLING_FREQUENCY;
+using namespace nsSpikeType;
 
-ChannelValidityMask::ChannelValidityMask(unsigned int n_channels, ChannelDetection::Validity validity) {
-
-    mask_.assign( n_channels, validity );
-}
-
-unsigned int ChannelValidityMask::n_channels() const {
+void Data::Initialize ( unsigned int nchannels, size_t max_nspikes, double sample_rate) {
     
-    return mask_.size();
-}
-    
-std::vector<ChannelDetection::Validity>& ChannelValidityMask::validity_mask() {
-    
-    return mask_;
-}
-    
-void ChannelValidityMask::set_validity( size_t channel_index, ChannelDetection::Validity value ) {
-    
-    mask_[channel_index] = value;
-}
-    
-bool ChannelValidityMask::is_channel_valid( size_t channel_index) const {
-    
-    return mask_[channel_index] == ChannelDetection::Validity::VALID;
-}
-    
-bool ChannelValidityMask::all_channels_valid() const {
-    
-    for (auto m: mask_) {
-        if (m != ChannelDetection::Validity::VALID) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void ChannelValidityMask::reset(ChannelDetection::Validity validity_value) {
-    
-    mask_.assign( this->n_channels(), validity_value );
-}
-
-void SpikeData::Initialize ( unsigned int nchannels, size_t max_nspikes, double sample_rate) {
-    
-    //if (nchannels==0) {
-        //throw std::runtime_error("SpikeData::Initializer - number of channels needs to be larger than 0.");
-    //}
-    //if (max_nspikes==0) {
-        //throw std::runtime_error("SpikeData::Initializer - max_nspikes needs to be larger than 0.");
-    //}
-    //if (sample_rate<=0) {
-        //throw std::runtime_error("SpikeData::Initializer - sample rate needs to be larger than 0.");
-    //}
     n_channels_ = nchannels;
     n_detected_spikes_ = 0;
     sample_rate_ = sample_rate;
@@ -88,17 +40,17 @@ void SpikeData::Initialize ( unsigned int nchannels, size_t max_nspikes, double 
     validity_mask_ = ChannelValidityMask( nchannels );
 }
 
-unsigned int SpikeData::n_channels() const {
+unsigned int Data::n_channels() const {
 
     return n_channels_;
 }
 
-double SpikeData::sample_rate() const {
+double Data::sample_rate() const {
     
     return sample_rate_;
 }
 
-void SpikeData::add_spike(const std::vector<double>& amplitudes, uint64_t hw_timestamp) {
+void Data::add_spike(const std::vector<double>& amplitudes, uint64_t hw_timestamp) {
     
     assert ( amplitudes.size() == n_channels_ );
     for (unsigned int i=0; i < n_channels_; ++i ) {
@@ -108,7 +60,7 @@ void SpikeData::add_spike(const std::vector<double>& amplitudes, uint64_t hw_tim
     hw_ts_detected_spikes_.push_back(hw_timestamp);
 }
 
-void SpikeData::add_spike(double* amplitudes, uint64_t hw_timestamp) {
+void Data::add_spike(double* amplitudes, uint64_t hw_timestamp) {
     
     for (unsigned int i=0; i < n_channels_; ++i ) {
         amplitudes_.push_back(amplitudes[i]);
@@ -117,18 +69,18 @@ void SpikeData::add_spike(double* amplitudes, uint64_t hw_timestamp) {
     hw_ts_detected_spikes_.push_back(hw_timestamp);
 }
 
-unsigned int SpikeData::n_detected_spikes() const {
+unsigned int Data::n_detected_spikes() const {
 
     return n_detected_spikes_;
 }
      
-std::vector<double>&  SpikeData::amplitudes() {
+std::vector<double>&  Data::amplitudes() {
     
     assert (n_detected_spikes_ == amplitudes_.size() / n_channels_);
     return amplitudes_;
 }
     
-void SpikeData::ClearData() {
+void Data::ClearData() {
        
     n_detected_spikes_ = 0;
     amplitudes_.clear();
@@ -136,33 +88,33 @@ void SpikeData::ClearData() {
     validity_mask_.reset();
 }
 
-ChannelValidityMask& SpikeData::validity_mask() {
+ChannelValidityMask& Data::validity_mask() {
     
     return validity_mask_;
 }
 
-const std::vector<uint64_t>& SpikeData::ts_detected_spikes() const {
+const std::vector<uint64_t>& Data::ts_detected_spikes() const {
     
     return hw_ts_detected_spikes_;
 }
 
-const uint64_t SpikeData::ts_detected_spikes( int index ) const {
+const uint64_t Data::ts_detected_spikes( int index ) const {
     
     assert( n_detected_spikes_ == ts_detected_spikes().size() );
     assert( index < ( static_cast<int>(n_detected_spikes_) ) );
     return hw_ts_detected_spikes_[index];
 }
 
-std::vector<double>::const_iterator SpikeData::spike_amplitudes( std::size_t spike_index ) const {
+std::vector<double>::const_iterator Data::spike_amplitudes( std::size_t spike_index ) const {
     
     std::vector<double>::const_iterator it = amplitudes_.begin();
     it += spike_index * n_channels_;
     return it;
 }
 
-void SpikeData::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
+void Data::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
 
-    IData::SerializeBinary( stream, format );
+    Base::Data::SerializeBinary( stream, format );
     
     if ( format==Serialization::Format::FULL ) {
         
@@ -192,9 +144,9 @@ void SpikeData::SerializeBinary( std::ostream& stream, Serialization::Format for
     }
 }
 
-void SpikeData::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
+void Data::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
 
-    IData::SerializeYAML( node, format );
+    Base::Data::SerializeYAML( node, format );
     
     if ( format==Serialization::Format::FULL || format==Serialization::Format::COMPACT ) {
         node[N_CHANNELS_S] = static_cast<unsigned int>(n_channels_);  // TODO: move to preamble
@@ -206,9 +158,9 @@ void SpikeData::SerializeYAML( YAML::Node & node, Serialization::Format format )
     }
 }
 
-void SpikeData::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
+void Data::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
 
-    IData::YAMLDescription( node, format );
+    Base::Data::YAMLDescription( node, format );
     
     if ( format==Serialization::Format::FULL ) {
         node.push_back( N_DETECTED_SPIKES_S + " " +
@@ -228,51 +180,3 @@ void SpikeData::YAMLDescription( YAML::Node & node, Serialization::Format format
             " (" + std::to_string(n_channels_) + ")" );
     }
 }
-
-//double SpikeDataType::buffer_size() const {
-    
-    //return buffer_size_ms_;
-//}
-
-//double SpikeDataType::sample_rate() const {
-    
-    //return sample_rate_;
-//}
-
-//ChannelRange SpikeDataType::channel_range() const {
-    
-    //return channel_range_;
-//}
-
-//unsigned int SpikeDataType::n_channels() const {
-    
-    //return n_channels_;
-//}
-
-//bool SpikeDataType::CheckCompatibility( const SpikeDataType& upstream ) const {
-    
-    //return channel_range_.inrange( upstream.channel_range() ); 
-//}
-
-//void SpikeDataType::Finalize( unsigned int nchannels, double sample_rate ) {
-        
-    //if (  nchannels==0 || !channel_range_.inrange(nchannels) ) {
-        //throw std::runtime_error( "Number of channels is out of range.");
-    //}
-    //n_channels_ = nchannels;
-    //sample_rate_ = sample_rate;
-    //AnyDataType::Finalize();
-//}
-
-//void SpikeDataType::Finalize( SpikeDataType& upstream ) {
-
-    //Finalize( upstream.n_channels(), upstream.sample_rate() );
-//}
-
-//void SpikeDataType::InitializeData( SpikeData& item ) const  {
-    
-    //unsigned int max_nspikes = round (buffer_size_ms_ * sample_rate_ / 1000) / 2;
-    //item.Initialize( n_channels_, max_nspikes, sample_rate_ );
-//}
-
-

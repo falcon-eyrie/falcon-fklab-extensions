@@ -22,11 +22,11 @@
  *  on the output port events if one or more spikes have been detected in the received buffer
  * 
  * input ports:
- * data <MultiChannelData> (1 slot)
+ * data <MultiChannelType> (1 slot)
  *
  * output ports:
- * spikes <SpikeData> (1 slot)
- * events <EventData> (1 slot)
+ * spikes <SpikeType> (1 slot)
+ * events <EventType> (1 slot)
  *
  * exposed states:
  * threshold <double> - threshold that a single channel must cross
@@ -68,9 +68,9 @@ public:
     virtual void Unprepare( GlobalContext& context ) override;
 
 protected:
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<SpikeData>* data_out_port_spikes_;
-    PortOut<EventData>* data_out_port_events_;
+    PortIn<MultiChannelType<double>>* data_in_port_;
+    PortOut<SpikeType>* data_out_port_spikes_;
+    PortOut<EventType>* data_out_port_events_;
     
     ReadableState<double>* threshold_;
     ReadableState<unsigned int>* peak_lifetime_;
@@ -86,11 +86,11 @@ protected:
     
     std::unique_ptr<dsp::algorithms::SpikeDetector> spike_detector_;
     
-    MultiChannelData<double>* data_in_;
-    std::unique_ptr<MultiChannelData<double>> inverted_signals_;
-    SpikeData* spike_data_out_;
-    EventData* event_data_out_;
-
+    MultiChannelType<double>::Data* data_in_;
+    std::unique_ptr<MultiChannelType<double>::Data> inverted_signals_;
+    SpikeType::Data* spike_data_out_;
+    EventType::Data* event_data_out_;
+    
     uint64_t n_streamed_events_;
     
 public:

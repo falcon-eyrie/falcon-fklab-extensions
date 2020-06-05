@@ -21,10 +21,10 @@
  * emits an ripple event in response
  * 
  * input ports:
- * data <MultiChannelData> (1 slot)
+ * data <MultiChannelType> (1 slot)
  *
  * output ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  *
  * exposed states:
  * threshold_dev <double> - threshold that needs to be crossed (read-only)
@@ -75,12 +75,12 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;
     
 protected:
-    double compute_value( MultiChannelData<double>* data_in, unsigned int sample );
+    double compute_value( MultiChannelType<double>::Data* data_in, unsigned int sample );
     
 protected:
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<EventData>* event_out_port_;
-    PortOut<MultiChannelData<double>>* stats_out_port_;
+    PortIn<MultiChannelType<double>>* data_in_port_;
+    PortOut<EventType>* event_out_port_;
+    PortOut<MultiChannelType<double>>* stats_out_port_;
     
     WritableState<double>* threshold_;
     WritableState<double>* signal_mean_;

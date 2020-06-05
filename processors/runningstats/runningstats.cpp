@@ -21,15 +21,15 @@
 
 void RunningStats::CreatePorts( ) {
     
-    data_in_port_ = create_input_port<MultiChannelData<double>>(
+    data_in_port_ = create_input_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_ = create_output_port<MultiChannelData<double>>(
+    data_out_port_ = create_output_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
-        MultiChannelData<double>::Parameters(),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
 }
@@ -69,8 +69,8 @@ void RunningStats::Preprocess( ProcessingContext& context ) {
 
 void RunningStats::Process( ProcessingContext& context ) {
     
-    MultiChannelData<double>* data_in;
-    MultiChannelData<double>* data_out;
+    MultiChannelType<double>::Data* data_in;
+    MultiChannelType<double>::Data* data_out;
     
     unsigned N = 100;
     

@@ -25,24 +25,26 @@
 
 #define DEFAULT_SCALAR_VALUE 0 // can be used in a template
 
-template <class TYPE>
-class ScalarData : public IData {
-public:
-    struct Parameters : IData::Parameters {
-        Parameters( TYPE value )
-          : IData::Parameters(), default_value(value) {}
-        TYPE default_value;
-    };
-    
-    class Capabilities : public IData::Capabilities {
-    };
-    
-    static const std::string datatype() { return "scalar"; }
-    
+namespace nsScalarType {
+
+using Base = AnyType;
+
+template <typename TYPE>
+struct Parameters : Base::Parameters {
+    Parameters( TYPE value )
+        : Base::Parameters(), default_value(value) {}
+    TYPE default_value;
+};
+
+class Capabilities : public Base::Capabilities {
+};
+
+template <typenameTYPE>
+class Data : public Base::Data {
 public:
     ScalarData( TYPE data = DEFAULT_SCALAR_VALUE ) : data_(data) {}
     
-    void Initialize( const Parameters & parameters ) {
+    void Initialize( const Parameters<TYPE> & parameters ) {
         data_ = parameters.default_value;
     }
     
@@ -52,16 +54,16 @@ public:
     
     void set_data( const TYPE& data ) { data_ = data; }
     
-    void set_data( const ScalarData<TYPE> &source ) {data_ = source.data();}
+    void set_data( const Data<TYPE> &source ) {data_ = source.data();}
     
-    friend bool operator == (ScalarData<TYPE>  &a, ScalarData<TYPE>  &b) {return a.data == b.data;}
+    friend bool operator == (Data<TYPE>  &a, Data<TYPE>  &b) {return a.data == b.data;}
    
-    friend bool operator != (ScalarData<TYPE>  &a, ScalarData<TYPE>  &b) {return a.data != b.data;}
+    friend bool operator != (Data<TYPE>  &a, Data<TYPE>  &b) {return a.data != b.data;}
     
     virtual void SerializeBinary( std::ostream& stream,
     Serialization::Format format = Serialization::Format::FULL ) const override {
 
-        IData::SerializeBinary( stream, format );
+        Base::SerializeBinary( stream, format );
         if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
             stream.write( reinterpret_cast<const char*>( &data_) , sizeof(TYPE) );
         }
@@ -70,7 +72,7 @@ public:
     virtual void SerializeYAML( YAML::Node & node,
     Serialization::Format format = Serialization::Format::FULL ) const  override {
         
-        IData::SerializeYAML( node, format );
+        Base::SerializeYAML( node, format );
         if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
             node["scalar_data"] = data_;
         }
@@ -79,7 +81,7 @@ public:
     virtual void YAMLDescription( YAML::Node & node,
         Serialization::Format format = Serialization::Format::FULL ) const override {
         
-        IData::YAMLDescription( node, format );
+        Base::YAMLDescription( node, format );
         if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
             node.push_back( "scalar_data " +  get_type_string<TYPE>() + " (1)" );
         }
@@ -87,6 +89,22 @@ public:
     
 protected:
     TYPE data_;
+};
+
+}
+
+template <class TYPE>
+class ScalarType {
+public:
+    
+    static const std::string datatype() { return "scalar"; }
+    static const std::string dataname() { return "data"; }
+    
+    using Base = nsScalarType::Base;
+    using Parameters = nsScalarType::Parameters<TYPE>;
+    using Capabilities = nsScalarType::Capabilities;
+    using Data = nsScalarType::Data<TYPE>;
+
 };
 
 

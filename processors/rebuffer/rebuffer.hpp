@@ -21,10 +21,10 @@
  * No anti-aliasing filter is applied before downsampling.
  * 
  * input ports:
- * data <MultiChannelData> (1-256 slots)
+ * data <MultiChannelType> (1-256 slots)
  *
  * output ports:
- * data <MultiChannelData> (1-256 slots)
+ * data <MultiChannelType> (1-256 slots)
  *
  * exposed states:
  * none
@@ -57,8 +57,8 @@ public:
     virtual void CompleteStreamInfo( ) override;
 
 protected:   
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<MultiChannelData<double>>* data_out_port_;
+    PortIn<MultiChannelType<double>>* data_in_port_;
+    PortOut<MultiChannelType<double>>* data_out_port_;
     
     std::string buffer_unit_;
     unsigned int buffer_size_samples_;

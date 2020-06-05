@@ -17,42 +17,19 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* DummySink: takes an any data stream and eats it. Mainly used to show 
- * and test basic graph processing functionality.
- * 
- * input ports:
- * data <AnyType> (1 slot)
- *
- * output ports:
- * none
- *
- * exposed states:
- * tickle <bool> - logs message
- *
- * exposed methods:
- * kick - logs message
- *
- * options:
- * none
- * 
- */
+#ifndef SPIKEDATA_COMMON_H
+#define SPIKEDATA_COMMON_H
 
-#ifndef DUMMYSINK_H
-#define DUMMYSINK_H
+#include <string>
+#include <vector>
 
-#include "iprocessor.hpp"
+const std::string SPIKEDATA_S = "spikes"; // to be used for port names using spike data
 
-class DummySink : public IProcessor
-{
-public:
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    
-    YAML::Node Kick( const YAML::Node & node );
+static const double DEFAULT_BUFFER_SIZE_MS = 12.75;
+static const unsigned int MAX_N_CHANNELS_SPIKE_DETECTION = 16;
+static const unsigned int MAX_N_SPIKES_IN_BUFFER = 100;
+static std::vector<uint64_t> zero_timestamps( MAX_N_SPIKES_IN_BUFFER, 0 );
+static std::vector<double> zero_amplitudes(
+    MAX_N_SPIKES_IN_BUFFER * MAX_N_CHANNELS_SPIKE_DETECTION, 0);
 
-protected:
-    PortIn<AnyType>* data_port_;
-    ReadableState<bool>* tickle_state_;
-};
-
-#endif
+#endif // spikedata_common.hpp

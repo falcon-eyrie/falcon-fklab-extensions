@@ -66,21 +66,21 @@ void RippleDetector::Configure( const YAML::Node & node, const GlobalContext& co
 
 void RippleDetector::CreatePorts( ) {
     
-    data_in_port_ = create_input_port<MultiChannelData<double>>(
+    data_in_port_ = create_input_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(1) ) );
     
-    event_out_port_ = create_output_port<EventData>(
+    event_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters("ripple"),
+        EventType::Capabilities(),
+        EventType::Parameters("ripple"),
         PortOutPolicy( SlotRange(1) ) );
     
-    stats_out_port_ = create_output_port<MultiChannelData<double>>(
+    stats_out_port_ = create_output_port<MultiChannelType<double>>(
         "statistics",
-        MultiChannelData<double>::Capabilities( ChannelRange(N_STATS_OUT) ),
-        MultiChannelData<double>::Parameters(),
+        MultiChannelType<double>::Capabilities( ChannelRange(N_STATS_OUT) ),
+        MultiChannelType<double>::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_writable_shared_state(
@@ -144,7 +144,7 @@ void RippleDetector::CompleteStreamInfo( ) {
         data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_;
     stats_nsamples_ = std::max( stats_nsamples_, 1UL );
     
-    stats_out_port_->streaminfo(0).set_parameters( MultiChannelData<double>::Parameters(
+    stats_out_port_->streaminfo(0).set_parameters( MultiChannelType<double>::Parameters(
         N_STATS_OUT, stats_nsamples_,
         data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_ ));
     stats_out_port_->streaminfo(0).set_stream_rate( data_in_port_->streaminfo(0) );
@@ -170,9 +170,9 @@ void RippleDetector::Preprocess( ProcessingContext& context ) {
 
 void RippleDetector::Process( ProcessingContext& context ) {
     
-    MultiChannelData<double>* data_in = nullptr;
-    EventData* event_out = nullptr;
-    MultiChannelData<double>* stats_out = nullptr;
+    MultiChannelType<double>::Data* data_in = nullptr;
+    EventType::Data* event_out = nullptr;
+    MultiChannelType<double>::Data* stats_out = nullptr;
     
     double value, test_value;
     unsigned int s;
@@ -287,7 +287,7 @@ void RippleDetector::Postprocess( ProcessingContext& context ) {
         << " ripple events.";
 }
 
-inline double RippleDetector::compute_value( MultiChannelData<double>* data_in,
+inline double RippleDetector::compute_value( MultiChannelType<double>::Data* data_in,
     unsigned int sample ) {
     
     if ( use_power_ ) {

@@ -25,7 +25,7 @@
  * none
  *
  * output ports:
- * [configurable] <MultiChannelData> (1 slot)
+ * [configurable] <MultiChannelType> (1 slot)
  *
  * exposed states:
  * none
@@ -151,7 +151,7 @@ protected:
     NlxReaderStats stats_;
     decltype(timestamp_) delta_;
     
-    std::map<std::string, PortOut<MultiChannelData<double>>*> data_ports_;
+    std::map<std::string, PortOut<MultiChannelType<double>>*> data_ports_;
     
 public:
     static constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)

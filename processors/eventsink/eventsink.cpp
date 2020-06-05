@@ -22,20 +22,20 @@
 
 void EventSink::Configure( const YAML::Node& node, const GlobalContext& context) {
     
-    target_event_ = EventData(node["target_event"].as<std::string>( DEFAULT_EVENT ));
+    target_event_ = EventType::Data(node["target_event"].as<std::string>( DEFAULT_EVENT ));
 }
 
 void EventSink::CreatePorts() {
     
-    event_port_ = create_input_port<EventData>(
+    event_port_ = create_input_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
+        EventType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
 }
 
 void EventSink::Process( ProcessingContext& context ) {
     
-    EventData *data;
+    EventType::Data *data;
     
     while (!context.terminated()) {
         

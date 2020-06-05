@@ -21,11 +21,11 @@
  * EventFilter: processes neural data
  * 
  * input ports:
- * events <EventData> ( 1-256 slots)
- * blocking_events <EventData> ( 1-256 slots)
+ * events <EventType> ( 1-256 slots)
+ * blocking_events <EventType> ( 1-256 slots)
  * 
  * output ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  * 
  * exposed states:
  * none
@@ -70,13 +70,13 @@ protected:
     // return the alive status of the processor, the flag of found target and
     // the timestamp of the target event detected after a read on the input port
     std::tuple<bool, bool, std::size_t> is_there_target(
-        PortIn<EventData>* input_port,
+        PortIn<EventType>* input_port,
         EventCounter& event_counter,
         std::vector<TimePoint>& arrival_times,
         std::vector<uint64_t>& arrival_timestamps  );
     
 protected:
-    PortIn<EventData>* block_in_port_;
+    PortIn<EventType>* block_in_port_;
 
     double blockout_time_ms_;
     double synch_time_ms_;
@@ -119,5 +119,3 @@ protected:
 };
 
 #endif	// eventfilter.hpp
-
-REGISTERPROCESSOR(EventFilter)

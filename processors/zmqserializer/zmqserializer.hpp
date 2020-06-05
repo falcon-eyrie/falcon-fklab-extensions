@@ -57,7 +57,7 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;
     
 protected:
-    PortIn<IData>* data_port_;
+    PortIn<AnyType>* data_port_;
     
     std::string encoding_;
     Serialization::Format format_;

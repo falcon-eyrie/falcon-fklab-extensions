@@ -24,7 +24,7 @@
  * none
  *
  * output ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  *
  * exposed states:
  * none
@@ -52,7 +52,7 @@ public:
     virtual void Process( ProcessingContext& context ) override;
     
 protected:
-    PortOut<EventData>* event_port_;
+    PortOut<EventType>* event_port_;
     
     std::vector<std::string> event_list_;
     double event_rate_;

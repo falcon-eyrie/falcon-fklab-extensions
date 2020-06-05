@@ -21,27 +21,27 @@
 
 void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
     
-    target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
+    target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
 }
 
 void EventSync::CreatePorts() {
     
-    data_in_port_ = create_input_port<EventData>(
+    data_in_port_ = create_input_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
+        EventType::Capabilities(),
         PortInPolicy( SlotRange(1, 256) ) );
     
-    data_out_port_ = create_output_port<EventData>(
+    data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters( target_event_.event() ),
+        EventType::Capabilities(),
+        EventType::Parameters( target_event_.event() ),
         PortOutPolicy( SlotRange(1) ) );
 }
 
 void EventSync::Process( ProcessingContext& context ) {
     
-    EventData* data_in = nullptr;
-    EventData* data_out = nullptr;
+    EventType::Data* data_in = nullptr;
+    EventType::Data* data_out = nullptr;
     
     uint64_t target_events_counter = 0;
     
@@ -92,7 +92,7 @@ void EventSync::Postprocess( ProcessingContext& context ) {
     n_events_synced_ = 0;
 }
     
-void EventSync::update_latest_ts(EventData* data_in) {
+void EventSync::update_latest_ts(EventType::Data* data_in) {
         
     if ( data_in->source_timestamp() > timestamps_.source ) {
         timestamps_.source = data_in->source_timestamp();
@@ -102,7 +102,7 @@ void EventSync::update_latest_ts(EventData* data_in) {
     } 
 }
 
-void EventSync::log_and_reset_counters( PortIn<EventData>* in_port, 
+void EventSync::log_and_reset_counters( PortIn<EventType>* in_port, 
     EventCounter& counter ) {
     
     auto msg = ". '" + in_port->name() + "' counters.\n\t\t\t\t" +
