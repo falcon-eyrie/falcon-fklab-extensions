@@ -48,8 +48,8 @@ class DummySink : public ISink<IData>
 public:
     virtual void SetPortName() override {port_name = "data";};
     virtual void CreateStates() override;
-    virtual bool Process_start( ProcessingContext& context ) override;
-    virtual bool Process_loop( ProcessingContext& context ) override;
+    virtual bool ProcessStart( ProcessingContext& context ) override;
+    virtual bool ProcessData( ProcessingContext& context, IData* data) override;
     virtual void Postprocess( ProcessingContext& context )  override;
 
     YAML::Node Kick( const YAML::Node & node );

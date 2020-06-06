@@ -26,7 +26,7 @@ void EventSink::Configure( const YAML::Node& node, const GlobalContext& context)
 }
 
 
-bool EventSink::Process_loop( ProcessingContext& context ) {
+bool EventSink::ProcessData( ProcessingContext& context, EventData* data ) {
 
     ++ event_counter_.all_received;
         

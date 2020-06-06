@@ -40,7 +40,7 @@ void EventSource::Configure( const YAML::Node& node, const GlobalContext& contex
     LOG(INFO) << name() << ". Event rate set to " << event_rate_ << " Hz.";
 }
 
-bool EventSource::Process_start( ProcessingContext& context ) {
+bool EventSource::ProcessStart( ProcessingContext& context) {
 
     if (event_list_.size()==0) { return false;}
 
@@ -49,7 +49,7 @@ bool EventSource::Process_start( ProcessingContext& context ) {
     return true;
 }
 
-void EventSource::Process_loop( ProcessingContext& context ) {
+bool EventSource::ProcessData(ProcessingContext& context, EventData* data) {
         std::this_thread::sleep_for( delay );
         
         data = data_port_->slot(0)->ClaimData(false);
@@ -59,6 +59,7 @@ void EventSource::Process_loop( ProcessingContext& context ) {
             static_cast<uint64_t>( data->time_since( context.run().start_time() ).count() ) );
         
         data->set_event( event_list_[std::uniform_int_distribution<unsigned int>{0, event_list_.size()-1}(generator)] );
+        return true;
 }
 
 REGISTERPROCESSOR(EventSource)

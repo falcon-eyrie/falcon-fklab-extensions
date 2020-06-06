@@ -48,7 +48,7 @@ class EventSink : public ISink<EventData>
 public:
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void SetPortName() override {port_name = EVENTDATA_S;};
-    virtual bool Process_loop( ProcessingContext& context ) override;
+    virtual bool ProcessData( ProcessingContext& context, EventData* data ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
 
 protected:

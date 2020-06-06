@@ -53,8 +53,8 @@ public:
     virtual void SetPortName() override {port_name = EVENTDATA_S;};
     virtual void SetPortParam() override {port_param = "default_eventsource_event";};
 
-    virtual bool Process_start( ProcessingContext& context ) override;
-    virtual void Process_loop( ProcessingContext& context ) override;
+    virtual bool ProcessStart( ProcessingContext& context ) override;
+    virtual bool ProcessData( ProcessingContext& context, EventData* data ) override;
     
 protected:
     std::vector<std::string> event_list_;

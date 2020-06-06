@@ -118,12 +118,12 @@ void DigitalOutput::Preprocess( ProcessingContext& context ) {
     }
 }
     
-bool DigitalOutput::Process_start( ProcessingContext& context ) {
+bool DigitalOutput::ProcessStart( ProcessingContext& context ) {
     prefix = context.resolve_path( "run://", "run" ) + name();
     return true;
 }
 
-bool DigitalOutput::Process_loop( ProcessingContext& context ) {
+bool DigitalOutput::ProcessData( ProcessingContext& context, EventData* data ) {
 
     ++ nreceived_events_;
 

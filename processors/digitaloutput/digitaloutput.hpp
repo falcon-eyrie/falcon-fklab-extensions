@@ -84,8 +84,8 @@ public:
     virtual void SetPortName() override {port_name = EVENTDATA_S;};
     virtual void CreateStates() override;
     virtual void Preprocess( ProcessingContext& context ) override;
-    virtual bool Process_start( ProcessingContext& context ) override;
-    virtual bool Process_loop( ProcessingContext& context ) override;
+    virtual bool ProcessStart( ProcessingContext& context ) override;
+    virtual bool ProcessData( ProcessingContext& context, EventData* data ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
     
 

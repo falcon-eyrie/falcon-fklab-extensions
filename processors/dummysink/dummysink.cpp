@@ -33,7 +33,7 @@ YAML::Node DummySink::Kick( const YAML::Node & node ) {
     return YAML::Node();
 }
 
-bool DummySink::Process_start(ProcessingContext& context) {
+bool DummySink::ProcessStart(ProcessingContext& context) {
     packet_counter = 0;
     retrieve_counter = 0;
 
@@ -45,7 +45,7 @@ bool DummySink::Process_start(ProcessingContext& context) {
     return true;
 }
 
-bool DummySink::Process_loop(ProcessingContext& context) {
+bool DummySink::ProcessData(ProcessingContext& context, IData* data) {
         
         for (auto & it : data_in ) {
             if ( it->eos() ) {
