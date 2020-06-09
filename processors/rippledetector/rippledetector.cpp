@@ -83,58 +83,57 @@ void RippleDetector::CreatePorts( ) {
         MultiChannelData<double>::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
-    threshold_ = create_writable_shared_state(
+    threshold_ = create_producer_state(
         "threshold",
         0.0,
-        Permission::NONE,
+        false,
         Permission::READ );
     
-    signal_mean_ = create_writable_shared_state(
+    signal_mean_ = create_producer_state(
         "mean",
         0.0,
-        Permission::NONE,
+        false,
         Permission::READ );
     
-    signal_dev_ = create_writable_shared_state(
+    signal_dev_ = create_producer_state(
         "deviation",
         0.0,
-        Permission::NONE,
+        false,
         Permission::READ );
     
-    threshold_dev_ = create_readable_shared_state(
+    threshold_dev_ = create_static_state(
         THRESHOLD_DEV_S,
         initial_threshold_dev_,
-        Permission::READ,
+        true,
         Permission::WRITE );
     
-    detection_lockout_time_ = create_readable_shared_state(
+    detection_lockout_time_ = create_static_state(
         DETECTION_LOCKOUT_TIME_S,
         initial_detection_lockout_time_,
-        Permission::READ,
+        true,
         Permission::WRITE );
     
-    stream_events_ = create_readable_shared_state(
+    stream_events_ = create_static_state(
         STREAM_EVENTS_S,
         default_stream_events_,
-        Permission::READ,
+        true,
         Permission::WRITE );
     
-    smooth_time_ = create_readable_shared_state(
+    smooth_time_ = create_static_state(
         SMOOTH_TIME_S,
         initial_smooth_time_,
-        Permission::READ,
+        true,
         Permission::WRITE );
     
-    stats_out_ = create_readable_shared_state(
+    stats_out_ = create_static_state(
         STREAM_STATISTICS_S,
         initial_stats_out_,
-        Permission::READ,
+        true,
         Permission::WRITE );
         
-    ripple_ = create_writable_shared_state(
+    ripple_ = create_broadcaster_state(
         "ripple",
         false,
-        Permission::READ,
         Permission::READ );
 }
 

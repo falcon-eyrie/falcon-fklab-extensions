@@ -46,22 +46,22 @@ void LevelCrossingDetector::CreatePorts( ) {
         EventData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
-    threshold_ = create_readable_shared_state(
+    threshold_ = create_static_state(
         THRESHOLD_S,
         initial_threshold_,
-        Permission::READ,
+        true,
         Permission::WRITE);
     
-    upslope_ = create_readable_shared_state(
+    upslope_ = create_static_state(
         UPSLOPE_S,
         initial_upslope_,
-        Permission::READ,
+        true,
         Permission::WRITE);
     
-    post_detect_block_ = create_readable_shared_state(
+    post_detect_block_ = create_static_state(
         POST_DETECT_BLOCK_S,
         initial_post_detect_block_,
-        Permission::READ,
+        true,
         Permission::WRITE);
 }
 
