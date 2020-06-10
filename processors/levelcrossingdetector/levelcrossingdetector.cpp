@@ -21,16 +21,6 @@
 
 void LevelCrossingDetector::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
-    initial_threshold_ = node[THRESHOLD_S].as<decltype(initial_threshold_)>(
-        DEFAULT_THRESHOLD);
-    initial_upslope_ = node[UPSLOPE_S].as<decltype(initial_upslope_)>(
-        DEFAULT_UPSLOPE);
-    initial_post_detect_block_ = node[POST_DETECT_BLOCK_S].as<decltype(
-        initial_post_detect_block_)>(DEFAULT_POST_DETECT_BLOCK);
-    
-    std::string event_name = node["event"].as<std::string>(DEFAULT_EVENT);
-    event_prototype_ = EventType::Data( event_name );
-    
 }
 
 void LevelCrossingDetector::CreatePorts( ) {
@@ -48,19 +38,19 @@ void LevelCrossingDetector::CreatePorts( ) {
     
     threshold_ = create_static_state(
         THRESHOLD_S,
-        initial_threshold_,
+        initial_threshold_(),
         true,
         Permission::WRITE);
     
     upslope_ = create_static_state(
         UPSLOPE_S,
-        initial_upslope_,
+        initial_upslope_(),
         true,
         Permission::WRITE);
     
     post_detect_block_ = create_static_state(
         POST_DETECT_BLOCK_S,
-        initial_post_detect_block_,
+        initial_post_detect_block_(),
         true,
         Permission::WRITE);
 }
@@ -69,7 +59,7 @@ void LevelCrossingDetector::Preprocess( ProcessingContext& context ) {
     
     double init_value;
     
-    post_detection_block_update( initial_post_detect_block_ );
+    post_detection_block_update( initial_post_detect_block_() );
     
     if (upslope_->get()) {
         init_value = std::numeric_limits<int>::max();
@@ -84,8 +74,8 @@ void LevelCrossingDetector::Process( ProcessingContext& context ) {
     
     double threshold = 0;
     bool upslope = false;
-    unsigned int post_detect_block = initial_post_detect_block_;
-    unsigned int post_detect_block_old = initial_post_detect_block_;
+    unsigned int post_detect_block = initial_post_detect_block_();
+    unsigned int post_detect_block_old = initial_post_detect_block_();
     bool crossing_detected = false;
     unsigned int nblock = 0;
     
@@ -140,7 +130,7 @@ void LevelCrossingDetector::Process( ProcessingContext& context ) {
                 data_out_->set_hardware_timestamp( data_in_->sample_timestamp( s ) );
                 data_out_->set_serial_number( data_in_->serial_number() );
                 
-                data_out_->set_event( event_prototype_ );
+                data_out_->set_event( event_prototype_() );
                 data_out_port_->slot(0)->PublishData();
                 
                 crossing_detected = false;
@@ -150,7 +140,7 @@ void LevelCrossingDetector::Process( ProcessingContext& context ) {
                 
                 if ( (n_detections_ % 50) == 0 ) {
                     LOG(DEBUG) << name() << ". " << n_detections_ << " detections of event "
-                    << event_prototype_.event() << " occurred.";
+                    << event_prototype_().event() << " occurred.";
 
                 }
             }  
@@ -169,12 +159,12 @@ void LevelCrossingDetector::Process( ProcessingContext& context ) {
 void LevelCrossingDetector::Postprocess( ProcessingContext& context ) {
     
     LOG(INFO) << name() << ". " << n_detections_ << " detections of event "
-        << event_prototype_.event() << " occurred.";
+        << event_prototype_().event() << " occurred.";
     n_detections_ = 0;
 }
 
 void LevelCrossingDetector::post_detection_block_update(
-decltype(initial_post_detect_block_) post_detection_block ) {
+unsigned int post_detection_block ) {
         
     double post_detection_block_us =
         post_detection_block / data_in_port_->streaminfo(0).parameters().sample_rate * 1e6;

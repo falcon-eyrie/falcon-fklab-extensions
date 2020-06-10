@@ -21,6 +21,7 @@
 #define EVENTDATA_HPP
 
 #include "idata.hpp"
+#include "yaml-cpp/yaml.h"
 
 typedef unsigned int EventIDType;
 
@@ -61,6 +62,8 @@ public:
     std::string event() const;
     size_t hash() const;
 
+    size_t size() const;
+    
     void set_event( std::string event );
     void set_event( const Data &source );
 
@@ -94,5 +97,24 @@ public:
     using Data = nsEventType::Data;
 
 };
+
+namespace YAML {
+
+template<>
+struct convert<EventData::Data> {
+    static Node encode(const EventData::Data& rhs) {
+        Node node;
+        node = rhs.event();
+        return node;
+    }
+
+    static bool decode(const Node& node, EventData::Data& rhs) {
+        rhs.set_event(node.as<std::string>());
+        return true;
+    }
+
+};
+
+}
 
 #endif // eventdata.hpp

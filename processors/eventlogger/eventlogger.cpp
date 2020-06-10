@@ -20,9 +20,7 @@
 #include "eventlogger.hpp"
 #include <thread>
 
-void EventLogger::Configure( const YAML::Node& node, const GlobalContext& context) {
-    
-    target_event_ = EventType::Data(node["target_event"].as<std::string>( DEFAULT_EVENT ));
+void EventSink::Configure( const YAML::Node& node, const GlobalContext& context) {
 }
 
 void EventLogger::CreatePorts() {
@@ -43,7 +41,7 @@ void EventLogger::Process( ProcessingContext& context ) {
         
         ++ event_counter_.all_received;
         
-        if (*data == target_event_) {
+        if (*data == target_event_()) {
             ++ event_counter_.target;
             LOG(UPDATE) << name() << ": received target event " << data->event() << ".";
         } else {

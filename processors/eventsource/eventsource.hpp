@@ -43,23 +43,35 @@
 
 #include "iprocessor.hpp"
 #include "eventdata/eventdata.hpp"
+#include "options/options.hpp"
 
 class EventSource : public IProcessor {
     
 public:
+
+    EventSource () : IProcessor() {
+        add_option("events", event_list_);
+        add_option("rate", event_rate_);
+    }
+
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
-    
+
+public:
+    const double DEFAULT_EVENT_RATE = 1.0;
+    const std::string DEFAULT_EVENT = "default_eventsource_event";
+
 protected:
     PortOut<EventType>* event_port_;
+
+    options::Vector<std::string> event_list_{
+        {DEFAULT_EVENT},
+        options::notempty<std::vector<std::string>>() +
+        options::each<std::string>(options::notempty<std::string>())};
     
-    std::vector<std::string> event_list_;
-    double event_rate_;
+    options::Double event_rate_{DEFAULT_EVENT_RATE, options::positive<double>()};
     
-public:
-    const decltype(event_rate_) DEFAULT_EVENT_RATE = 1.0;
-    const std::string DEFAULT_EVENT = "default_eventsource_event";
 };
 
 #endif // eventsource.hpp

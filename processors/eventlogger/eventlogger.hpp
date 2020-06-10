@@ -42,10 +42,16 @@
 #include "iprocessor.hpp"
 #include "eventdata/eventdata.hpp"
 #include "utilities/general.hpp"
+#include "options/options.hpp"
 
 class EventLogger : public IProcessor
 {
 public:
+
+    EventSink() : IProcessor() {
+        add_option("target_event", target_event_);
+    }
+
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
@@ -53,8 +59,11 @@ public:
 
 protected:
     PortIn<EventType>* event_port_;
-    EventType::Data target_event_;
     
+    options::Value<EventData::Data,false> target_event_{
+        DEFAULT_EVENT, 
+        options::notempty<EventData::Data>()};
+
     EventCounter event_counter_;
 };
 

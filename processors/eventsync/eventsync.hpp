@@ -48,6 +48,11 @@
 class EventSync : public IProcessor {
     
 public:
+
+    EventSync() : IProcessor() {
+        add_option("target_event", target_event_);
+    }
+
     virtual void Configure( const YAML::Node& node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
@@ -61,12 +66,16 @@ protected:
 protected:
     PortIn<EventType>* data_in_port_;
     PortOut<EventType>* data_out_port_;
-    EventType::Data target_event_;
+    //EventType::Data target_event_;
 
     EventCounter event_counter_;
     uint64_t n_events_synced_;
     
     TimestampRegister timestamps_;
+
+    options::Value<EventData,false> target_event_{
+        DEFAULT_EVENT, 
+        options::notempty<EventData>()};
 };
 
 #endif // eventsync.hpp

@@ -21,7 +21,7 @@
 
 void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
     
-    target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
+    //target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
 }
 
 void EventSync::CreatePorts() {
@@ -34,7 +34,7 @@ void EventSync::CreatePorts() {
     data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
         EventType::Capabilities(),
-        EventType::Parameters( target_event_.event() ),
+        EventType::Parameters( target_event_().event() ),
         PortOutPolicy( SlotRange(1) ) );
 }
 
@@ -54,7 +54,7 @@ void EventSync::Process( ProcessingContext& context ) {
             if (!data_in_port_->slot(s)->RetrieveData(data_in)) {break;}
             ++ event_counter_.all_received;
             
-            if (*data_in == target_event_) {  
+            if (*data_in == target_event_()) {  
                 ++ target_events_counter;
                 ++ event_counter_.target;
                 update_latest_ts( data_in );
@@ -73,7 +73,7 @@ void EventSync::Process( ProcessingContext& context ) {
             data_out->set_source_timestamp( );
             data_out->set_hardware_timestamp( timestamps_.hw );
             
-            data_out->set_event( target_event_ );
+            data_out->set_event( target_event_());
             data_out_port_->slot(0)->PublishData();
             target_events_counter = 0;
             ++ n_events_synced_;

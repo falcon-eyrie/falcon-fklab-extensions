@@ -51,6 +51,7 @@
 
 #include "eventsync/eventsync.hpp"
 #include "utilities/time.hpp"
+#include "options/options.hpp"
 
 #include <tuple>
 #include <chrono>
@@ -59,6 +60,16 @@
 class EventFilter : public EventSync {
     
 public:
+
+    EventFilter() : EventSync() {
+        
+        add_option("blockout_time_ms", blockout_time_ms_);
+        add_option("synch_time_ms", synch_time_ms_);
+        add_option("time_in_ms", time_in_ms_);
+        add_option("discard_warnings", discard_warnings_);
+    
+    }
+
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void CreatePorts() override;
     virtual void Prepare( GlobalContext& context ) override;
@@ -78,11 +89,11 @@ protected:
 protected:
     PortIn<EventType>* block_in_port_;
 
-    double blockout_time_ms_;
-    double synch_time_ms_;
-    double time_in_ms_;
+    //double blockout_time_ms_;
+    //double synch_time_ms_;
+    //double time_in_ms_;
     SlotType detections_to_criterion_;
-    bool discard_warnings_;
+    //bool discard_warnings_;
     
     unsigned int n_blocked_events_;
     EventCounter blocking_events_counter_;
@@ -107,11 +118,31 @@ protected:
     
     
 public:
-    const decltype(blockout_time_ms_) DEFAULT_BLOCKOUT_TIME_MS = 10.0;
-    const decltype(synch_time_ms_) DEFAULT_SYNCH_TIME_MS = 1.5;
-    const decltype(time_in_ms_) DEFAULT_TIME_IN_MS = 3.5;
-    const decltype(discard_warnings_) DEFAULT_WARNINGS_DISCARDED = false;
+    const double DEFAULT_BLOCKOUT_TIME_MS = 10.0;
+    const double DEFAULT_SYNCH_TIME_MS = 1.5;
+    const double DEFAULT_TIME_IN_MS = 3.5;
+    const bool DEFAULT_WARNINGS_DISCARDED = false;
+
+// OPTIONS
+protected:
+
+    options::Double blockout_time_ms_{
+        DEFAULT_BLOCKOUT_TIME_MS,
+        options::positive<double>()
+    };
+
+    options::Double synch_time_ms_{
+        DEFAULT_SYNCH_TIME_MS,
+        options::positive<double>()
+    };
     
+    options::Double time_in_ms_{
+        DEFAULT_TIME_IN_MS,
+        options::positive<double>()
+    };
+
+    options::Bool discard_warnings_{DEFAULT_WARNINGS_DISCARDED};
+
 protected:
     const uint64_t NULL_TIMESTAMP = std::numeric_limits<uint64_t>::max();
     const decltype(detections_to_criterion_) ALL =

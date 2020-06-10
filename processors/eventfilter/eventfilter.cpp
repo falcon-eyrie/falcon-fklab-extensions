@@ -25,19 +25,6 @@
 
 void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context) {
     
-    target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
-    
-    blockout_time_ms_ = node["blockout_time_ms"].as<decltype(blockout_time_ms_)>(
-        DEFAULT_BLOCKOUT_TIME_MS );
-    
-    synch_time_ms_ = node["synch_time_ms"].as<decltype(synch_time_ms_)>(
-        DEFAULT_SYNCH_TIME_MS );
-    
-    time_in_ms_ = node["time_in_ms"].as<decltype(time_in_ms_)>( DEFAULT_TIME_IN_MS );
-    
-    discard_warnings_ = node["discard_warnings"].as<decltype(discard_warnings_)>
-        ( DEFAULT_WARNINGS_DISCARDED );
-    
     auto detection_criterion = node["detection_criterion"].as<std::string>( "any" );
     if ( detection_criterion == "any" ) {
         detections_to_criterion_ = 1;
@@ -65,8 +52,13 @@ void EventFilter::CreatePorts() {
 
     data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
+<<<<<<< HEAD
         EventType::Capabilities(),
         EventType::Parameters( target_event_.event() ),
+=======
+        EventData::Capabilities(),
+        EventData::Parameters( target_event_().event() ),
+>>>>>>> WIP. First attempt to make of validated options inside processors.
         PortOutPolicy( SlotRange(1) ) );
     
 }
@@ -96,9 +88,9 @@ void EventFilter::Preprocess( ProcessingContext& context ) {
     // init gate_close_time, but make sure the first event won't be excluded
     // if no blocking event will be received
     gate_close_time_ = Clock::now();
-    if ( blockout_time_ms_ > 0 ) {
+    if ( blockout_time_ms_() > 0 ) {
         std::this_thread::sleep_for( std::chrono::milliseconds(
-            static_cast<int>( blockout_time_ms_ ) ) );
+            static_cast<int>( blockout_time_ms_() ) ) );
     }
 }
 
@@ -144,7 +136,7 @@ void EventFilter::Process(ProcessingContext& context) {
                 counter_to_detection = 0;
                 for ( auto t: arrival_times_per_slot_events ) {
                     if ( time_between( arrival_times_per_slot_events[slot_last], t )
-                    < time_in_ms_ ) {
+                    < time_in_ms_() ) {
                         ++ counter_to_detection;
                     }
                 }
@@ -168,10 +160,10 @@ void EventFilter::Process(ProcessingContext& context) {
 
             t_detection = Clock::now();
             // check if gate is closed
-            if ( time_since( gate_close_time_ ) <= blockout_time_ms_ ) {
+            if ( time_since( gate_close_time_ ) <= blockout_time_ms_() ) {
                 ++ n_blocked_events_;
                 detection_criterion = false;
-                LOG( UPDATE ) << name() << ". Target event " << target_event_.event()
+                LOG( UPDATE ) << name() << ". Target event " << target_event_().event()
                     << " was filtered out.";
             } else {
                 // if open, before streaming the event on the output,
@@ -179,7 +171,7 @@ void EventFilter::Process(ProcessingContext& context) {
                 // is received on the "events" port with this dedicated read loop
                 
                 // read incoming blocking events for synch_time_ms_
-                while ( time_since( t_detection ) < synch_time_ms_ and detection_criterion ) {
+                while ( time_since( t_detection ) < synch_time_ms_() and detection_criterion ) {
                     std::tie( alive, gate_just_closed, std::ignore ) = is_there_target(
                         block_in_port_, blocking_events_counter_,
                         arrival_times_per_slot_blocking_events,
@@ -188,7 +180,7 @@ void EventFilter::Process(ProcessingContext& context) {
 
                     if ( gate_just_closed ) {
                         ++ n_blocked_events_;
-                        LOG( UPDATE ) << name() << ". Target event " << target_event_.event()
+                        LOG( UPDATE ) << name() << ". Target event " << target_event_().event()
                             << " was filtered out (blocking event arrived after target).";
                         detection_criterion = false;
                         gate_close_time_ = Clock::now();
@@ -246,7 +238,7 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
             input_port->slot(s)->ReleaseData();
             continue;
         }
-        if ( nread>1 and not discard_warnings_ ) {
+        if ( nread>1 and not discard_warnings_() ) {
             std::string events_list = data_in[1]->event();
             for ( auto el=data_in.begin()+1; el!=data_in.end()-1; ++el ) {
                 events_list += ( ", " + (*el)->event() );
@@ -258,10 +250,10 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
         ++ event_counter.all_received;
 
         // if there's data, check if it is a target event
-        if ( *data_in.back() == target_event_ ) {
+        if ( *data_in.back() == target_event_() ) {
             
             LOG(DEBUG) << name() << ". Received target event " <<
-                target_event_.event() << " on port " << input_port->name() << " slot " << s;
+                target_event_().event() << " on port " << input_port->name() << " slot " << s;
             
             ++ event_counter.target;
             arrival_times[s] = Clock::now();

@@ -56,6 +56,14 @@
 class LevelCrossingDetector : public IProcessor {
 
 public:
+
+    LevelCrossingDetector() : IProcessor() {
+        add_option("threshold", initial_threshold_);
+        add_option("upslope", initial_upslope_);
+        add_option("post_detect_block", initial_post_detect_block_);
+        add_option("event", event_prototype_);
+    }
+
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
     virtual void Preprocess( ProcessingContext& context) override;
@@ -70,13 +78,7 @@ protected:
     StaticState<bool>* upslope_;
     StaticState<unsigned int>* post_detect_block_;
     
-    double initial_threshold_;
-    bool initial_upslope_;
-    unsigned int initial_post_detect_block_;
-    
     std::vector<double> previous_sample_;
-    
-    EventType::Data event_prototype_;
     uint64_t n_detections_;
     
     MultiChannelType<double>::Data* data_in_;
@@ -84,18 +86,28 @@ protected:
     
 protected:
     void post_detection_block_update(
-        decltype(initial_post_detect_block_) post_detection_block );
+        unsigned int post_detection_block );
 
 public:
-    const decltype(initial_threshold_) DEFAULT_THRESHOLD = 0.0;
-    const decltype(initial_upslope_) DEFAULT_UPSLOPE = true;
-    const decltype(initial_post_detect_block_) DEFAULT_POST_DETECT_BLOCK = 2;
+
     const std::string DEFAULT_EVENT = "threshold_crossing";  
-    const decltype(initial_post_detect_block_) LOW_POST_DETECTION_BLOCK_US = 30;
+    const unsigned int LOW_POST_DETECTION_BLOCK_US = 30;
 
     const std::string THRESHOLD_S = "threshold";
     const std::string UPSLOPE_S = "upslope";
     const std::string POST_DETECT_BLOCK_S = "post_detect_block";
+
+// OPTIONS
+protected:
+
+    options::Double initial_threshold_{0.0};
+    options::Bool initial_upslope_{true};
+    options::Value<unsigned int,false> initial_post_detect_block_{2};
+    
+    options::Value<EventData::Data,false> event_prototype_{
+        DEFAULT_EVENT, 
+        options::notempty<EventData::Data>()
+    };
 
 };
 

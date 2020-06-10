@@ -51,6 +51,11 @@
 class MUAEstimator : public IProcessor {
 
 public:
+
+    MUAEstimator() : IProcessor() {
+        add_option("bin_size_ms", initial_bin_size_);
+    }
+
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
     virtual void CompleteStreamInfo() override; 
@@ -64,7 +69,7 @@ protected:
     StaticState<double>* bin_size_;
     BroadcasterState<double>* mua_;
     
-    double initial_bin_size_;
+    //double initial_bin_size_;
     double current_bin_size_;
     double previous_bin_size_;
     double spike_buffer_size_;
@@ -72,8 +77,15 @@ protected:
     std::size_t n_spike_buffers_;
     
 public:
-    decltype(initial_bin_size_) DEFAULT_BIN_SIZE = 10;
+    //decltype(initial_bin_size_) DEFAULT_BIN_SIZE = 10;
     const std::string BIN_SIZE_S = "bin_size_ms";
+
+//OPTIONS
+protected:
+    options::Double initial_bin_size_{
+        10.,
+        options::positive<double>(true)
+    };
     
 };
 
