@@ -17,14 +17,14 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "eventsync.hpp"
+#include "eventlogger.hpp"
 
-void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
+void EventLogger::Configure(const YAML::Node& node, const GlobalContext& context ) {
     
     target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
 }
 
-void EventSync::CreatePorts() {
+void EventLogger::CreatePorts() {
     
     data_in_port_ = create_input_port<EventType>(
         EVENTDATA_S,
@@ -38,7 +38,7 @@ void EventSync::CreatePorts() {
         PortOutPolicy( SlotRange(1) ) );
 }
 
-void EventSync::Process( ProcessingContext& context ) {
+void EventLogger::Process( ProcessingContext& context ) {
     
     EventType::Data* data_in = nullptr;
     EventType::Data* data_out = nullptr;
@@ -84,7 +84,7 @@ void EventSync::Process( ProcessingContext& context ) {
     }
 }
 
-void EventSync::Postprocess( ProcessingContext& context ) {
+void EventLogger::Postprocess( ProcessingContext& context ) {
     
     log_and_reset_counters( data_in_port_, event_counter_ );
     
@@ -119,4 +119,4 @@ void EventSync::log_and_reset_counters( PortIn<EventType>* in_port,
 }
 
 
-REGISTERPROCESSOR(EventSync)
+REGISTERPROCESSOR(EventLogger)

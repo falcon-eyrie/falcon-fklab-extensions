@@ -45,7 +45,7 @@
 #include "utilities/general.hpp"
 #include "utilities/time.hpp"
 
-class EventSync : public IProcessor {
+class EventLogger : public IProcessor {
     
 public:
     virtual void Configure( const YAML::Node& node, const GlobalContext& context ) override;
@@ -69,4 +69,4 @@ protected:
     TimestampRegister timestamps_;
 };
 
-#endif // eventsync.hpp
+#endif // eventlogger.hpp

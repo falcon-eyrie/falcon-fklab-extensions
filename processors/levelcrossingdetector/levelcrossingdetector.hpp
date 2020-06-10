@@ -66,9 +66,9 @@ protected:
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<EventType>* data_out_port_;
     
-    ReadableState<double>* threshold_;
-    ReadableState<bool>* upslope_;
-    ReadableState<unsigned int>* post_detect_block_;
+    StaticState<double>* threshold_;
+    StaticState<bool>* upslope_;
+    StaticState<unsigned int>* post_detect_block_;
     
     double initial_threshold_;
     bool initial_upslope_;

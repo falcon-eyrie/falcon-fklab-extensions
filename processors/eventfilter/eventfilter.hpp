@@ -49,14 +49,14 @@
 #ifndef EVENT_FILTER_HPP
 #define	EVENT_FILTER_HPP
 
-#include "eventsync/eventsync.hpp"
+#include "eventlogger/eventlogger.hpp"
 #include "utilities/time.hpp"
 
 #include <tuple>
 #include <chrono>
 
 
-class EventFilter : public EventSync {
+class EventFilter : public EventLogger {
     
 public:
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;

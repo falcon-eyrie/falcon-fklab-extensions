@@ -61,8 +61,8 @@ protected:
     PortIn<SpikeType>* data_in_port_;;
     PortOut<MUAType>* data_out_port_;
     
-    ReadableState<double>* bin_size_;
-    WritableState<double>* mua_;
+    StaticState<double>* bin_size_;
+    BroadcasterState<double>* mua_;
     
     double initial_bin_size_;
     double current_bin_size_;

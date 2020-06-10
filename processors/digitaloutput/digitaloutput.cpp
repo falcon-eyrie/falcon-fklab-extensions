@@ -96,16 +96,16 @@ void DigitalOutput::CreatePorts() {
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
-    enabled_state_ = create_readable_shared_state(
+    enabled_state_ = create_static_state(
         ENABLED_S,
         default_enabled_,
-        Permission::READ,
+        true,
         Permission::WRITE);
     
-    lockout_period_ms_ = create_readable_shared_state(
+    lockout_period_ms_ = create_static_state(
         LOCKOUT_PERIOD_S,
         default_lockout_period_ms_,
-        Permission::READ,
+        true,
         Permission::WRITE);
 }
 

@@ -82,10 +82,10 @@ protected:
     PortOut<EventType>* event_out_port_;
     PortOut<MultiChannelType<double>>* stats_out_port_;
     
-    WritableState<double>* threshold_;
-    WritableState<double>* signal_mean_;
-    WritableState<double>* signal_dev_;
-    WritableState<bool>* ripple_;
+    ProducerState<double>* threshold_;
+    ProducerState<double>* signal_mean_;
+    ProducerState<double>* signal_dev_;
+    BroadcasterState<bool>* ripple_;
     
     double initial_threshold_dev_;
     unsigned int initial_detection_lockout_time_;
@@ -94,12 +94,12 @@ protected:
     bool initial_stats_out_;
     bool use_power_;
     
-    ReadableState<decltype(initial_threshold_dev_)>* threshold_dev_;
-    ReadableState<decltype(initial_detection_lockout_time_)>*
+    StaticState<decltype(initial_threshold_dev_)>* threshold_dev_;
+    StaticState<decltype(initial_detection_lockout_time_)>*
         detection_lockout_time_;
-    ReadableState<decltype(default_stream_events_)>* stream_events_;
-    ReadableState<decltype(initial_smooth_time_)>* smooth_time_;
-    ReadableState<decltype(initial_stats_out_)>* stats_out_;
+    StaticState<decltype(default_stream_events_)>* stream_events_;
+    StaticState<decltype(initial_smooth_time_)>* smooth_time_;
+    StaticState<decltype(initial_stats_out_)>* stats_out_;
     
     bool stats_out_enabled_;
     double stats_buffer_size_;
