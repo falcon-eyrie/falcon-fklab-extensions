@@ -33,7 +33,7 @@ void EventLogger::CreatePorts() {
         PortInPolicy( SlotRange(1) ) );
 }
 
-void EventSink::Process( ProcessingContext& context ) {
+void EventLogger::Process( ProcessingContext& context ) {
     
     EventType::Data *data;
     
@@ -56,7 +56,7 @@ void EventSink::Process( ProcessingContext& context ) {
     }
 }
 
-void EventSink::Postprocess( ProcessingContext& context ) {
+void EventLogger::Postprocess( ProcessingContext& context ) {
     
     LOG(UPDATE) << name() << ". Received " << event_counter_.all_received
         << " events, of which " << event_counter_.target << " were targets.";
@@ -66,4 +66,4 @@ void EventSink::Postprocess( ProcessingContext& context ) {
     event_counter_.reset();
 }
 
-REGISTERPROCESSOR(EventSink)
+REGISTERPROCESSOR(EventLogger)
