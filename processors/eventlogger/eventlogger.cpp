@@ -18,105 +18,52 @@
 // ---------------------------------------------------------------------
 
 #include "eventlogger.hpp"
+#include <thread>
 
-void EventLogger::Configure(const YAML::Node& node, const GlobalContext& context ) {
+void EventLogger::Configure( const YAML::Node& node, const GlobalContext& context) {
     
-    target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
+    target_event_ = EventType::Data(node["target_event"].as<std::string>( DEFAULT_EVENT ));
 }
 
 void EventLogger::CreatePorts() {
     
-    data_in_port_ = create_input_port<EventType>(
+    event_port_ = create_input_port<EventType>(
         EVENTDATA_S,
         EventType::Capabilities(),
-        PortInPolicy( SlotRange(1, 256) ) );
-    
-    data_out_port_ = create_output_port<EventType>(
-        EVENTDATA_S,
-        EventType::Capabilities(),
-        EventType::Parameters( target_event_.event() ),
-        PortOutPolicy( SlotRange(1) ) );
+        PortInPolicy( SlotRange(1) ) );
 }
 
-void EventLogger::Process( ProcessingContext& context ) {
+void EventSink::Process( ProcessingContext& context ) {
     
-    EventType::Data* data_in = nullptr;
-    EventType::Data* data_out = nullptr;
+    EventType::Data *data;
     
-    uint64_t target_events_counter = 0;
-    
-    timestamps_.reset();
-    
-    while ( !context.terminated() ) {
-
-        for ( SlotType s=0; s < data_in_port_->number_of_slots(); ++s ) {
-
-            if (!data_in_port_->slot(s)->RetrieveData(data_in)) {break;}
-            ++ event_counter_.all_received;
-            
-            if (*data_in == target_event_) {  
-                ++ target_events_counter;
-                ++ event_counter_.target;
-                update_latest_ts( data_in );
-            } else {
-                ++ event_counter_.non_target;
-            }
-            
-            data_in_port_->slot(s)->ReleaseData();
-            
-        }
-          
-        if ( target_events_counter == data_in_port_->number_of_slots() ) {
-            
-            data_out = data_out_port_->slot(0)->ClaimData(false);
-            
-            data_out->set_source_timestamp( );
-            data_out->set_hardware_timestamp( timestamps_.hw );
-            
-            data_out->set_event( target_event_ );
-            data_out_port_->slot(0)->PublishData();
-            target_events_counter = 0;
-            ++ n_events_synced_;
-            
-            timestamps_.reset();
-    
-        }   
-    }
-}
-
-void EventLogger::Postprocess( ProcessingContext& context ) {
-    
-    log_and_reset_counters( data_in_port_, event_counter_ );
-    
-    LOG(INFO) << name() << ". " << n_events_synced_ << " events synced.";
-    n_events_synced_ = 0;
-}
-    
-void EventSync::update_latest_ts(EventType::Data* data_in) {
+    while (!context.terminated()) {
         
-    if ( data_in->source_timestamp() > timestamps_.source ) {
-        timestamps_.source = data_in->source_timestamp();
+        if (!event_port_->slot(0)->RetrieveData(data)) {break;}
+        
+        ++ event_counter_.all_received;
+        
+        if (*data == target_event_) {
+            ++ event_counter_.target;
+            LOG(UPDATE) << name() << ": received target event " << data->event() << ".";
+        } else {
+            ++ event_counter_.non_target;
+            LOG(UPDATE) << name() << ": skipped event " << data->event() << ".";
+        }
+        
+        event_port_->slot(0)->ReleaseData();
+        
     }
-    if ( data_in->hardware_timestamp() > timestamps_.hw  ) {
-        timestamps_.hw = data_in->hardware_timestamp();
-    } 
 }
 
-void EventSync::log_and_reset_counters( PortIn<EventType>* in_port, 
-    EventCounter& counter ) {
+void EventSink::Postprocess( ProcessingContext& context ) {
     
-    auto msg = ". '" + in_port->name() + "' counters.\n\t\t\t\t" +
-        std::to_string( counter.all_received ) + " events received.\n\t\t\t\t" +
-        std::to_string( counter.target ) + " target events received.\n\t\t\t\t" +
-        std::to_string( counter.non_target ) + " non-target events received";
-    if ( counter.consistent_counters() ) {
-        LOG(INFO) << name() << msg << ". Counters are consistent.";
-    } else {
-        LOG(WARNING) << name() << ". Counters are inconsistent.";
+    LOG(UPDATE) << name() << ". Received " << event_counter_.all_received
+        << " events, of which " << event_counter_.target << " were targets.";
+    if (event_counter_.consistent_counters()) {
+        LOG(UPDATE) << name() << ". Counters are consistent.";
     }
-    
-    counter.reset();
+    event_counter_.reset();
 }
 
-
-REGISTERPROCESSOR(EventLogger)
+REGISTERPROCESSOR(EventSink)
