@@ -1,0 +1,17 @@
+##
+# format = text
+# type = biquad
+# description = 12th order ellip bandpass filter with cutoffs at 150 - 250 Hz (sampling frequency = 4000 Hz)
+#
+# max_ripple_pass = 0.1
+# max_ripple_stop = 60
+#
+# Header automatically added from custom-made Python script iir_design.py
+##
+0.00106049336754
+1.0 -1.25981488985 1.0 1.0 -1.81526634221 0.920749396321
+1.0 -1.99025972771 1.0 1.0 -1.85850697391 0.932936966941
+1.0 -1.75178621542 1.0 1.0 -1.81100830305 0.948327744246
+1.0 -1.96676725278 1.0 1.0 -1.90692980864 0.965692489548
+1.0 -1.79849212229 1.0 1.0 -1.82946078253 0.983905376855
+1.0 -1.95863980985 1.0 1.0 -1.93662368111 0.990365559916
