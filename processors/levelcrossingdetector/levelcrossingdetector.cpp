@@ -29,21 +29,21 @@ void LevelCrossingDetector::Configure( const YAML::Node & node, const GlobalCont
         initial_post_detect_block_)>(DEFAULT_POST_DETECT_BLOCK);
     
     std::string event_name = node["event"].as<std::string>(DEFAULT_EVENT);
-    event_prototype_ = EventData( event_name );
+    event_prototype_ = EventType::Data( event_name );
     
 }
 
 void LevelCrossingDetector::CreatePorts( ) {
     
-    data_in_port_ = create_input_port<MultiChannelData<double>>(
+    data_in_port_ = create_input_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_ = create_output_port<EventData>(
+    data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters(),
+        EventType::Capabilities(),
+        EventType::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_static_state(

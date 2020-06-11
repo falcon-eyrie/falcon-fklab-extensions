@@ -22,10 +22,10 @@
  * on the incoming MUA
  * 
  * input ports:
- * mua <MUAData> (1 slot)
+ * mua <MUAType> (1 slot)
  * 
  * output ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  * 
  * exposed states:
  * threshold_dev <double> - threshold that needs to be crossed (read-only)
@@ -75,9 +75,9 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;    
 
 protected:
-    PortIn<MUAData>* data_in_port_;
-    PortOut<EventData>* data_out_port_;
-    PortOut<MultiChannelData<double>>* stats_out_port_;
+    PortIn<MUAType>* data_in_port_;
+    PortOut<EventType>* data_out_port_;
+    PortOut<MultiChannelType<double>>* stats_out_port_;
     
     BroadcasterState<double>* threshold_;
     BroadcasterState<double>* signal_mean_;

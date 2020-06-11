@@ -17,45 +17,43 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSink: takes an EventData stream and logs the arrival of a target event
- * 
- * input ports:
- * events <EventData> (1 slot)
- *
- * output ports:
- * none
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * target_event <string> - target event
- * 
- */
+#ifndef CHANNELVALIDITY_H
+#define CHANNELVALIDITY_H
 
-#ifndef EVENTSINK_HPP
-#define EVENTSINK_HPP
+#include "spikedata_common.hpp"
+#include <vector>
 
-#include "iprocessor.hpp"
-#include "eventdata/eventdata.hpp"
-#include "utilities/general.hpp"
-
-class EventSink : public IProcessor
-{
-public:
-    virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    virtual void Postprocess( ProcessingContext& context ) override; 
-
-protected:
-    PortIn<EventData>* event_port_;
-    EventData target_event_;
-    
-    EventCounter event_counter_;
+struct ChannelDetection {
+    enum Validity {
+    UNKNOWN,
+    VALID,
+    BROKEN,
+    NO_PEAK
+    };
 };
 
-#endif //eventsink.hpp
+class ChannelValidityMask {
+public:
+    ChannelValidityMask( unsigned int n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
+        ChannelDetection::Validity validity = ChannelDetection::Validity::UNKNOWN ); 
+    
+    ~ChannelValidityMask() {}
+    
+    unsigned int n_channels() const;
+    
+    std::vector<ChannelDetection::Validity>& validity_mask();
+    
+    void set_validity( size_t channel_index, ChannelDetection::Validity value);
+    
+    bool is_channel_valid( size_t channel_index) const;
+    
+    bool all_channels_valid() const;
+    
+    void reset(ChannelDetection::Validity value = ChannelDetection::Validity::UNKNOWN);
+            
+protected:
+    std::vector<ChannelDetection::Validity> mask_; 
+    
+};
+
+#endif // channelvalidity.hpp

@@ -41,17 +41,17 @@ void EventSource::Configure( const YAML::Node& node, const GlobalContext& contex
 }
 
 void EventSource::CreatePorts() {
-    event_port_ = create_output_port<EventData>(
+    event_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters(DEFAULT_EVENT),
+        EventType::Capabilities(),
+        EventType::Parameters(DEFAULT_EVENT),
         PortOutPolicy( SlotRange(1) ) );
 }
 
 
 void EventSource::Process( ProcessingContext& context ) {
     
-    EventData *data = nullptr;
+    EventType::Data *data = nullptr;
     
     if (event_list_.size()==0) { return; }
     

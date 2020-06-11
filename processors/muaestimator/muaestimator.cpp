@@ -28,15 +28,15 @@ void MUAEstimator::Configure( const YAML::Node  & node, const GlobalContext& con
 
 void MUAEstimator::CreatePorts() {
     
-    data_in_port_ = create_input_port<SpikeData>(
+    data_in_port_ = create_input_port<SpikeType>(
         SPIKEDATA_S,
-        SpikeData::Capabilities(),
+        SpikeType::Capabilities(),
         PortInPolicy( SlotRange(1, 64) ) );
     
-    data_out_port_ = create_output_port<MUAData>(
+    data_out_port_ = create_output_port<MUAType>(
         "mua",
-        MUAData::Capabilities(),
-        MUAData::Parameters(),
+        MUAType::Capabilities(),
+        MUAType::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     bin_size_ = create_static_state(
@@ -53,7 +53,7 @@ void MUAEstimator::CreatePorts() {
 
 void MUAEstimator::CompleteStreamInfo() {
     
-    data_out_port_->streaminfo(0).set_parameters( MUAData::Parameters(initial_bin_size_) );
+    data_out_port_->streaminfo(0).set_parameters( MUAType::Parameters(initial_bin_size_) );
     data_out_port_->streaminfo(0).set_stream_rate( 1e3 / initial_bin_size_ );
 }
 
@@ -86,8 +86,8 @@ void MUAEstimator::Process( ProcessingContext& context ) {
 
     bool alive = true;
     
-    SpikeData* data_in = nullptr;
-    MUAData* data_out = nullptr;
+    SpikeType::Data* data_in = nullptr;
+    MUAType::Data* data_out = nullptr;
     
     uint64_t hardware_timestamp = std::numeric_limits<uint64_t>::max();
     

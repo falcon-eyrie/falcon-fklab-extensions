@@ -25,7 +25,7 @@
 
 void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context) {
     
-    target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
+    target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
     
     blockout_time_ms_ = node["blockout_time_ms"].as<decltype(blockout_time_ms_)>(
         DEFAULT_BLOCKOUT_TIME_MS );
@@ -53,20 +53,20 @@ void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context
 
 void EventFilter::CreatePorts() {
     
-    data_in_port_ = create_input_port<EventData>(
+    data_in_port_ = create_input_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
+        EventType::Capabilities(),
         PortInPolicy( SlotRange(1, 256), false, 0 ) );
     
-    block_in_port_ = create_input_port<EventData>(
+    block_in_port_ = create_input_port<EventType>(
         "blocking_events",
-        EventData::Capabilities(),
+        EventType::Capabilities(),
         PortInPolicy( SlotRange(1, 256), false, 0 ) );
 
-    data_out_port_ = create_output_port<EventData>(
+    data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters( target_event_.event() ),
+        EventType::Capabilities(),
+        EventType::Parameters( target_event_.event() ),
         PortOutPolicy( SlotRange(1) ) );
     
 }
@@ -104,7 +104,7 @@ void EventFilter::Preprocess( ProcessingContext& context ) {
 
 void EventFilter::Process(ProcessingContext& context) {
     
-    EventData* data_out = nullptr;
+    EventType::Data* data_out = nullptr;
     
     bool alive = false;
     bool detection_criterion = false;
@@ -226,10 +226,10 @@ void EventFilter::Postprocess( ProcessingContext& context ) {
 }
 
 std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
-    PortIn<EventData>* input_port, EventCounter& event_counter,
+    PortIn<EventType>* input_port, EventCounter& event_counter,
     std::vector<TimePoint>& arrival_times, std::vector<uint64_t>& arrival_timestamps ) {
     
-    std::vector<EventData*> data_in;
+    std::vector<EventType::Data*> data_in;
     std::size_t slot_index = std::numeric_limits<std::size_t>::max();
     bool target_received = false;
     
@@ -282,3 +282,5 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
     // all slots read, no data on any of them
     return std::make_tuple( true, target_received, slot_index );
 }
+
+REGISTERPROCESSOR(EventFilter)

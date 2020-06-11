@@ -17,11 +17,11 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* DigitalOutput: takes an EventData stream and sets digital outputs
+/* DigitalOutput: takes an EventType stream and sets digital outputs
  * according to an event-specific protocol
  * 
  * input ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  *
  * output ports:
  * none
@@ -91,7 +91,7 @@ protected:
     bool to_lock_out( const uint64_t current_timestamp );
     
 protected:
-    PortIn<EventData>* data_in_port_;
+    PortIn<EventType>* data_in_port_;
     
     bool default_enabled_;
     StaticState<decltype(default_enabled_)>* enabled_state_;

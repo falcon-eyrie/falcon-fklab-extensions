@@ -17,45 +17,19 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSink: takes an EventData stream and logs the arrival of a target event
- * 
- * input ports:
- * events <EventType> (1 slot)
- *
- * output ports:
- * none
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * target_event <string> - target event
- * 
- */
+#ifndef SPIKEDATA_COMMON_H
+#define SPIKEDATA_COMMON_H
 
-#ifndef EVENTLOGGER_HPP
-#define EVENTLOGGER_HPP
+#include <string>
+#include <vector>
 
-#include "iprocessor.hpp"
-#include "eventdata/eventdata.hpp"
-#include "utilities/general.hpp"
+const std::string SPIKEDATA_S = "spikes"; // to be used for port names using spike data
 
-class EventLogger : public IProcessor
-{
-public:
-    virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    virtual void Postprocess( ProcessingContext& context ) override; 
+static const double DEFAULT_BUFFER_SIZE_MS = 12.75;
+static const unsigned int MAX_N_CHANNELS_SPIKE_DETECTION = 16;
+static const unsigned int MAX_N_SPIKES_IN_BUFFER = 100;
+static std::vector<uint64_t> zero_timestamps( MAX_N_SPIKES_IN_BUFFER, 0 );
+static std::vector<double> zero_amplitudes(
+    MAX_N_SPIKES_IN_BUFFER * MAX_N_CHANNELS_SPIKE_DETECTION, 0);
 
-protected:
-    PortIn<EventType>* event_port_;
-    EventType::Data target_event_;
-    
-    EventCounter event_counter_;
-};
-
-#endif //eventlogger.hpp
+#endif // spikedata_common.hpp

@@ -21,7 +21,7 @@
  * and test basic graph processing functionality.
  * 
  * input ports:
- * data <IData> (1 slot)
+ * data <AnyType> (1 slot)
  *
  * output ports:
  * none
@@ -51,7 +51,7 @@ public:
     YAML::Node Kick( const YAML::Node & node );
 
 protected:
-    PortIn<IData>* data_port_;
+    PortIn<AnyType>* data_port_;
     ReadableState<bool>* tickle_state_;
 };
 

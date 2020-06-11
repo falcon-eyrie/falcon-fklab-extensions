@@ -26,9 +26,9 @@
 
 void FileSerializer::CreatePorts() {
     
-    data_port_ = create_input_port<IData>(
+    data_port_ = create_input_port<AnyType>(
         "data",
-        IData::Capabilities(),
+        AnyType::Capabilities(),
         PortInPolicy( SlotRange(1,256), false, 0 ) );
 }
 
@@ -136,7 +136,7 @@ void FileSerializer::create_preamble( std::ostream & out, int slot ) {
 
 void FileSerializer::Process(ProcessingContext& context) {
       
-    std::vector<IData*> data;
+    std::vector<AnyType::Data*> data;
     
     int nslots = data_port_->number_of_slots();
 

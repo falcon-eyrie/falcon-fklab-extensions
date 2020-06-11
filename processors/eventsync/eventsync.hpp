@@ -17,13 +17,14 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSink: takes an EventData stream and logs the arrival of a target event
+/* EventSync: synchronizes on the occurrence of a target event on all
+ * its input slots, before emitting the same target event
  * 
  * input ports:
- * events <EventType> (1 slot)
+ * events <EventType> (1-256 slots)
  *
  * output ports:
- * none
+ * events <EventType> (1 slot)
  *
  * exposed states:
  * none
@@ -36,26 +37,36 @@
  * 
  */
 
-#ifndef EVENTLOGGER_HPP
-#define EVENTLOGGER_HPP
+#ifndef EVENTSYNC_HPP
+#define EVENTSYNC_HPP
 
 #include "iprocessor.hpp"
 #include "eventdata/eventdata.hpp"
 #include "utilities/general.hpp"
+#include "utilities/time.hpp"
 
-class EventLogger : public IProcessor
-{
+class EventSync : public IProcessor {
+    
 public:
-    virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
+    virtual void Configure( const YAML::Node& node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
-    virtual void Postprocess( ProcessingContext& context ) override; 
+    virtual void Postprocess( ProcessingContext& context ) override;
 
 protected:
-    PortIn<EventType>* event_port_;
-    EventType::Data target_event_;
+    void reset_timestamps(TimestampRegister timestamp_reg);
+    void update_latest_ts(EventType::Data* data_in);
+    void log_and_reset_counters( PortIn<EventType>* in_port, EventCounter& counter );
     
+protected:
+    PortIn<EventType>* data_in_port_;
+    PortOut<EventType>* data_out_port_;
+    EventType::Data target_event_;
+
     EventCounter event_counter_;
+    uint64_t n_events_synced_;
+    
+    TimestampRegister timestamps_;
 };
 
-#endif //eventlogger.hpp
+#endif // eventsync.hpp

@@ -30,66 +30,67 @@
 
 typedef Range<size_t> SampleRange;
 
-template <typename T>
-class MultiChannelData : public IData {
+namespace nsMultiChannel {
+
+using Base = AnyType;
+
+struct Parameters : Base::Parameters {
+    Parameters(size_t nchan=0, size_t nsamp=0, double rate = 1.0)
+        : Base::Parameters(), nchannels(nchan), nsamples(nsamp), sample_rate(rate) {}
+    
+    size_t nchannels;
+    size_t nsamples;
+    double sample_rate;
+};
+
+class Capabilities : public Base::Capabilities {
 public:
-    struct Parameters : IData::Parameters {
-        Parameters(size_t nchan=0, size_t nsamp=0, double rate = 1.0)
-          : IData::Parameters(), nchannels(nchan), nsamples(nsamp), sample_rate(rate) {}
-        
-        size_t nchannels;
-        size_t nsamples;
-        double sample_rate;
-    };
+    Capabilities(ChannelRange channel_range,
+                    SampleRange sample_range = SampleRange( 1, std::numeric_limits<uint32_t>::max()))
+        : Base::Capabilities(), channel_range_(channel_range),
+        sample_range_(sample_range) {}
     
-    class Capabilities : public IData::Capabilities {
-    public:
-        Capabilities(ChannelRange channel_range,
-                     SampleRange sample_range = SampleRange( 1, std::numeric_limits<uint32_t>::max()))
-          : IData::Capabilities(), channel_range_(channel_range),
-            sample_range_(sample_range) {}
-        
-        ChannelRange channel_range() const { return channel_range_; }
-        SampleRange sample_range() const { return sample_range_; }
-        
-        virtual void VerifyCompatibility( const Capabilities & capabilities ) const {
-            IData::Capabilities::VerifyCompatibility( capabilities );
-            if (!channel_range_.overlapping( capabilities.channel_range() )) {
-                throw std::runtime_error("Channel ranges do not overlap ("
-                                         + channel_range_.to_string() + " and "
-                                         + capabilities.channel_range().to_string() + ")");
-            }
-            if (!sample_range_.overlapping( capabilities.sample_range() ) ) {
-                throw std::runtime_error("Sample ranges do not overlap ("
-                                         + sample_range_.to_string() + " and "
-                                         + capabilities.sample_range().to_string() + ")");
-            }
+    ChannelRange channel_range() const { return channel_range_; }
+    SampleRange sample_range() const { return sample_range_; }
+    
+    virtual void VerifyCompatibility( const Capabilities & capabilities ) const {
+        Base::Capabilities::VerifyCompatibility( capabilities );
+        if (!channel_range_.overlapping( capabilities.channel_range() )) {
+            throw std::runtime_error("Channel ranges do not overlap ("
+                                        + channel_range_.to_string() + " and "
+                                        + capabilities.channel_range().to_string() + ")");
         }
-        virtual void Validate( const Parameters & parameters ) const {
-            IData::Capabilities::Validate(parameters);
-            if (parameters.nsamples==0 || !sample_range_.inrange(parameters.nsamples)) {
-                throw std::runtime_error("Number of samples cannot be zero and needs to be in range " + sample_range_.to_string());
-            }
-            
-            if (parameters.nchannels==0 || !channel_range_.inrange(parameters.nchannels)) {
-                throw std::runtime_error("Number of channels cannot be zero and needs to be in range " + channel_range_.to_string());
-            }
+        if (!sample_range_.overlapping( capabilities.sample_range() ) ) {
+            throw std::runtime_error("Sample ranges do not overlap ("
+                                        + sample_range_.to_string() + " and "
+                                        + capabilities.sample_range().to_string() + ")");
         }
-    
-    protected:
-        ChannelRange channel_range_;
-        SampleRange sample_range_;
-    };
-    
-    static const std::string datatype() { return "multichannel"; }
-    
+    }
+    virtual void Validate( const Parameters & parameters ) const {
+        Base::Capabilities::Validate(parameters);
+        if (parameters.nsamples==0 || !sample_range_.inrange(parameters.nsamples)) {
+            throw std::runtime_error("Number of samples cannot be zero and needs to be in range " + sample_range_.to_string());
+        }
+        
+        if (parameters.nchannels==0 || !channel_range_.inrange(parameters.nchannels)) {
+            throw std::runtime_error("Number of channels cannot be zero and needs to be in range " + channel_range_.to_string());
+        }
+    }
+
+protected:
+    ChannelRange channel_range_;
+    SampleRange sample_range_;
+};
+
+template<typename T>
+class Data : public Base::Data {
 public:
     typedef stride_iter<T*> channel_iterator;
     typedef T* sample_iterator;
     
-    MultiChannelData() {}
+    Data() {}
     
-    MultiChannelData( size_t nchannels, size_t nsamples, double sample_rate ) {
+    Data( size_t nchannels, size_t nsamples, double sample_rate ) {
         
         Initialize( nchannels, nchannels, sample_rate );
     }
@@ -196,7 +197,7 @@ public:
     
     virtual void SerializeBinary( std::ostream& stream, Serialization::Format format = Serialization::Format::FULL ) const override {
         
-        IData::SerializeBinary( stream, format );
+        Base::Data::SerializeBinary( stream, format );
         if (format==Serialization::Format::FULL) {
             stream.write( reinterpret_cast<const char*>( timestamps_.data() ), timestamps_.size() * sizeof(uint64_t) );
             stream.write( reinterpret_cast<const char*>( data_.data() ), data_.size() * sizeof(T) );
@@ -213,7 +214,7 @@ public:
     
     virtual void SerializeYAML( YAML::Node & node, Serialization::Format format = Serialization::Format::FULL ) const override {
             
-        IData::SerializeYAML( node, format );
+        Base::Data::SerializeYAML( node, format );
         if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
             node["timestamps"] = timestamps_;
             // TODO: write samples individually to list of lists, instead of a single flat list
@@ -223,7 +224,7 @@ public:
     
     virtual void YAMLDescription( YAML::Node & node, Serialization::Format format = Serialization::Format::FULL ) const override {
         
-        IData::YAMLDescription( node, format );
+        Base::Data::YAMLDescription( node, format );
         if (format==Serialization::Format::FULL) {
             node.push_back( "timestamps uint64 (" + std::to_string(nsamples_) + ")" );
             node.push_back( "signal " + get_type_string<T>() + " (" + std::to_string(nchannels_) + "," + std::to_string(nsamples_) + ")" );
@@ -262,5 +263,22 @@ protected:
     std::vector<T> data_;
     std::vector<uint64_t> timestamps_;
 };
+
+}
+
+template <typename T>
+class MultiChannelType {
+public:
+      
+    static const std::string datatype() { return "multichannel"; }
+    static const std::string dataname() { return "data"; }
+    
+    using Base = nsMultiChannel::Base;
+    using Parameters = nsMultiChannel::Parameters;
+    using Capabilities = nsMultiChannel::Capabilities;
+    using Data = nsMultiChannel::Data<T>;
+
+};
+
 
 #endif // multichanneldata.hpp

@@ -20,7 +20,7 @@
 /* FileSerializer: serializes data streams to file
  * 
  * input ports:
- * data <IData> (1-256 slots)
+ * data <AnyType> (1-256 slots)
  *
  * output ports:
  * none
@@ -62,7 +62,7 @@ protected:
     void create_preamble( std::ostream & out, int slot );
     
 protected:
-    PortIn<IData>* data_port_;
+    PortIn<AnyType>* data_port_;
     
     std::string path_;
     std::string encoding_;

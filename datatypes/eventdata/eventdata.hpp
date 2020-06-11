@@ -27,50 +27,50 @@ typedef unsigned int EventIDType;
 const std::string DEFAULT_EVENT = "none";
 const std::string EVENTDATA_S = "events"; // to be used for port names using spike data
 
+namespace nsEventType {
 
-class EventData : public IData {
-public:
-    struct Parameters : IData::Parameters {
-        Parameters(std::string event = DEFAULT_EVENT)
-          : IData::Parameters(), default_event(event) {}
-        
-        std::string default_event;
-    };
+using Base = AnyType;
+
+struct Parameters : Base::Parameters {
+    Parameters(std::string event = DEFAULT_EVENT)
+        : Base::Parameters(), default_event(event) {}
     
-    class Capabilities : public IData::Capabilities {
-    public:
-        virtual void Validate( const Parameters & parameters ) const {
-            if (parameters.default_event.size()==0) {
-                throw std::runtime_error("Default event string cannot be empty.");
-            }
+    std::string default_event;
+};
+
+class Capabilities : public Base::Capabilities {
+public:
+    virtual void Validate( const Parameters & parameters ) const {
+        if (parameters.default_event.size()==0) {
+            throw std::runtime_error("Default event string cannot be empty.");
         }
-    };
-    
-    static const std::string datatype() { return "event"; }
-    
+    }
+};
+
+class Data : public Base::Data {
 public:
-    EventData( std::string event = DEFAULT_EVENT );
-    
+    Data( std::string event = DEFAULT_EVENT );
+
     void Initialize( std::string event = DEFAULT_EVENT );
     void Initialize( const Parameters & parameters ) {
         set_event( parameters.default_event );
     }
-    
+
     virtual void ClearData() override;
-    
+
     std::string event() const;
     size_t hash() const;
-    
+
     void set_event( std::string event );
-    void set_event( const EventData &source );
-    
-    friend bool operator==(EventData &e1, EventData &e2);
-    friend bool operator!=(EventData &e1, EventData &e2);
+    void set_event( const Data &source );
+
+    friend bool operator==(Data &e1, Data &e2);
+    friend bool operator!=(Data &e1, Data &e2);
     
     virtual void SerializeBinary( std::ostream& stream,
         Serialization::Format format = Serialization::Format::FULL ) const override;
     virtual void SerializeYAML( YAML::Node & node,
-        Serialization::Format format = Serialization::Format::FULL ) const  override;
+        Serialization::Format format = Serialization::Format::FULL ) const override;
     virtual void YAMLDescription( YAML::Node & node,
         Serialization::Format format = Serialization::Format::FULL ) const override;
     
@@ -81,5 +81,18 @@ protected:
     static const unsigned int EVENT_STRING_LENGTH = 128;
 };
 
+}
+
+class EventType {
+public:
+    static const std::string datatype() { return "event"; }
+    static const std::string dataname() { return "events"; }
+
+    using Base = nsEventType::Base;
+    using Parameters = nsEventType::Parameters;
+    using Capabilities = nsEventType::Capabilities;
+    using Data = nsEventType::Data;
+
+};
 
 #endif // eventdata.hpp

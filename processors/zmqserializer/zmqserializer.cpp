@@ -25,9 +25,9 @@
 
 void ZMQSerializer::CreatePorts() {
     
-    data_port_ = create_input_port<IData>(
+    data_port_ = create_input_port<AnyType>(
         "data",
-        IData::Capabilities(),
+        AnyType::Capabilities(),
         PortInPolicy( SlotRange(1,256), false, 0 ) );
 }
 
@@ -74,7 +74,7 @@ void ZMQSerializer::Preprocess(ProcessingContext& context) {
 
 void ZMQSerializer::Process(ProcessingContext& context) {
       
-    std::vector<IData*> data;
+    std::vector<typename AnyType::Data*> data;
     
     int nslots = data_port_->number_of_slots();
     

@@ -25,15 +25,15 @@
 
 void MultiChannelFilter::CreatePorts( ) {
     
-    data_in_port_ = create_input_port<MultiChannelData<double>>(
+    data_in_port_ = create_input_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(0,256) ) );
     
-    data_out_port_ = create_output_port<MultiChannelData<double>>(
+    data_out_port_ = create_output_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
-        MultiChannelData<double>::Parameters(),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelType<double>::Parameters(),
         PortOutPolicy( SlotRange(0,256) ) );
 }
 
@@ -95,8 +95,8 @@ void MultiChannelFilter::Preprocess( ProcessingContext& context ) {}
 void MultiChannelFilter::Process( ProcessingContext& context ) {
     
     
-    MultiChannelData<double>* data_in = nullptr;
-    MultiChannelData<double>* data_out = nullptr;
+    MultiChannelType<double>::Data* data_in = nullptr;
+    MultiChannelType<double>::Data* data_out = nullptr;
     
     auto nslots = data_in_port_->number_of_slots();
     decltype(nslots) k=0;

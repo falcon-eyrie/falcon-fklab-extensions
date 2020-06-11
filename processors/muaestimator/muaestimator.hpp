@@ -23,10 +23,10 @@
  * the spike detectors and outputs MUAData.
  * 
  * input ports:
- * spikes <SpikeData> (1-256 slots)
+ * spikes <SpikeType> (1-256 slots)
  *
  * output ports:
- * mua <MUAData> (1 slot)
+ * mua <MUAType> (1 slot)
  *
  * exposed states:
  * mua <double> - last measured MUA
@@ -58,8 +58,8 @@ public:
     virtual void Process( ProcessingContext& context ) override;
 
 protected:
-    PortIn<SpikeData>* data_in_port_;;
-    PortOut<MUAData>* data_out_port_;
+    PortIn<SpikeType>* data_in_port_;;
+    PortOut<MUAType>* data_out_port_;
     
     StaticState<double>* bin_size_;
     BroadcasterState<double>* mua_;

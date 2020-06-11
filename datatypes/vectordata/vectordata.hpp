@@ -23,27 +23,28 @@
 #include "idata.hpp"
 #include <vector>
 
-template <class TYPE>
-class VectorData : public IData {
-public:
-    struct Parameters : IData::Parameters {
-        Parameters( unsigned int n )
-          : IData::Parameters(), size(n) {}
-        
-        unsigned int size;
-    };
-    
-    class Capabilities : public IData::Capabilities {
-    public:
-        void Validate(const Parameters & parameters ) {
-            if (parameters.size == 0) {
-                throw std::runtime_error("Vector size cannot be zero.");
-            }
-        }
-    };
-    
-    static const std::string datatype() { return "vector"; }
+namespace nsVectorType {
 
+using Base = AnyType;
+
+struct Parameters : Base::Parameters {
+    Parameters( unsigned int n )
+        : IData::Parameters(), size(n) {}
+    
+    unsigned int size;
+};
+
+class Capabilities : public Base::Capabilities {
+public:
+    void Validate(const Parameters & parameters ) {
+        if (parameters.size == 0) {
+            throw std::runtime_error("Vector size cannot be zero.");
+        }
+    }
+};
+
+template <typename TYPE>
+class Data : public Base::Data {
 public:
     Initialize( const Parameters & parameters ) {
         data_.reserve(parameters.size);
@@ -71,6 +72,21 @@ protected:
     std::vector<TYPE> data_;
 };
 
+}
+
+template <class TYPE>
+class VectorType {
+public:
+    
+    static const std::string datatype() { return "vector"; }
+    static const std::string dataname() { return "data"; }
+
+    using Base = nsVectorType::Base;
+    using Parameters = nsVectorType::Parameters;
+    using Capabilities = nsVectorType::Capabilities;
+    using Data = nsVectorType::Data<TYPE>;
+
+};
 
 
 #endif

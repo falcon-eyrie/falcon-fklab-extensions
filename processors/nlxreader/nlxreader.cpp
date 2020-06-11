@@ -70,10 +70,10 @@ bool NlxReader::CheckPacket(char * buffer, int recvlen) {
 void NlxReader::CreatePorts() {
     
     for (auto & it : channelmap_ ) {
-        data_ports_[it.first] = create_output_port<MultiChannelData<double>>(
+        data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
             it.first,
-            MultiChannelData<double>::Capabilities( ChannelRange(it.second.size()) ),
-            MultiChannelData<double>::Parameters(),
+            MultiChannelType<double>::Capabilities( ChannelRange(it.second.size()) ),
+            MultiChannelType<double>::Parameters(),
             PortOutPolicy( SlotRange(1), 500, WaitStrategy::kBlockingStrategy ) );
     }
 }
@@ -83,7 +83,7 @@ void NlxReader::CompleteStreamInfo() {
     for (auto & it : data_ports_ ) {
         // finalize data type with nsamples == batch_size and nchannels taken from channel map
         it.second->streaminfo(0).set_parameters(
-            MultiChannelData<double>::Parameters( channelmap_[it.first].size(),
+            MultiChannelType<double>::Parameters( channelmap_[it.first].size(),
                                                   batch_size_, 
                                                   NLX_SIGNAL_SAMPLING_FREQUENCY ) );
         it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_ );
@@ -174,8 +174,8 @@ void NlxReader::Process( ProcessingContext& context ) {
       
     bool update_time = false;
     int data_index = 0;
-    MultiChannelData<double>::sample_iterator data_iter;
-    std::vector<MultiChannelData<double>*> data_vector(data_ports_.size());
+    MultiChannelType<double>::Data::sample_iterator data_iter;
+    std::vector<MultiChannelType<double>::Data*> data_vector(data_ports_.size());
     
     while ( !context.terminated() && valid_packet_counter_<npackets_ ) {
         

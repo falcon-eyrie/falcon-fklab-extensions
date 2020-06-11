@@ -36,21 +36,21 @@ void SpikeDetector::Configure( const YAML::Node & node, const GlobalContext& con
 
 void SpikeDetector::CreatePorts( ) {
     
-    data_in_port_ = create_input_port<MultiChannelData<double>>(
+    data_in_port_ = create_input_port<MultiChannelType<double>>(
         "data",
-        MultiChannelData<double>::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_spikes_ = create_output_port<SpikeData>(
+    data_out_port_spikes_ = create_output_port<SpikeType>(
         SPIKEDATA_S,
-        SpikeData::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
-        SpikeData::Parameters(buffer_size_ms_),
+        SpikeType::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
+        SpikeType::Parameters(buffer_size_ms_),
         PortOutPolicy( SlotRange(1), RINGBUFFER_SIZE ) );
     
-    data_out_port_events_ = create_output_port<EventData>(
+    data_out_port_events_ = create_output_port<EventType>(
         EVENTDATA_S,
-        EventData::Capabilities(),
-        EventData::Parameters(),
+        EventType::Capabilities(),
+        EventType::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_static_state(
@@ -97,7 +97,7 @@ void SpikeDetector::Prepare( GlobalContext& context ) {
         n_channels_, initial_threshold_, initial_peak_lifetime_ ) );
     
     if ( invert_signal_ ) {
-        inverted_signals_.reset(new MultiChannelData<double>());
+        inverted_signals_.reset(new MultiChannelType<double>::Data());
         inverted_signals_->Initialize(
             n_channels_,
             incoming_buffer_size_samples_,
@@ -113,8 +113,8 @@ void SpikeDetector::Process( ProcessingContext& context ) {
     decltype(n_channels_) c =0;
     decltype(data_in_) signals = nullptr;
     
-    std::unique_ptr<EventData> single_spike_event( new EventData("spike") );
-    std::unique_ptr<EventData> multiple_spikes_event( new EventData("spikes") );
+    std::unique_ptr<EventType::Data> single_spike_event( new EventType::Data("spike") );
+    std::unique_ptr<EventType::Data> multiple_spikes_event( new EventType::Data("spikes") );
     
     while (!context.terminated()) {
         

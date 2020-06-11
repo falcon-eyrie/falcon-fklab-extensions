@@ -22,10 +22,10 @@
  * in response
  * 
  * input ports:
- * data <MultiChannelData> (1 slot)
+ * data <MultiChannelType> (1 slot)
  *
  * output ports:
- * events <EventData> (1 slot)
+ * events <EventType> (1 slot)
  *
  * exposed states:
  * threshold <double> - threshold that needs to be crossed
@@ -63,8 +63,8 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;
     
 protected:
-    PortIn<MultiChannelData<double>>* data_in_port_;
-    PortOut<EventData>* data_out_port_;
+    PortIn<MultiChannelType<double>>* data_in_port_;
+    PortOut<EventType>* data_out_port_;
     
     StaticState<double>* threshold_;
     StaticState<bool>* upslope_;
@@ -76,11 +76,11 @@ protected:
     
     std::vector<double> previous_sample_;
     
-    EventData event_prototype_;
+    EventType::Data event_prototype_;
     uint64_t n_detections_;
     
-    MultiChannelData<double>* data_in_;
-    EventData* data_out_;
+    MultiChannelType<double>::Data* data_in_;
+    EventType::Data* data_out_;
     
 protected:
     void post_detection_block_update(
