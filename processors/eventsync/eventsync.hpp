@@ -73,9 +73,9 @@ protected:
     
     TimestampRegister timestamps_;
 
-    options::Value<EventData,false> target_event_{
+    options::Value<EventType::Data,false> target_event_{
         DEFAULT_EVENT, 
-        options::notempty<EventData>()};
+        options::notempty<EventType::Data>()};
 };
 
 #endif // eventsync.hpp

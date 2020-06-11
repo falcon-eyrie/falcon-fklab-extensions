@@ -52,13 +52,8 @@ void EventFilter::CreatePorts() {
 
     data_out_port_ = create_output_port<EventType>(
         EVENTDATA_S,
-<<<<<<< HEAD
         EventType::Capabilities(),
-        EventType::Parameters( target_event_.event() ),
-=======
-        EventData::Capabilities(),
-        EventData::Parameters( target_event_().event() ),
->>>>>>> WIP. First attempt to make of validated options inside processors.
+        EventType::Parameters( target_event_().event() ),
         PortOutPolicy( SlotRange(1) ) );
     
 }

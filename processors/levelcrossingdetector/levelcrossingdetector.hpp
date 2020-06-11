@@ -104,9 +104,9 @@ protected:
     options::Bool initial_upslope_{true};
     options::Value<unsigned int,false> initial_post_detect_block_{2};
     
-    options::Value<EventData::Data,false> event_prototype_{
+    options::Value<EventType::Data,false> event_prototype_{
         DEFAULT_EVENT, 
-        options::notempty<EventData::Data>()
+        options::notempty<EventType::Data>()
     };
 
 };

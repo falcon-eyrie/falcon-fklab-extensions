@@ -67,8 +67,8 @@ public:
     void set_event( std::string event );
     void set_event( const Data &source );
 
-    friend bool operator==(Data &e1, Data &e2);
-    friend bool operator!=(Data &e1, Data &e2);
+    friend bool operator==(const Data &e1, const Data &e2);
+    friend bool operator!=(const Data &e1, const Data &e2);
     
     virtual void SerializeBinary( std::ostream& stream,
         Serialization::Format format = Serialization::Format::FULL ) const override;
@@ -101,14 +101,14 @@ public:
 namespace YAML {
 
 template<>
-struct convert<EventData::Data> {
-    static Node encode(const EventData::Data& rhs) {
+struct convert<EventType::Data> {
+    static Node encode(const EventType::Data& rhs) {
         Node node;
         node = rhs.event();
         return node;
     }
 
-    static bool decode(const Node& node, EventData::Data& rhs) {
+    static bool decode(const Node& node, EventType::Data& rhs) {
         rhs.set_event(node.as<std::string>());
         return true;
     }

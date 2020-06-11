@@ -20,7 +20,7 @@
 #include "eventlogger.hpp"
 #include <thread>
 
-void EventSink::Configure( const YAML::Node& node, const GlobalContext& context) {
+void EventLogger::Configure( const YAML::Node& node, const GlobalContext& context) {
 }
 
 void EventLogger::CreatePorts() {

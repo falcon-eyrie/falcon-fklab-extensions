@@ -17,7 +17,7 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSink: takes an EventData stream and logs the arrival of a target event
+/* EventLogger: takes an EventData stream and logs the arrival of a target event
  * 
  * input ports:
  * events <EventType> (1 slot)
@@ -48,7 +48,7 @@ class EventLogger : public IProcessor
 {
 public:
 
-    EventSink() : IProcessor() {
+    EventLogger() : IProcessor() {
         add_option("target_event", target_event_);
     }
 
@@ -60,9 +60,9 @@ public:
 protected:
     PortIn<EventType>* event_port_;
     
-    options::Value<EventData::Data,false> target_event_{
+    options::Value<EventType::Data,false> target_event_{
         DEFAULT_EVENT, 
-        options::notempty<EventData::Data>()};
+        options::notempty<EventType::Data>()};
 
     EventCounter event_counter_;
 };
