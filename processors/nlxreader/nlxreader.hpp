@@ -79,6 +79,8 @@
 #include "neuralynx/nlx.hpp"
 #include "utilities/time.hpp"
 
+#include "options/options.hpp"
+
 
 typedef std::map<std::string,std::vector<unsigned int>> ChannelMap;
 
@@ -95,7 +97,19 @@ struct NlxReaderStats {
 class NlxReader : public IProcessor 
 {
 public:
-    NlxReader() : IProcessor( PRIORITY_HIGH ) {};
+    NlxReader() : IProcessor( PRIORITY_HIGH ) {
+
+        add_option("address", address_, "IP address of Digilynx acquisition system.");
+        add_option("port", port_, "Port number for communication with Digilynx acquisition system.");
+        add_option("channelmap", channelmap_, "Mapping of channels to proccessor output ports.");
+        add_option("npackets", npackets_, "The total number of data packets to read (0 means continuous recording).");
+        add_option("batch_size", batch_size_, "The number of data packets to concatenate into single multi-channel data bucket.");
+        add_option("nchannels", nchannels_, "The number of channels of the Digilynx acquisition system.");
+        add_option("update_interval", update_interval_, "The time interval for updates on the received data from the Digilynx acquisition system.");
+        add_option("hardware_trigger", dispatch_, "Whether or not to wait for hardware trigger to start streaming data packets.");
+        add_option("hardware_trigger_channel", hardware_trigger_channel_, "Digital input channel to use as hardware trigger");
+
+    };
     
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
@@ -114,15 +128,6 @@ public:
     static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
         NLX_PACKETBYTESIZE(MAX_NCHANNELS);
     
-// config options
-protected:
-    ChannelMap channelmap_;
-    std::string address_;
-    unsigned int port_;
-    std::uint64_t npackets_;
-    unsigned int batch_size_;
-    unsigned int nchannels_;
-
 // internals
 protected:
     fd_set file_descriptor_set_;
@@ -130,7 +135,7 @@ protected:
     struct sockaddr_in server_addr_; 
     
     unsigned int sample_counter_;
-    decltype(npackets_) valid_packet_counter_;
+    uint64_t valid_packet_counter_;
     
     TimePoint first_valid_packet_arrival_time_;
     
@@ -142,12 +147,6 @@ protected:
     char buffer_[UDP_BUFFER_SIZE]; //UDP_BUFFER_SIZE is in bytes, so divide by size of int32_t
     NlxSignalRecord nlxrecord_;
     
-    bool dispatch_;
-    bool hardware_trigger_;
-    uint32_t hardware_trigger_channel_;
-    
-    decltype(valid_packet_counter_) update_interval_;
-    
     NlxReaderStats stats_;
     decltype(timestamp_) delta_;
     
@@ -156,20 +155,34 @@ protected:
 public:
     static constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
         SAMPLING_PERIOD_MICROSEC = 1e6 / NLX_SIGNAL_SAMPLING_FREQUENCY;
-    const std::string DEFAULT_ADDRESS = "127.0.0.1";
-    const decltype(port_) DEFAULT_PORT = 5000;
-    const decltype(npackets_) DEFAULT_NPACKETS = 0;
-    const decltype(batch_size_) DEFAULT_BATCHSIZE = 1;
-    const decltype(nchannels_) DEFAULT_NCHANNELS = 128;
-    const decltype(update_interval_) DEFAULT_UPDATE_INTERVAL_SEC = 20;
-    const decltype(hardware_trigger_) DEFAULT_HARDWARE_TRIGGER = false;
-    const decltype(hardware_trigger_channel_) DEFAULT_HARDWARE_TRIGGER_CHANNEL = 0;
+
     const decltype(timeout_.tv_sec) TIMEOUT_SEC = 3;
     static constexpr decltype(delta_) MAX_ALLOWABLE_TIMEGAP_MICROSECONDS =
         trunc( SAMPLING_PERIOD_MICROSEC ) + 1;
     static constexpr decltype(timestamp_) INVALID_TIMESTAMP =
         std::numeric_limits<decltype(timestamp_)>::max();
-  
+
+// OPTIONS
+protected:
+
+    options::Value<ChannelMap,false> channelmap_;
+    options::String address_{"127.0.0.1"};
+    options::Value<unsigned int,false> port_{5000};
+    options::Value<std::uint64_t,false> npackets_{
+        0,
+        options::zeroismax<std::uint64_t>()
+    };
+    options::Value<unsigned int,false> batch_size_{1};
+    options::Value<unsigned int,false> nchannels_{128};
+    options::Measurement<std::uint64_t,false> update_interval_{
+        20,
+        units::precise::second,
+        options::zeroismax<std::uint64_t>() +
+        options::multiplied<std::uint64_t>(NLX_SIGNAL_SAMPLING_FREQUENCY)
+    };
+    options::Bool dispatch_{true, options::invert()};
+    options::Value<uint32_t,false> hardware_trigger_channel_{0};
+    
 };
 
 #endif // nlxreader.hpp

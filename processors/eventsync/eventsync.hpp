@@ -50,7 +50,7 @@ class EventSync : public IProcessor {
 public:
 
     EventSync() : IProcessor() {
-        add_option("target_event", target_event_);
+        add_option("target_event", target_event_, "The event to synchronize on.");
     }
 
     virtual void Configure( const YAML::Node& node, const GlobalContext& context ) override;
@@ -66,7 +66,6 @@ protected:
 protected:
     PortIn<EventType>* data_in_port_;
     PortOut<EventType>* data_out_port_;
-    //EventType::Data target_event_;
 
     EventCounter event_counter_;
     uint64_t n_events_synced_;

@@ -50,8 +50,9 @@ class EventSource : public IProcessor {
 public:
 
     EventSource () : IProcessor() {
-        add_option("events", event_list_);
-        add_option("rate", event_rate_);
+
+        add_option("events", event_list_, "List of events to generate.");
+        add_option("rate", event_rate_, "Rate (in Hz) at which events are generated.");
     }
 
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
@@ -70,8 +71,11 @@ protected:
         options::notempty<std::vector<std::string>>() +
         options::each<std::string>(options::notempty<std::string>())};
     
-    options::Double event_rate_{DEFAULT_EVENT_RATE, options::positive<double>()};
-    
+    options::Measurement<double> event_rate_{
+        DEFAULT_EVENT_RATE,
+        units::precise::Hz,
+        options::positive<double>()
+    };
 };
 
 #endif // eventsource.hpp
