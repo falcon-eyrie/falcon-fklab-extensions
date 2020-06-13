@@ -19,6 +19,14 @@
 
 #include "levelcrossingdetector.hpp"
 
+
+LevelCrossingDetector::LevelCrossingDetector() : IProcessor() {
+    add_option("threshold", initial_threshold_, "Threshold (in data units) that needs to be crossed.");
+    add_option("upslope", initial_upslope_,"Either detect upward (true) or downward (false) threshold crossings.");
+    add_option("post detect block", initial_post_detect_block_, "Refractory period after threshold crossing detection (in number of samples).");
+    add_option("event", event_prototype_, "The event to emit when the input signal crosses the threshold.");
+}
+
 void LevelCrossingDetector::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
 }

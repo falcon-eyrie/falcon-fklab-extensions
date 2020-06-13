@@ -19,50 +19,17 @@
 
 #include "rippledetector.hpp"
 
-void RippleDetector::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    initial_threshold_dev_ = node[THRESHOLD_DEV_S].as<decltype(initial_threshold_dev_)>
-        ( DEFAULT_THRESHOLD_DEV );
-    
-    initial_smooth_time_ = node[SMOOTH_TIME_S].as<decltype(initial_smooth_time_)>(
-        DEFAULT_SMOOTH_TIME );
-    if ( initial_smooth_time_ <= 0 ) {
-        auto err_msg = SMOOTH_TIME_S + " must be a positive number.";
-        throw ProcessingConfigureError( err_msg, name() );
-    }
-    
-    initial_detection_lockout_time_ =
-        node[DETECTION_LOCKOUT_TIME_S].as<decltype( initial_detection_lockout_time_ )>
-            ( DEFAULT_DETECTION_LOCKOUT_TIME );
-    if ( initial_detection_lockout_time_ == 0 ) {
-        throw ProcessingConfigureError(
-            "Minimum detection lock out time must greater than 0 ms.", name() );
-    }
-    
-    default_stream_events_ = node[STREAM_EVENTS_S].as<decltype(default_stream_events_)>
-        ( DEFAULT_STREAM_EVENTS );
-    
-    initial_stats_out_ = node[STREAM_STATISTICS_S].as<decltype(initial_stats_out_)>
-        ( DEFAULT_STREAM_STATISTICS );
-    
-    stats_buffer_size_ =
-        node[STATISTICS_BUFFER_SIZE_S].as<decltype(stats_buffer_size_)>
-            ( DEFAULT_STATISTICS_BUFFER_SIZE );
-    if ( stats_buffer_size_<=0 ) {
-        throw ProcessingConfigureError("Buffer size should be equal larger than zero.",
-            name());
-    }
-    
-    stats_downsample_factor_ =
-        node[STATISTICS_DOWNSAMPLE_FACTOR_S].as<decltype(stats_downsample_factor_)>(
-            DEFAULT_STATISTICS_DOWNSAMPLE_FACTOR );
-    if ( stats_downsample_factor_<=0 ) {
-        throw ProcessingConfigureError(
-            "Downsample factor should larger than zero.", name() );
-    }
-    
-    use_power_ = node["use_power"].as<decltype(use_power_)>( true );
+RippleDetector::RippleDetector() : IProcessor() {
+    add_option(THRESHOLD_DEV_S, initial_threshold_dev_, "Multiplier (in number of signal standard deviations) to compute the initial threshold.");
+    add_option(SMOOTH_TIME_S, initial_smooth_time_, "Integration time for estimating signal statistics.");
+    add_option(DETECTION_LOCKOUT_TIME_S, initial_detection_lockout_time_, "Lockout time (in seconds) to avoid over-stimulation.");
+    add_option(STREAM_EVENTS_S, default_stream_events_, "Enable streaming of ripple events.");
+    add_option(STREAM_STATISTICS_S, initial_stats_out_, "Enable streaming of statistics.");
+    add_option("statistics_buffer_size", stats_buffer_size_, "Size (in seconds) for statistics output buffers.");
+    add_option("statistics_downsample_factor", stats_downsample_factor_, "Downsample factor of streamed statistics signal");
+    add_option("use_power", use_power_, "Use power of signal for detection.");
 }
+
 
 void RippleDetector::CreatePorts( ) {
     
@@ -103,31 +70,31 @@ void RippleDetector::CreatePorts( ) {
     
     threshold_dev_ = create_static_state(
         THRESHOLD_DEV_S,
-        initial_threshold_dev_,
+        initial_threshold_dev_(),
         true,
         Permission::WRITE );
     
     detection_lockout_time_ = create_static_state(
         DETECTION_LOCKOUT_TIME_S,
-        initial_detection_lockout_time_,
+        initial_detection_lockout_time_(),
         true,
         Permission::WRITE );
     
     stream_events_ = create_static_state(
         STREAM_EVENTS_S,
-        default_stream_events_,
+        default_stream_events_(),
         true,
         Permission::WRITE );
     
     smooth_time_ = create_static_state(
         SMOOTH_TIME_S,
-        initial_smooth_time_,
+        initial_smooth_time_(),
         true,
         Permission::WRITE );
     
     stats_out_ = create_static_state(
         STREAM_STATISTICS_S,
-        initial_stats_out_,
+        initial_stats_out_(),
         true,
         Permission::WRITE );
         
@@ -139,13 +106,13 @@ void RippleDetector::CreatePorts( ) {
 
 void RippleDetector::CompleteStreamInfo( ) {
     
-    stats_nsamples_ = stats_buffer_size_ *
-        data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_;
+    stats_nsamples_ = stats_buffer_size_() *
+        data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_();
     stats_nsamples_ = std::max( stats_nsamples_, 1UL );
     
     stats_out_port_->streaminfo(0).set_parameters( MultiChannelType<double>::Parameters(
         N_STATS_OUT, stats_nsamples_,
-        data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_ ));
+        data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_() ));
     stats_out_port_->streaminfo(0).set_stream_rate( data_in_port_->streaminfo(0) );
     
 }
@@ -158,7 +125,7 @@ void RippleDetector::Preprocess( ProcessingContext& context ) {
     block_ = 0;
         
     sample_rate_ = data_in_port_->slot(0)->streaminfo().parameters().sample_rate;
-    burn_in_ = initial_smooth_time_ * sample_rate_;
+    burn_in_ = initial_smooth_time_() * sample_rate_;
 
     double alpha = 1.0/burn_in_;
     
@@ -176,7 +143,7 @@ void RippleDetector::Process( ProcessingContext& context ) {
     double value, test_value;
     unsigned int s;
     auto stats_nsamples_counter = stats_nsamples_;
-    decltype(stats_downsample_factor_) stats_skip_counter = 0;
+    unsigned int stats_skip_counter = 0;
     auto burnin_update_sent = false;
     
     // burn-in period
@@ -186,7 +153,7 @@ void RippleDetector::Process( ProcessingContext& context ) {
         
         if ( not burnin_update_sent ) {
             LOG(UPDATE) << name() << ": burn-in period starting (" <<
-                initial_smooth_time_ << " seconds)";
+                initial_smooth_time_() << " seconds)";
             burnin_update_sent = true;
         }
         for ( unsigned int s=0; s<data_in->nsamples(); ++s ) {
@@ -243,7 +210,7 @@ void RippleDetector::Process( ProcessingContext& context ) {
                     stats_out->set_sample_timestamp( stats_nsamples_counter,
                         data_in->sample_timestamp(s) );
                     
-                    stats_skip_counter = stats_downsample_factor_;
+                    stats_skip_counter = stats_downsample_factor_();
                     ++stats_nsamples_counter;
                 }
                 
@@ -289,7 +256,7 @@ void RippleDetector::Postprocess( ProcessingContext& context ) {
 inline double RippleDetector::compute_value( MultiChannelType<double>::Data* data_in,
     unsigned int sample ) {
     
-    if ( use_power_ ) {
+    if ( use_power_() ) {
         acc_ =  std::pow( *data_in->begin_sample(sample), 2 );
         for ( auto c=data_in->begin_sample(sample)+1; c!=data_in->end_sample(sample); ++c ) {
             acc_ += std::pow( *c, 2 );

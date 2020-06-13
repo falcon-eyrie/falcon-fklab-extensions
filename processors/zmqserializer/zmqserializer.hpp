@@ -47,32 +47,35 @@
 #include "iprocessor.hpp"
 #include "serializer.hpp"
 
+#include "options/options.hpp"
+
 class ZMQSerializer : public IProcessor
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
+    ZMQSerializer();
+
     virtual void CreatePorts() override;
-    virtual void Configure( const YAML::Node & node, const GlobalContext& context ) override;
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
     
+// DATA PORTS
 protected:
     PortIn<AnyType>* data_port_;
     
-    std::string encoding_;
-    Serialization::Format format_;
-    unsigned int port_;
-    bool interleave_;
-    
+// OPTIONS
+protected:
+    options::Value<unsigned int, false> port_{7777};
+    options::Value<Serialization::Encoding,false> encoding_{Serialization::Encoding::BINARY};
+    options::Value<Serialization::Format,false> format_{Serialization::Format::FULL};
+    options::Bool interleave_{false};
+
+// OTHER
+protected:
     std::vector<std::unique_ptr<zmq::socket_t>> sockets_;
     std::vector<uint64_t> packetid_;
     std::unique_ptr<Serialization::Serializer> serializer_;
-    
-public:
-    const std::string DEFAULT_ENCODING = "binary";
-    const Serialization::Format DEFAULT_FORMAT = Serialization::Format::FULL;
-    const unsigned int DEFAULT_PORT = 7777;
-    const bool DEFAULT_INTERLEAVE = false;
 };
 
 #endif //zmqserializer.hpp

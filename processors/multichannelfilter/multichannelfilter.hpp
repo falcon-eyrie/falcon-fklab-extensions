@@ -67,6 +67,7 @@
 
 class MultiChannelFilter : public IProcessor
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
@@ -77,12 +78,16 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;
     virtual void CompleteStreamInfo( ) override;
 
+// variables
 protected:
     std::unique_ptr<dsp::filter::IFilter> filter_template_;
     std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
-    
+
+// DATA PORTS
+protected:
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<MultiChannelType<double>>* data_out_port_;
+
 };
 
 #endif // multichannelfilter.hpp

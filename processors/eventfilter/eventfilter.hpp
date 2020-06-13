@@ -58,17 +58,11 @@
 
 
 class EventFilter : public EventSync {
-    
+
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
 
-    EventFilter() : EventSync() {
-        
-        add_option("blockout_time_ms", blockout_time_ms_);
-        add_option("synch_time_ms", synch_time_ms_);
-        add_option("time_in_ms", time_in_ms_);
-        add_option("discard_warnings", discard_warnings_);
-    
-    }
+    EventFilter();
 
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void CreatePorts() override;
@@ -77,6 +71,7 @@ public:
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;   
 
+// methods
 protected:
     // return the alive status of the processor, the flag of found target and
     // the timestamp of the target event detected after a read on the input port
@@ -86,67 +81,63 @@ protected:
         std::vector<TimePoint>& arrival_times,
         std::vector<uint64_t>& arrival_timestamps  );
     
-protected:
-    PortIn<EventType>* block_in_port_;
-
-    //double blockout_time_ms_;
-    //double synch_time_ms_;
-    //double time_in_ms_;
-    SlotType detections_to_criterion_;
-    //bool discard_warnings_;
-    
-    unsigned int n_blocked_events_;
-    EventCounter blocking_events_counter_;
-    
-    TimePoint gate_close_time_;
-
-protected:
-    std::chrono::duration<double, std::milli> duration_ms_;
-    
     // return the time in milliseconds past from two given time points
     inline double time_between( TimePoint t2, TimePoint t1 ) {
         
         duration_ms_ = t2 - t1;
         return duration_ms_.count();
     }
-    
+
     // return the time in milliseconds past from a given time point
     inline double time_since( TimePoint t ) {
         
         return time_between( Clock::now(), t );
     }
-    
-    
-public:
-    const double DEFAULT_BLOCKOUT_TIME_MS = 10.0;
-    const double DEFAULT_SYNCH_TIME_MS = 1.5;
-    const double DEFAULT_TIME_IN_MS = 3.5;
-    const bool DEFAULT_WARNINGS_DISCARDED = false;
 
-// OPTIONS
+// DATA PORTS
 protected:
+    PortIn<EventType>* block_in_port_;
 
-    options::Double blockout_time_ms_{
-        DEFAULT_BLOCKOUT_TIME_MS,
-        options::positive<double>()
-    };
-
-    options::Double synch_time_ms_{
-        DEFAULT_SYNCH_TIME_MS,
-        options::positive<double>()
-    };
+// variables
+protected:
+    SlotType detections_to_criterion_;
     
-    options::Double time_in_ms_{
-        DEFAULT_TIME_IN_MS,
-        options::positive<double>()
-    };
+    unsigned int n_blocked_events_;
+    EventCounter blocking_events_counter_;
+    
+    TimePoint gate_close_time_;
 
-    options::Bool discard_warnings_{DEFAULT_WARNINGS_DISCARDED};
+    std::chrono::duration<double, std::milli> duration_ms_;
 
+// constants
 protected:
     const uint64_t NULL_TIMESTAMP = std::numeric_limits<uint64_t>::max();
     const decltype(detections_to_criterion_) ALL =
         std::numeric_limits<decltype(detections_to_criterion_)>::max();
+
+// OPTIONS
+protected:
+
+    options::Measurement<double,false> blockout_time_ms_{
+        10.,
+        units::precise::ms,
+        options::positive<double>()
+    };
+
+    options::Measurement<double,false> block_wait_time_ms_{
+        1.5,
+        units::precise::ms,
+        options::positive<double>()
+    };
+    
+    options::Measurement<double,false> sync_time_ms_{
+        3.5,
+        units::precise::ms,
+        options::positive<double>()
+    };
+
+    options::Bool discard_warnings_{false};
+
 };
 
 #endif	// eventfilter.hpp

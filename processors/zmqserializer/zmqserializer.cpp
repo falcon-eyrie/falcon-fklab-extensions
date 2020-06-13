@@ -23,6 +23,22 @@
 #include "utilities/zmqutil.hpp"
 
 
+ZMQSerializer::ZMQSerializer() : IProcessor() {
+
+    add_option("port", port_,
+        "Local network port for data streaming. If interleave is false, "
+        "then this is the first port in a sequence of ports used for streaming.");
+    
+    add_option("encoding", encoding_, "Binary or YAML encoding.");
+    
+    add_option("format", format_,
+        "Data format (none, full, headeronly, streamheader, compact).");
+    
+    add_option("interleave", interleave_,
+        "Interleave data streams from all input slots and stream to "
+        "single network port.");
+}
+
 void ZMQSerializer::CreatePorts() {
     
     data_port_ = create_input_port<AnyType>(
@@ -31,42 +47,25 @@ void ZMQSerializer::CreatePorts() {
         PortInPolicy( SlotRange(1,256), false, 0 ) );
 }
 
-void ZMQSerializer::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    // local port to stream data to
-    // in case interleave == true, then it specifies the first port in 
-    // a sequence of ports used for streaming
-    port_ = node["port"].as<unsigned int>( DEFAULT_PORT );
-    
-    // binary or yaml encoding
-    encoding_ = node["encoding"].as<std::string>( DEFAULT_ENCODING );
-    
-    // data format
-    format_ = Serialization::string_to_format( node["format"].as<std::string>( Serialization::format_to_string( DEFAULT_FORMAT ) ) );
-    
-    // whether data streams from different input slots are interleaved
-    interleave_ = node["interleave"].as<bool>( DEFAULT_INTERLEAVE );
-}
-
 void ZMQSerializer::Preprocess(ProcessingContext& context) {
     
     std::string address;
     
     sockets_.clear();
     
-    if (interleave_) {
+    if (interleave_()) {
         sockets_.push_back( std::move(std::unique_ptr<zmq::socket_t>( new zmq::socket_t (context.run().global().zmq(), ZMQ_PUB) ) ) );
-        address = "tcp://*:" + std::to_string(port_);
+        address = "tcp://*:" + std::to_string(port_());
         sockets_.back()->bind ( address.c_str() );
     } else {
         for (int k=0; k<data_port_->number_of_slots(); ++k) {
             sockets_.push_back( std::move(std::unique_ptr<zmq::socket_t>( new zmq::socket_t (context.run().global().zmq(), ZMQ_PUB) ) ) );
-            address = "tcp://*:" + std::to_string(port_ + k);
+            address = "tcp://*:" + std::to_string(port_() + k);
             sockets_.back()->bind ( address.c_str() );
         }
     }
     
-    serializer_.reset( Serialization::serializer_from_string( encoding_, format_ ) );
+    serializer_.reset( Serialization::serializer( encoding_(), format_() ) );
     
     packetid_.assign( data_port_->number_of_slots(), 0 );
     
@@ -87,7 +86,7 @@ void ZMQSerializer::Process(ProcessingContext& context) {
             
             if (!data_port_->slot(k)->RetrieveDataAll( data )) {break;}
             
-            if (!interleave_) {idx=k;}
+            if (!interleave_()) {idx=k;}
             
             for (auto & it : data) {
                 

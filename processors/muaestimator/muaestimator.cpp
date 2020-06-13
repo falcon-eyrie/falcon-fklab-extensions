@@ -21,10 +21,11 @@
 
 #include "utilities/general.hpp"
 
-void MUAEstimator::Configure( const YAML::Node  & node, const GlobalContext& context) {
-    
-    //initial_bin_size_ = node[BIN_SIZE_S].as<decltype(initial_bin_size_)>( DEFAULT_BIN_SIZE );
+
+MUAEstimator::MUAEstimator() : IProcessor() {
+    add_option("bin size", initial_bin_size_);
 }
+
 
 void MUAEstimator::CreatePorts() {
     

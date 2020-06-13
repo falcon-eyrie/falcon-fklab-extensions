@@ -20,7 +20,8 @@
 #include "eventlogger.hpp"
 #include <thread>
 
-void EventLogger::Configure( const YAML::Node& node, const GlobalContext& context) {
+EventLogger::EventLogger() : IProcessor() {
+    add_option("target event", target_event_, "The event to be logged.");
 }
 
 void EventLogger::CreatePorts() {

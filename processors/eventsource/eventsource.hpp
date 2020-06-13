@@ -46,26 +46,27 @@
 #include "options/options.hpp"
 
 class EventSource : public IProcessor {
-    
+
+// CONSTRUCTOR and OVERLOADED METHODS 
 public:
 
-    EventSource () : IProcessor() {
-
-        add_option("events", event_list_, "List of events to generate.");
-        add_option("rate", event_rate_, "Rate (in Hz) at which events are generated.");
-    }
+    EventSource();
 
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
 
+// contants
 public:
     const double DEFAULT_EVENT_RATE = 1.0;
     const std::string DEFAULT_EVENT = "default_eventsource_event";
 
+// variables
 protected:
     PortOut<EventType>* event_port_;
 
+// OPTIONS
+protected:
     options::Vector<std::string> event_list_{
         {DEFAULT_EVENT},
         options::notempty<std::vector<std::string>>() +

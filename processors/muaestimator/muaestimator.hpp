@@ -48,42 +48,47 @@
 #include "spikedata/spikedata.hpp"
 #include "muadata/muadata.hpp"
 
+#include "options/units.hpp"
+
 class MUAEstimator : public IProcessor {
 
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
 
-    MUAEstimator() : IProcessor() {
-        add_option("bin_size_ms", initial_bin_size_);
-    }
+    MUAEstimator();
 
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
     virtual void CompleteStreamInfo() override; 
     virtual void Prepare( GlobalContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
 
+// DATA PORTS
 protected:
     PortIn<SpikeType>* data_in_port_;;
     PortOut<MUAType>* data_out_port_;
     
+// STATES
+protected:
     StaticState<double>* bin_size_;
     BroadcasterState<double>* mua_;
-    
-    //double initial_bin_size_;
+
+// variables
+protected:
     double current_bin_size_;
     double previous_bin_size_;
     double spike_buffer_size_;
     
     std::size_t n_spike_buffers_;
     
+// state name
 public:
-    //decltype(initial_bin_size_) DEFAULT_BIN_SIZE = 10;
     const std::string BIN_SIZE_S = "bin_size_ms";
 
 //OPTIONS
 protected:
-    options::Double initial_bin_size_{
+    options::Measurement<double,false> initial_bin_size_{
         10.,
+        units::precise::ms,
         options::positive<double>(true)
     };
     

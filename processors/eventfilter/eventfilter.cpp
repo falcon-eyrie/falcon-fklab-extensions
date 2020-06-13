@@ -23,6 +23,23 @@
 #include <thread>
 #include <algorithm>
 
+
+EventFilter::EventFilter() : EventSync() {
+    add_option("block duration", blockout_time_ms_,
+        "The duration over which events will be filtered out "
+        "following the arrival of a blocking event.");
+
+    add_option("block wait time", block_wait_time_ms_,
+        "The waiting time after a target event has been received "
+        "to check if any blocking event also occurred.");
+
+    add_option("sync time", sync_time_ms_,
+        "Time interval over which incoming events are considered to be synchronuous.");
+
+    add_option("discard warnings", discard_warnings_,
+        "Do not emit warnings for discarded events.");
+}
+
 void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context) {
     
     auto detection_criterion = node["detection_criterion"].as<std::string>( "any" );
@@ -131,7 +148,7 @@ void EventFilter::Process(ProcessingContext& context) {
                 counter_to_detection = 0;
                 for ( auto t: arrival_times_per_slot_events ) {
                     if ( time_between( arrival_times_per_slot_events[slot_last], t )
-                    < time_in_ms_() ) {
+                    < sync_time_ms_() ) {
                         ++ counter_to_detection;
                     }
                 }
@@ -165,8 +182,8 @@ void EventFilter::Process(ProcessingContext& context) {
                 // check if blocking event is coming soon after the target event
                 // is received on the "events" port with this dedicated read loop
                 
-                // read incoming blocking events for synch_time_ms_
-                while ( time_since( t_detection ) < synch_time_ms_() and detection_criterion ) {
+                // read incoming blocking events for block_wait_time_ms_
+                while ( time_since( t_detection ) < block_wait_time_ms_() and detection_criterion ) {
                     std::tie( alive, gate_just_closed, std::ignore ) = is_there_target(
                         block_in_port_, blocking_events_counter_,
                         arrival_times_per_slot_blocking_events,

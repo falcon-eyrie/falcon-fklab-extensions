@@ -52,17 +52,14 @@
 #include "eventdata/eventdata.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 
+#include "options/units.hpp"
 
 class LevelCrossingDetector : public IProcessor {
 
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
 
-    LevelCrossingDetector() : IProcessor() {
-        add_option("threshold", initial_threshold_, "Threshold (in data units) that needs to be crossed.");
-        add_option("upslope", initial_upslope_,"Either detect upward (true) or downward (false) threshold crossings.");
-        add_option("post_detect_block", initial_post_detect_block_, "Refractory period after threshold crossing detection (in number of samples).");
-        add_option("event", event_prototype_, "The event to emit when the input signal crosses the threshold.");
-    }
+    LevelCrossingDetector();
 
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
@@ -70,24 +67,31 @@ public:
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
     
+// DATA PORTS
 protected:
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<EventType>* data_out_port_;
-    
+
+// STATES
+protected:
     StaticState<double>* threshold_;
     StaticState<bool>* upslope_;
     StaticState<unsigned int>* post_detect_block_;
     
+// variables
+protected:
     std::vector<double> previous_sample_;
     uint64_t n_detections_;
     
     MultiChannelType<double>::Data* data_in_;
     EventType::Data* data_out_;
-    
+
+// methods
 protected:
     void post_detection_block_update(
         unsigned int post_detection_block );
 
+// constants, option and state names
 public:
 
     const std::string DEFAULT_EVENT = "threshold_crossing";  
@@ -102,7 +106,11 @@ protected:
 
     options::Double initial_threshold_{0.0};
     options::Bool initial_upslope_{true};
-    options::Value<unsigned int,false> initial_post_detect_block_{2};
+    
+    options::Measurement<unsigned int,false> initial_post_detect_block_{
+        2,
+        units::precise::sample_units
+    };
     
     options::Value<EventType::Data,false> event_prototype_{
         DEFAULT_EVENT, 

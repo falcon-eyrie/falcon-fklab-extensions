@@ -48,30 +48,30 @@
 
 #include "iprocessor.hpp"
 #include "serializer.hpp"
+#include "options/options.hpp"
 
 class FileSerializer : public IProcessor
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
+    FileSerializer();
+
     virtual void CreatePorts() override;
     virtual void Configure(const YAML::Node& node, const GlobalContext& context) override;
     virtual void Preprocess(ProcessingContext& context) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
 
+// methods
 protected:
     void create_preamble( std::ostream & out, int slot );
     
+// DATA PORTS
 protected:
     PortIn<AnyType>* data_port_;
-    
-    std::string path_;
-    std::string encoding_;
-    Serialization::Format format_;
-    bool overwrite_;
-    bool throttle_;
-    double throttle_threshold_;
-    double throttle_smooth_;
-    
+
+// variables
+protected:
     std::unique_ptr<Serialization::Serializer> serializer_;
     std::vector<std::unique_ptr<std::ostream>> streams_;
     std::vector<uint64_t> packetid_;
@@ -80,14 +80,21 @@ protected:
     double throttle_level_;
     std::vector<uint64_t> nskipped_;
 
-public:
-    const std::string DEFAULT_ENCODING = "binary";
-    const decltype(format_) DEFAULT_FORMAT = Serialization::Format::FULL;
-    const std::string DEFAULT_PATH = "run://";
-    const bool DEFAULT_OVERWRITE = false;
-    const bool DEFAULT_THROTTLE = false;
-    const decltype(throttle_threshold_) DEFAULT_THROTTLE_THRESHOLD = 0.3;
-    const decltype(throttle_smooth_) DEFAULT_THROTTLE_SMOOTH = 0.5;
+// OPTIONS
+protected:
+    options::String path_{"run://"};
+    options::Value<Serialization::Encoding,false> encoding_{Serialization::Encoding::BINARY};
+    options::Value<Serialization::Format,false> format_{Serialization::Format::FULL};
+    options::Bool overwrite_{false};
+    options::Bool throttle_{false};
+    options::Double throttle_threshold_{
+        0.3,
+        options::inrange<double>(0.,1.)
+    };
+    options::Double throttle_smooth_{
+        0.5,
+        options::inrange<double>(0.,1.)
+    };
 };
 
 #endif //fileserializer.hpp

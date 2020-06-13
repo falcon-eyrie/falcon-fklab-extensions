@@ -23,15 +23,13 @@
 #include <thread>
 #include <random>
 
+EventSource::EventSource() : IProcessor() {
+    add_option("events", event_list_, "List of events to generate.");
+    add_option("rate", event_rate_, "Rate (in Hz) at which events are generated.");
+}
 
 void EventSource::Configure( const YAML::Node& node, const GlobalContext& context) {
     
-    // std::vector<std::string> tmp_vec(1, DEFAULT_EVENT);
-    // event_list_ = node["events"].as<std::vector<std::string>>( tmp_vec );
-    // if ( event_list_ == tmp_vec) { // if defaults, check if a single string was entered
-    //     auto tmp_event = node["events"].as<std::string>( DEFAULT_EVENT );
-    //     event_list_.assign( 1, tmp_event );
-    // }
     for (auto& el: event_list_()) {
         LOG(INFO) << name() << ". Event " << el << " configured for streaming.";
     }

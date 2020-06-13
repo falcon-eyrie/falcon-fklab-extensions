@@ -22,9 +22,10 @@
 #include "utilities/time.hpp"
 
 
-constexpr decltype(Rebuffer::downsample_factor_) Rebuffer::DEFAULT_DOWNSAMPLE_FACTOR;
-constexpr decltype(Rebuffer::buffer_size_samples_) Rebuffer::DEFAULT_BUFFER_SIZE_SAMPLES;
-constexpr decltype(Rebuffer::buffer_size_seconds_) Rebuffer::DEFAULT_BUFFER_SIZE_SECONDS;
+Rebuffer::Rebuffer() : IProcessor() {
+    add_option("downsample_factor", downsample_factor_, "The factor for downsampling the signal.");
+    add_option("buffer_size", buffer_size_, "Output buffer size in samples or seconds.");
+}
 
 void Rebuffer::CreatePorts( ) {
     
@@ -42,33 +43,10 @@ void Rebuffer::CreatePorts( ) {
 
 void Rebuffer::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
-    downsample_factor_ = node["downsample_factor"].as<decltype(downsample_factor_)>
-        ( DEFAULT_DOWNSAMPLE_FACTOR );
-    if (downsample_factor_==0) {
-        throw ProcessingConfigureError(
-            "Downsample factor should be larger than zero.", name());
-    }
-    LOG( INFO ) << name() << ". Downsample factor set to " << downsample_factor_ << ".";
+    LOG( INFO ) << name() << ". Downsample factor set to " << downsample_factor_() << ".";
     
-    buffer_unit_ = node["buffer_unit"].as<decltype(buffer_unit_)>( DEFAULT_BUFFER_UNIT );
+    LOG( INFO ) << name() << ". Buffer size set to " << buffer_size_.to_string() << ".";
 
-    if (buffer_unit_ == "samples") {
-        buffer_size_samples_ = node["buffer_size"].as<decltype(buffer_size_samples_)>
-            ( DEFAULT_BUFFER_SIZE_SAMPLES );
-        LOG( INFO ) << name() << ". Buffer size set to " << buffer_size_samples_
-            << " samples.";
-    } else if (buffer_unit_ == "seconds") {
-        buffer_size_seconds_ = node["buffer_size"].as<decltype(buffer_size_seconds_)>
-            ( DEFAULT_BUFFER_SIZE_SECONDS );
-        if (buffer_size_seconds_ < 0) {
-            throw ProcessingConfigureError(
-                "Buffer size should be equal to or larger than zero.", name());
-        }
-        LOG( INFO ) << name() << ". Buffer size set to " << buffer_size_seconds_
-            << " seconds.";
-    } else {
-        throw ProcessingConfigureError("Invalid buffer_unit value.", name());
-    }
 }
 
 void Rebuffer::CompleteStreamInfo( ) {
@@ -80,23 +58,25 @@ void Rebuffer::CompleteStreamInfo( ) {
     }
     
     // compute number of output samples for each input stream
-    if (buffer_unit_=="samples" && buffer_size_samples_>0) {
-        buffer_size_.assign( data_in_port_->number_of_slots(), buffer_size_samples_ );
-    } else if (buffer_unit_=="seconds" && buffer_size_seconds_>0) {
-        buffer_size_.assign( data_in_port_->number_of_slots(), 0 );
+    if (buffer_size_.unit()==units::precise::sample_units && buffer_size_()>0.) {
+        sample_buffer_.assign( data_in_port_->number_of_slots(), buffer_size_() );
+    } else if (buffer_size_.unit()==units::precise::second && buffer_size_()>0.) {
+        sample_buffer_.assign( data_in_port_->number_of_slots(), 0 );
+        
         for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
-            buffer_size_[k] = time2samples<decltype(buffer_size_samples_)>(
-                buffer_size_seconds_,
-                data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_ );
-            if (buffer_size_[k]==0) {
+            sample_buffer_[k] = time2samples<unsigned int>(
+                buffer_size_(),
+                data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_() );
+            if (sample_buffer_[k]==0) {
                 throw ProcessingStreamInfoError( "Buffer duration is zero.", name());
             }
         }
+
     } else {
         for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
-            buffer_size_[k] = std::max( 1u, static_cast<decltype(buffer_size_samples_)>(
+            sample_buffer_[k] = std::max( 1u, static_cast<unsigned int>(
                 std::floor(
-                    data_in_port_->streaminfo(k).parameters().nsamples / downsample_factor_ ) ) );
+                    data_in_port_->streaminfo(k).parameters().nsamples / downsample_factor_() ) ) );
         }
     }
     
@@ -104,11 +84,11 @@ void Rebuffer::CompleteStreamInfo( ) {
     for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
         data_out_port_->streaminfo(k).set_parameters( MultiChannelType<double>::Parameters(
             data_in_port_->streaminfo(k).parameters().nchannels,
-            buffer_size_[k],
-            data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_ ));
+            sample_buffer_[k],
+            data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_() ));
         data_out_port_->streaminfo(k).set_stream_rate(
             data_in_port_->streaminfo(k).stream_rate() *
-                data_in_port_->streaminfo(k).parameters().nsamples / buffer_size_[k] );
+                data_in_port_->streaminfo(k).parameters().nsamples / sample_buffer_[k] );
     }
     
 }
@@ -121,8 +101,8 @@ void Rebuffer::Process( ProcessingContext& context ) {
     std::vector<MultiChannelType<double>::Data*> data_out;
     data_out.assign(nslots, nullptr);
 
-    decltype(buffer_size_) sample_out_counter = buffer_size_;
-    decltype(buffer_size_) offset;
+    decltype(sample_buffer_) sample_out_counter = sample_buffer_;
+    decltype(sample_buffer_) offset;
     offset.assign( nslots, 0);
     
     unsigned int s=0;
@@ -140,8 +120,8 @@ void Rebuffer::Process( ProcessingContext& context ) {
             while ( s < data_in->nsamples() ) {
                 
                 for ( s = offset[k];
-                s<data_in->nsamples() && sample_out_counter[k]<buffer_size_[k];
-                s+=downsample_factor_) {
+                s<data_in->nsamples() && sample_out_counter[k]<sample_buffer_[k];
+                s+=downsample_factor_()) {
                     for (unsigned int c=0 ; c<data_in->nchannels(); ++c) {
                         data_out[k]->set_data_sample( sample_out_counter[k], c,
                             data_in->data_sample(s,c) );
@@ -151,7 +131,7 @@ void Rebuffer::Process( ProcessingContext& context ) {
                     sample_out_counter[k]++;
                 }
                 
-                if ( sample_out_counter[k] == buffer_size_[k] ) {
+                if ( sample_out_counter[k] == sample_buffer_[k] ) {
                     data_out_port_->slot(k)->PublishData();
                     data_out[k] = data_out_port_->slot(k)->ClaimData(false);
                     data_out[k]->CloneTimestamps( *data_in );

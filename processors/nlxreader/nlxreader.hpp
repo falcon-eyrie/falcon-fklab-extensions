@@ -96,20 +96,9 @@ struct NlxReaderStats {
 
 class NlxReader : public IProcessor 
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    NlxReader() : IProcessor( PRIORITY_HIGH ) {
-
-        add_option("address", address_, "IP address of Digilynx acquisition system.");
-        add_option("port", port_, "Port number for communication with Digilynx acquisition system.");
-        add_option("channelmap", channelmap_, "Mapping of channels to proccessor output ports.");
-        add_option("npackets", npackets_, "The total number of data packets to read (0 means continuous recording).");
-        add_option("batch_size", batch_size_, "The number of data packets to concatenate into single multi-channel data bucket.");
-        add_option("nchannels", nchannels_, "The number of channels of the Digilynx acquisition system.");
-        add_option("update_interval", update_interval_, "The time interval for updates on the received data from the Digilynx acquisition system.");
-        add_option("hardware_trigger", dispatch_, "Whether or not to wait for hardware trigger to start streaming data packets.");
-        add_option("hardware_trigger_channel", hardware_trigger_channel_, "Digital input channel to use as hardware trigger");
-
-    };
+    NlxReader();
     
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
@@ -118,17 +107,19 @@ public:
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
-      
+
+// methods
 protected:
     bool CheckPacket(char * buffer, int recvlen);
     void print_stats( bool condition = true );
-    
+
+// constants
 public:
     static constexpr uint16_t MAX_NCHANNELS = 128;
     static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
         NLX_PACKETBYTESIZE(MAX_NCHANNELS);
-    
-// internals
+
+// variables
 protected:
     fd_set file_descriptor_set_;
     int udp_socket_;
@@ -151,8 +142,10 @@ protected:
     decltype(timestamp_) delta_;
     
     std::map<std::string, PortOut<MultiChannelType<double>>*> data_ports_;
-    
+
+// constants
 public:
+    
     static constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
         SAMPLING_PERIOD_MICROSEC = 1e6 / NLX_SIGNAL_SAMPLING_FREQUENCY;
 

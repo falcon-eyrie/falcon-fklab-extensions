@@ -53,33 +53,43 @@
 #include "multichanneldata/multichanneldata.hpp"
 #include "dsp/algorithms.hpp"
 
+#include "options/options.hpp"
+#include "options/units.hpp"
+
 class RunningStats : public IProcessor
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    virtual void Configure( const YAML::Node & node, const GlobalContext& context) override;
+    RunningStats();
+    
     virtual void CreatePorts( ) override;
     virtual void CompleteStreamInfo( ) override;
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
 
+// DATA PORTS
 protected:
   
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<MultiChannelType<double>>* data_out_port_;
-    
-    double integration_time_;
-    bool outlier_protection_;
-    double outlier_zscore_;
-    double outlier_half_life_;
-    
+
+// OPTIONS
+protected:
+
+    options::Measurement<double,false> integration_time_{
+        1.,
+        units::precise::second,
+        options::positive<double>(true)
+    };
+
+    options::Bool outlier_protection_{false};
+    options::Double outlier_zscore_{6.0,};
+    options::Double outlier_half_life_{2.0};
+
+// OTHER
+protected:
     std::unique_ptr<dsp::algorithms::RunningMeanMAD> stats_;
 
-public:
-    const double DEFAULT_INTEGRATION_TIME = 1.0;
-    const bool DEFAULT_OUTLIER_PROTECTION = false;
-    const double DEFAULT_OUTLIER_ZSCORE = 6.0;
-    const double DEFAULT_OUTLIER_HALF_LIFE = 2.0;
-    
 };
 
 #endif

@@ -19,9 +19,11 @@
 
 #include "eventsync.hpp"
 
+EventSync::EventSync() : IProcessor() {
+    add_option("target event", target_event_, "The event to synchronize on.");    
+}
+
 void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
-    
-    //target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
 }
 
 void EventSync::CreatePorts() {
