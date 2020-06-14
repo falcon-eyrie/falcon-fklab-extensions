@@ -23,9 +23,6 @@ EventSync::EventSync() : IProcessor() {
     add_option("target event", target_event_, "The event to synchronize on.");    
 }
 
-void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
-}
-
 void EventSync::CreatePorts() {
     
     data_in_port_ = create_input_port<EventType>(

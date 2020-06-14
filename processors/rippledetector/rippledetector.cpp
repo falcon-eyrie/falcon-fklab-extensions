@@ -20,16 +20,24 @@
 #include "rippledetector.hpp"
 
 RippleDetector::RippleDetector() : IProcessor() {
-    add_option(THRESHOLD_DEV_S, initial_threshold_dev_, "Multiplier (in number of signal standard deviations) to compute the initial threshold.");
-    add_option(SMOOTH_TIME_S, initial_smooth_time_, "Integration time for estimating signal statistics.");
-    add_option(DETECTION_LOCKOUT_TIME_S, initial_detection_lockout_time_, "Lockout time (in seconds) to avoid over-stimulation.");
-    add_option(STREAM_EVENTS_S, default_stream_events_, "Enable streaming of ripple events.");
-    add_option(STREAM_STATISTICS_S, initial_stats_out_, "Enable streaming of statistics.");
-    add_option("statistics_buffer_size", stats_buffer_size_, "Size (in seconds) for statistics output buffers.");
-    add_option("statistics_downsample_factor", stats_downsample_factor_, "Downsample factor of streamed statistics signal");
-    add_option("use_power", use_power_, "Use power of signal for detection.");
+    add_option(THRESHOLD_DEV_S, initial_threshold_dev_,
+        "Multiplier (in number of signal standard deviations) to "
+        "compute the initial threshold.");
+    add_option(SMOOTH_TIME_S, initial_smooth_time_,
+        "Integration time for estimating signal statistics.");
+    add_option(DETECTION_LOCKOUT_TIME_S, initial_detection_lockout_time_, 
+        "Lockout time (in seconds) to avoid over-stimulation.");
+    add_option(STREAM_EVENTS_S, default_stream_events_, 
+        "Enable streaming of ripple events.");
+    add_option(STREAM_STATISTICS_S, initial_stats_out_, 
+        "Enable streaming of statistics.");
+    add_option("statistics_buffer_size", stats_buffer_size_, 
+        "Size (in seconds) for statistics output buffers.");
+    add_option("statistics_downsample_factor", stats_downsample_factor_, 
+        "Downsample factor of streamed statistics signal");
+    add_option("use_power", use_power_,
+        "Use power of signal for detection.");
 }
-
 
 void RippleDetector::CreatePorts( ) {
     

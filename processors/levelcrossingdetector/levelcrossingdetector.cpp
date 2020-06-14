@@ -27,10 +27,6 @@ LevelCrossingDetector::LevelCrossingDetector() : IProcessor() {
     add_option("event", event_prototype_, "The event to emit when the input signal crosses the threshold.");
 }
 
-void LevelCrossingDetector::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-}
-
 void LevelCrossingDetector::CreatePorts( ) {
     
     data_in_port_ = create_input_port<MultiChannelType<double>>(
@@ -162,7 +158,6 @@ void LevelCrossingDetector::Process( ProcessingContext& context ) {
         data_in_port_->slot(0)->ReleaseData();
     }
 }
-
 
 void LevelCrossingDetector::Postprocess( ProcessingContext& context ) {
     

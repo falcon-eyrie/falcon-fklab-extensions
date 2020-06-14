@@ -23,6 +23,7 @@
 #include <thread>
 #include <random>
 
+
 EventSource::EventSource() : IProcessor() {
     add_option("events", event_list_, "List of events to generate.");
     add_option("rate", event_rate_, "Rate (in Hz) at which events are generated.");
@@ -34,8 +35,8 @@ void EventSource::Configure( const YAML::Node& node, const GlobalContext& contex
         LOG(INFO) << name() << ". Event " << el << " configured for streaming.";
     }
     
-    //event_rate_ = node["rate"].as<double>( DEFAULT_EVENT_RATE );
-    LOG(INFO) << name() << ". Event rate set to " << event_rate_() << " Hz.";
+    LOG(INFO) << name() << ". Event rate set to " << event_rate_.to_string();
+
 }
 
 void EventSource::CreatePorts() {
@@ -45,7 +46,6 @@ void EventSource::CreatePorts() {
         EventType::Parameters(DEFAULT_EVENT),
         PortOutPolicy( SlotRange(1) ) );
 }
-
 
 void EventSource::Process( ProcessingContext& context ) {
     
@@ -57,7 +57,7 @@ void EventSource::Process( ProcessingContext& context ) {
     std::uniform_int_distribution<unsigned int> distribution(0, event_list_().size()-1);
     
     auto delay = std::chrono::milliseconds( static_cast<unsigned int>(1000.0/event_rate_()) );
-    
+
     while (!context.terminated()) {
         
         std::this_thread::sleep_for( delay );

@@ -19,19 +19,16 @@
 
 #include "spikedetector.hpp"
 
-void SpikeDetector::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    initial_threshold_ = node["threshold"].as<decltype(initial_threshold_)>(
-        DEFAULT_THRESHOLD );
-    invert_signal_ = node["invert_signal"].as<decltype(invert_signal_)>(
-        DEFAULT_INVERT_SIGNAL );
-    buffer_size_ms_ = node["buffer_size"].as<decltype(buffer_size_ms_)>(
-        DEFAULT_BUFFER_SIZE_MS );
-    strict_time_bin_check_ =
-        node["strict_time_bin_check"].as<decltype(strict_time_bin_check_)>(
-        DEFAULT_STRICT_TIME_BIN_CHECK );
-    initial_peak_lifetime_ = node[PEAK_LIFETIME_S].as<decltype(initial_peak_lifetime_)>(
-        DEFAULT_PEAK_LIFETIME );  
+SpikeDetector::SpikeDetector() : IProcessor() {
+    add_option("threshold", initial_threshold_,
+        "Spike detection threshold in data units.");
+    add_option("invert signal", invert_signal_, "Invert signal before spike detection.");
+    add_option("buffer size", buffer_size_,
+        "Size (in seconds) of data buffer used for spike detection.");
+    add_option("strict time bin check", strict_time_bin_check_,
+        "Strict check of compatibility of spike detection buffer size with the upstream processor");
+    add_option(PEAK_LIFETIME_S, initial_peak_lifetime_,
+        "Peak life time in samples");
 }
 
 void SpikeDetector::CreatePorts( ) {
@@ -44,7 +41,7 @@ void SpikeDetector::CreatePorts( ) {
     data_out_port_spikes_ = create_output_port<SpikeType>(
         SPIKEDATA_S,
         SpikeType::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
-        SpikeType::Parameters(buffer_size_ms_),
+        SpikeType::Parameters(buffer_size_()),
         PortOutPolicy( SlotRange(1), RINGBUFFER_SIZE ) );
     
     data_out_port_events_ = create_output_port<EventType>(
@@ -55,13 +52,13 @@ void SpikeDetector::CreatePorts( ) {
     
     threshold_ = create_static_state(
         THRESHOLD_S,
-        initial_threshold_,
+        initial_threshold_(),
         true,
         Permission::WRITE);
     
     peak_lifetime_ = create_static_state(
         PEAK_LIFETIME_S,
-        initial_peak_lifetime_,
+        initial_peak_lifetime_(),
         true,
         Permission::WRITE);
 }
@@ -74,8 +71,10 @@ void SpikeDetector::CompleteStreamInfo() {
         incoming_buffer_size_samples_ / data_in_port_->slot(0)->streaminfo().parameters().sample_rate * 1000;
     
     try {
-        check_buffer_sizes_and_log( incoming_buffer_size_ms, buffer_size_ms_,
-            strict_time_bin_check_, n_incoming_, name() );
+        double tmp = buffer_size_();
+        check_buffer_sizes_and_log( incoming_buffer_size_ms, tmp,
+            strict_time_bin_check_(), n_incoming_, name() );
+        buffer_size_ = tmp;
     } catch( std::runtime_error& error ) {
         throw ProcessingStreamInfoError( error.what(), name() );
     }
@@ -94,9 +93,9 @@ void SpikeDetector::CompleteStreamInfo() {
 void SpikeDetector::Prepare( GlobalContext& context ) {
  
     spike_detector_.reset( new dsp::algorithms::SpikeDetector(
-        n_channels_, initial_threshold_, initial_peak_lifetime_ ) );
+        n_channels_, initial_threshold_(), initial_peak_lifetime_() ) );
     
-    if ( invert_signal_ ) {
+    if ( invert_signal_() ) {
         inverted_signals_.reset(new MultiChannelType<double>::Data());
         inverted_signals_->Initialize(
             n_channels_,
@@ -137,7 +136,7 @@ void SpikeDetector::Process( ProcessingContext& context ) {
             
             // if spike detection has to be performed on the inverted signal,
             // make a local copy of the inverted signal and use it for spike detection
-            if ( invert_signal_ ) {
+            if ( invert_signal_() ) {
                 for ( s = 0; s < incoming_buffer_size_samples_; ++s ) {
                     for ( c=0; c < n_channels_; ++c ) {
                         inverted_signals_->set_data_sample(s, c,
@@ -190,12 +189,6 @@ void SpikeDetector::Postprocess( ProcessingContext& context ) {
     
     LOG(INFO) << name() << ". # spikes detected = " << spike_detector_->nspikes();
     spike_detector_->reset();
-}
-
-void SpikeDetector::Unprepare( GlobalContext& context ) {
-
-    //delete spike_detector_; spike_detector_ = nullptr;
-    //delete inverted_signals_; inverted_signals_ = nullptr;
 }
 
 REGISTERPROCESSOR(SpikeDetector)

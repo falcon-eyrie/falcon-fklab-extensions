@@ -169,7 +169,7 @@ protected:
     options::Value<unsigned int,false> nchannels_{128};
     options::Measurement<std::uint64_t,false> update_interval_{
         20,
-        units::precise::second,
+        "second",
         options::zeroismax<std::uint64_t>() +
         options::multiplied<std::uint64_t>(NLX_SIGNAL_SAMPLING_FREQUENCY)
     };

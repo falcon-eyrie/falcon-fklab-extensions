@@ -80,11 +80,11 @@ protected:
         options::positive<unsigned int>(true)
     };
     
-    options::MultiMeasurement<double,false> buffer_size_{
+    options::Measurement<double,false> buffer_size_{
         10.,
-        units::precise::sample_units,
-        {units::precise::second},
-        options::positive<double>()
+        "sample",
+        options::positive<double>(),
+        {"second"}
     };
 
 };

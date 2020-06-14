@@ -49,9 +49,7 @@ class EventSource : public IProcessor {
 
 // CONSTRUCTOR and OVERLOADED METHODS 
 public:
-
     EventSource();
-
     virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
@@ -74,7 +72,7 @@ protected:
     
     options::Measurement<double> event_rate_{
         DEFAULT_EVENT_RATE,
-        units::precise::Hz,
+        "Hz",
         options::positive<double>()
     };
 };

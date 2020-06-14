@@ -23,6 +23,20 @@
 #include <chrono>
 #include <exception>
 
+MultiChannelFilter::MultiChannelFilter() : IProcessor() {
+    add_option("filter", filter_def_, "Filter definition.", true);
+}
+
+void MultiChannelFilter::Configure( const YAML::Node & node, const GlobalContext& context ) {
+    
+    if (filter_def_().IsMap()) {
+        filter_template_.reset( dsp::filter::construct_from_yaml( filter_def_() ) );
+    } else {
+        std::string f = context.resolve_path( filter_def_().as<std::string>(), "filters" );
+        filter_template_.reset( dsp::filter::construct_from_file(f) );
+    }
+}
+
 void MultiChannelFilter::CreatePorts( ) {
     
     data_in_port_ = create_input_port<MultiChannelType<double>>(
@@ -35,22 +49,6 @@ void MultiChannelFilter::CreatePorts( ) {
         MultiChannelType<double>::Capabilities( ChannelRange(1,256) ),
         MultiChannelType<double>::Parameters(),
         PortOutPolicy( SlotRange(0,256) ) );
-}
-
-void MultiChannelFilter::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    // load filter
-    if (!node["filter"]) {
-        throw ProcessingConfigureError( "No filter defined.", name() );
-    }
-    
-    if (node["filter"]["file"]) {
-        std::string f = context.resolve_path( node["filter"]["file"].as<std::string>(),
-            "filters" );
-        filter_template_.reset( dsp::filter::construct_from_file( f ) );
-    } else {
-        filter_template_.reset( dsp::filter::construct_from_yaml( node["filter"] ) );
-    }
 }
 
 void MultiChannelFilter::CompleteStreamInfo( ) {
@@ -83,14 +81,6 @@ void MultiChannelFilter::Prepare( GlobalContext& context ) {
         filters_.back()->realize( data_in_port_->streaminfo(k).parameters().nchannels );
     }
 }
-
-void MultiChannelFilter::Unprepare( GlobalContext& context ) {
-    
-    // destroy realized filters
-    filters_.clear();
-}
-
-void MultiChannelFilter::Preprocess( ProcessingContext& context ) {}
 
 void MultiChannelFilter::Process( ProcessingContext& context ) {
     
@@ -129,6 +119,10 @@ void MultiChannelFilter::Process( ProcessingContext& context ) {
     }
 }
 
-void MultiChannelFilter::Postprocess( ProcessingContext& context ) {}
+void MultiChannelFilter::Unprepare( GlobalContext& context ) {
+    
+    // destroy realized filters
+    filters_.clear();
+}
 
 REGISTERPROCESSOR( MultiChannelFilter )

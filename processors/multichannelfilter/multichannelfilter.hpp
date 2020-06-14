@@ -37,8 +37,7 @@
  * extra information:
  * Here are some example filter configurations:
  * 
- * filter:
- *   file: filters://butter_lpf_0.1fs.filter
+ * filter: filters://butter_lpf_0.1fs.filter
  * 
  * filter:
  *   type: biquad
@@ -69,14 +68,13 @@ class MultiChannelFilter : public IProcessor
 {
 // CONSTRUCTOR and OVERLOADED METHODS
 public:
+    MultiChannelFilter();
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
-    virtual void Prepare( GlobalContext& context ) override;
-    virtual void Unprepare( GlobalContext& context ) override;
-    virtual void Preprocess( ProcessingContext& context ) override;
-    virtual void Process( ProcessingContext& context ) override;
-    virtual void Postprocess( ProcessingContext& context ) override;
     virtual void CompleteStreamInfo( ) override;
+    virtual void Prepare( GlobalContext& context ) override;
+    virtual void Process( ProcessingContext& context ) override;
+    virtual void Unprepare( GlobalContext& context ) override;
 
 // variables
 protected:
@@ -88,6 +86,9 @@ protected:
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<MultiChannelType<double>>* data_out_port_;
 
+// OPTIONS
+protected:
+    options::Value<YAML::Node,false> filter_def_{};
 };
 
 #endif // multichannelfilter.hpp

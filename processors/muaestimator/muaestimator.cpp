@@ -26,7 +26,6 @@ MUAEstimator::MUAEstimator() : IProcessor() {
     add_option("bin size", initial_bin_size_);
 }
 
-
 void MUAEstimator::CreatePorts() {
     
     data_in_port_ = create_input_port<SpikeType>(

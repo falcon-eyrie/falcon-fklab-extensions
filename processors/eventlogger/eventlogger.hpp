@@ -49,9 +49,7 @@ class EventLogger : public IProcessor
 {
 // CONSTRUCTOR and OVERLOADED METHODS
 public:
-
     EventLogger();
-
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override; 
@@ -66,7 +64,6 @@ protected:
     options::Value<EventType::Data,false> target_event_{
         DEFAULT_EVENT, 
         options::notempty<EventType::Data>()};
-
 };
 
 #endif //eventlogger.hpp

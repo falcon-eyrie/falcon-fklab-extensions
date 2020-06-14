@@ -78,7 +78,7 @@ protected:
 
     options::Measurement<double,false> integration_time_{
         1.,
-        units::precise::second,
+        "second",
         options::positive<double>(true)
     };
 

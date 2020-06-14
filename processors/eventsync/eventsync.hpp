@@ -49,10 +49,7 @@ class EventSync : public IProcessor {
 
 // CONSTRUCTOR and OVERLOADED METHODS
 public:
-
     EventSync();
-
-    virtual void Configure( const YAML::Node& node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;

@@ -67,19 +67,38 @@ bool NlxReader::CheckPacket(char * buffer, int recvlen) {
     return true;
 }
 
+
 NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
 
-    add_option("address", address_, "IP address of Digilynx acquisition system.");
-    add_option("port", port_, "Port number for communication with Digilynx acquisition system.");
-    add_option("channelmap", channelmap_, "Mapping of channels to proccessor output ports.");
-    add_option("npackets", npackets_, "The total number of data packets to read (0 means continuous recording).");
-    add_option("batch_size", batch_size_, "The number of data packets to concatenate into single multi-channel data bucket.");
-    add_option("nchannels", nchannels_, "The number of channels of the Digilynx acquisition system.");
-    add_option("update_interval", update_interval_, "The time interval for updates on the received data from the Digilynx acquisition system.");
-    add_option("hardware_trigger", dispatch_, "Whether or not to wait for hardware trigger to start streaming data packets.");
-    add_option("hardware_trigger_channel", hardware_trigger_channel_, "Digital input channel to use as hardware trigger");
+    add_option("address", address_, 
+        "IP address of Digilynx acquisition system.");
+    add_option("port", port_,
+        "Port number for communication with Digilynx acquisition system.");
+    add_option("channelmap", channelmap_,
+        "Mapping of channels to proccessor output ports.");
+    add_option("npackets", npackets_,
+        "The total number of data packets to read "
+        "(0 means continuous recording).");
+    add_option("batch_size", batch_size_,
+        "The number of data packets to concatenate into "
+        "single multi-channel data bucket.");
+    add_option("nchannels", nchannels_,
+        "The number of channels of the Digilynx acquisition system.");
+    add_option("update_interval", update_interval_,
+        "The time interval for updates on the received data from "
+        "the Digilynx acquisition system.");
+    add_option("hardware_trigger", dispatch_, 
+        "Whether or not to wait for hardware trigger to start "
+        "streaming data packets.");
+    add_option("hardware_trigger_channel", hardware_trigger_channel_, 
+        "Digital input channel to use as hardware trigger");
 
 };
+
+void NlxReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
+    
+    nlxrecord_.set_nchannels( nchannels_() );  
+}
 
 void NlxReader::CreatePorts() {
     
@@ -102,12 +121,6 @@ void NlxReader::CompleteStreamInfo() {
                                                   NLX_SIGNAL_SAMPLING_FREQUENCY ) );
         it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_() );
     }
-}
-
-void NlxReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    nlxrecord_.set_nchannels( nchannels_() );
-    
 }
 
 void NlxReader::Prepare( GlobalContext& context ) {

@@ -56,16 +56,18 @@
 #include <tuple>
 #include <chrono>
 
+class DetectionCriterionValue : public options::Value<SlotType,false> {
+public:
+    using options::Value<SlotType,false>::Value;
+    virtual void from_yaml(const YAML::Node & node) override;
+};
 
 class EventFilter : public EventSync {
 
 // CONSTRUCTOR and OVERLOADED METHODS
 public:
-
     EventFilter();
-
-    virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
-    virtual void CreatePorts() override;
+     virtual void CreatePorts() override;
     virtual void Prepare( GlobalContext& context ) override;
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
@@ -100,7 +102,7 @@ protected:
 
 // variables
 protected:
-    SlotType detections_to_criterion_;
+    //SlotType detections_to_criterion_;
     
     unsigned int n_blocked_events_;
     EventCounter blocking_events_counter_;
@@ -112,31 +114,31 @@ protected:
 // constants
 protected:
     const uint64_t NULL_TIMESTAMP = std::numeric_limits<uint64_t>::max();
-    const decltype(detections_to_criterion_) ALL =
-        std::numeric_limits<decltype(detections_to_criterion_)>::max();
-
+    
 // OPTIONS
 protected:
 
     options::Measurement<double,false> blockout_time_ms_{
         10.,
-        units::precise::ms,
+        "ms",
         options::positive<double>()
     };
 
     options::Measurement<double,false> block_wait_time_ms_{
         1.5,
-        units::precise::ms,
+        "ms",
         options::positive<double>()
     };
     
     options::Measurement<double,false> sync_time_ms_{
         3.5,
-        units::precise::ms,
+        "ms",
         options::positive<double>()
     };
 
     options::Bool discard_warnings_{false};
+
+    DetectionCriterionValue detections_to_criterion_{1};
 
 };
 

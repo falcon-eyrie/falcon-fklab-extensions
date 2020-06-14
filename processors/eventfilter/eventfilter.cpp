@@ -23,6 +23,19 @@
 #include <thread>
 #include <algorithm>
 
+void DetectionCriterionValue::from_yaml(const YAML::Node & node) {
+
+    auto v = node.as<std::string>();
+
+    if (v=="any") {
+        this->set_value(1);
+    } else if (v=="all") {
+        this->set_value(0);
+    } else {
+        Value<SlotType,false>::from_yaml(node);
+    }
+}
+
 
 EventFilter::EventFilter() : EventSync() {
     add_option("block duration", blockout_time_ms_,
@@ -38,21 +51,12 @@ EventFilter::EventFilter() : EventSync() {
 
     add_option("discard warnings", discard_warnings_,
         "Do not emit warnings for discarded events.");
-}
 
-void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context) {
-    
-    auto detection_criterion = node["detection_criterion"].as<std::string>( "any" );
-    if ( detection_criterion == "any" ) {
-        detections_to_criterion_ = 1;
-    } else if ( detection_criterion == "all" ) {
-        detections_to_criterion_ = ALL; // 'all' criteria will be configured in Prepare
-    } else {
-        detections_to_criterion_ =
-            node["detection_criterion"].as<decltype(detections_to_criterion_)>( 1 );
-        // check is in Prepare
-    }
-    
+    add_option("detection criterion", detections_to_criterion_,
+        "The criterion for triggering a detection, which is the number of "
+        "input slots with a target event. Acceptable values range from 1 to "
+        "the total number of input slots. A value of 0 or 'all' is equivalent "
+        "to the total number of input slots. A value of 'any' is equivalent to 1.");
 }
 
 void EventFilter::CreatePorts() {
@@ -80,18 +84,18 @@ void EventFilter::Prepare( GlobalContext& context ) {
     auto nslots = data_in_port_->number_of_slots();
     
     // complete Configure
-    if ( detections_to_criterion_ == ALL ) {
+    if ( detections_to_criterion_() == 0 ) {
         detections_to_criterion_ = nslots;
     }
     
     // check detections_to_criterion value
-    if ( detections_to_criterion_ < 1 or detections_to_criterion_ > nslots ) {
+    if ( detections_to_criterion_() < 1 or detections_to_criterion_() > nslots ) {
         auto err_msg = std::string("Invalid number of detections to criterion.")
             + "It must be a number between 1 and " + std::to_string(nslots) + ".";
         throw ProcessingPrepareError( err_msg, name() );
     }
     LOG(INFO) << name() << ". Criterion for triggering an event is set to " <<
-        detections_to_criterion_ << " events.";
+        detections_to_criterion_() << " events.";
     LOG(INFO) << name() << ". Criterion for triggering a blocking event is set to 1 event.";
 }
 
@@ -113,7 +117,7 @@ void EventFilter::Process(ProcessingContext& context) {
     bool alive = false;
     bool detection_criterion = false;
     bool event_received = false;
-    decltype(detections_to_criterion_) counter_to_detection = 0;
+    SlotType counter_to_detection = 0;
     bool detection_block = false;
     std::size_t slot_last = 0;
     
@@ -152,7 +156,7 @@ void EventFilter::Process(ProcessingContext& context) {
                         ++ counter_to_detection;
                     }
                 }
-                detection_criterion = ( counter_to_detection >= detections_to_criterion_ );
+                detection_criterion = ( counter_to_detection >= detections_to_criterion_() );
                 LOG(DEBUG) << name() << ". Detection criterion met.";
             }
             

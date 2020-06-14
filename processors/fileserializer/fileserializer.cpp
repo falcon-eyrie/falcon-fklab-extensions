@@ -31,9 +31,13 @@ FileSerializer::FileSerializer() : IProcessor() {
     add_option("format", format_,
         "Data format (none, full, headeronly, streamheader, compact).");
     add_option("overwrite", overwrite_, "Overwrite existing files.");
-    add_option("throttle/enabled", throttle_, "Progressively drop incoming data packets if saving cannot keep up.");
-    add_option("throttle/threshold", throttle_threshold_, "Buffer fill level (fraction between 0 and 1) at which throttling kicks in.");
-    add_option("throttle/smooth", throttle_smooth_, "Smoothly changes throttle level as threshold is reached (value between 0 and 1).");
+    add_option("throttle/enabled", throttle_,
+        "Progressively drop incoming data packets if saving cannot keep up.");
+    add_option("throttle/threshold", throttle_threshold_,
+        "Buffer fill level (fraction between 0 and 1) at which throttling kicks in.");
+    add_option("throttle/smooth", throttle_smooth_,
+        "Smoothly changes throttle level as threshold is reached "
+        "(value between 0 and 1).");
 }
 
 void FileSerializer::CreatePorts() {
@@ -124,7 +128,6 @@ void FileSerializer::create_preamble( std::ostream & out, int slot ) {
     emit << YAML::EndDoc;
     
 }
-
 
 void FileSerializer::Process(ProcessingContext& context) {
       

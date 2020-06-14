@@ -58,10 +58,7 @@ class LevelCrossingDetector : public IProcessor {
 
 // CONSTRUCTOR and OVERLOADED METHODS
 public:
-
     LevelCrossingDetector();
-
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
     virtual void Preprocess( ProcessingContext& context) override;
     virtual void Process( ProcessingContext& context ) override;
@@ -109,7 +106,7 @@ protected:
     
     options::Measurement<unsigned int,false> initial_post_detect_block_{
         2,
-        units::precise::sample_units
+        "sample"
     };
     
     options::Value<EventType::Data,false> event_prototype_{

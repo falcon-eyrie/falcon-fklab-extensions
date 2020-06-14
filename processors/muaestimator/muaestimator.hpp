@@ -88,7 +88,7 @@ public:
 protected:
     options::Measurement<double,false> initial_bin_size_{
         10.,
-        units::precise::ms,
+        "ms",
         options::positive<double>(true)
     };
     

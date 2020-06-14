@@ -132,19 +132,19 @@ protected:
     options::Double initial_threshold_dev_{6.};
     options::Measurement<double,false> initial_smooth_time_{
         10.,
-        units::precise::second,
+        "second",
         options::positive<double>(true)
     };
     options::Measurement<double,false> initial_detection_lockout_time_{
         30.,
-        units::precise::ms,
+        "ms",
         options::positive<double>(true)
     };
     options::Bool default_stream_events_{true};
     options::Bool initial_stats_out_{true};
     options::Measurement<double,false> stats_buffer_size_{
         0.5,
-        units::precise::second,
+        "second",
         options::positive<double>(true)
     };
     options::Value<unsigned int, false> stats_downsample_factor_{
