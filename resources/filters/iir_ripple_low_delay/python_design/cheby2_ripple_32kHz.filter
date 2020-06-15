@@ -1,0 +1,15 @@
+##
+# format = text
+# type = biquad
+# description = 8th order cheby2 bandpass filter with cutoffs at 115 - 275 Hz (sampling frequency = 32000 Hz)
+#
+# max_ripple_pass = 1
+# max_ripple_stop = 40
+#
+# Header automatically added from custom-made Python script iir_design.py
+##
+0.00980927596766
+1.0 -1.99100142082 1.0 1.0 -1.9810420872 0.982550937567
+1.0 -1.99983508557 1.0 1.0 -1.98502848881 0.985998226593
+1.0 -1.99688285306 1.0 1.0 -1.99165376369 0.993515003994
+1.0 -1.99952326065 1.0 1.0 -1.99496617337 0.995760510524

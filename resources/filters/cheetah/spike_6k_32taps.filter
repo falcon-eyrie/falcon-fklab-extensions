@@ -1,0 +1,41 @@
+##
+# format = text
+# type = fir
+# description = 32 taps high pass filter with cutoff at 6/32 times the sampling frequency
+#
+# received from Neuralynx; same filter that is used for acquisition
+#
+# header was added manually
+##
+0
+-0.000283064
+-0.00305694
+-0.00280522
+0.00406553
+0.00982587
+0.00259227
+-0.014406
+-0.0186591
+0.00568305
+0.037517
+0.0285717
+-0.0400746
+-0.107299
+-0.038308
+0.524788
+-0.524788
+0.038308
+0.107299
+0.0400746
+-0.0285717
+-0.037517
+-0.00568305
+0.0186591
+0.014406
+-0.00259227
+-0.00982587
+-0.00406553
+0.00280522
+0.00305694
+0.000283064
+0
