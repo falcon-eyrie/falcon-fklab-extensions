@@ -87,14 +87,16 @@ int main(int argc, char** argv) {
     
     // load configuration file
     try {
-        configuration::load_config_file<TestBenchConfiguration>( parser.get<std::string>("config"), config );
-    } catch ( configuration::ValidationError & e ) {
+        config.load(parser.get<std::string>("config"));
+    } catch ( std::runtime_error & e ) {
         std::cout << e.what() << std::endl;
         std::cout << "Falcon terminated." << std::endl;
         return EXIT_FAILURE;
     }
     
-    if (config.sources.size()==0) {
+    auto sources = datasources_from_yaml(config.sources());
+
+    if (sources.size()==0) {
         std::cout << "Please define signal sources." << std::endl;
         return EXIT_FAILURE;
     }
@@ -115,7 +117,7 @@ int main(int argc, char** argv) {
     
     if (parser.get<int>("autostart")>=0) {
         idx = parser.get<int>("autostart");
-        if (idx>=config.sources.size()) {
+        if (idx>=sources.size()) {
             std::cout << "Warning: cannot auto start non-existing stream " << idx << std::endl << std::endl;
             idx = 0;
         } else {
@@ -124,13 +126,13 @@ int main(int argc, char** argv) {
     }
     
     std::cout << "NlxTestBench configuration:" << std::endl;
-    std::cout << "stream rate = " << to_string_n(config.stream_rate) << " Hz " << std::endl;
+    std::cout << "stream rate = " << to_string_n(config.stream_rate()) << " Hz " << std::endl;
     
-    if ( config.npackets == 0 ) {
+    if ( config.npackets() == 0 ) {
         std::cout << "npackets = all" << std::endl;
     } else {
-        std::cout << "npackets = " << to_string_n(config.npackets) << "( " <<
-            to_string_n( config.npackets / NLX_SIGNAL_SAMPLING_FREQUENCY ) << " s)" <<
+        std::cout << "npackets = " << to_string_n(config.npackets()) << "( " <<
+            to_string_n( config.npackets() / NLX_SIGNAL_SAMPLING_FREQUENCY ) << " s)" <<
             std::endl;
     }
     if (autostart) {
@@ -138,11 +140,12 @@ int main(int argc, char** argv) {
     }
     
     // create data streaming object
-    DataStreamer streamer( config.sources[idx].get(), config.stream_rate, config.ip_address, config.port, config.npackets );
+    DataStreamer streamer( sources[idx].get(), config.stream_rate(), config.ip_address(), config.port(), config.npackets() );
     
+
     // print all available sources
-    list_all_sources( config.sources );
-    print_prompt( config.sources.size() );
+    list_all_sources( sources );
+    print_prompt( sources.size() );
     
     s_catch_sigint_signal(); // Install Ctrl-C signal handler
     nonblock(1);
@@ -174,16 +177,16 @@ int main(int argc, char** argv) {
             c=getchar();
             
             //std::cout << "key = " << static_cast<int>(c) << std::endl;
-            if (c>='a' && c<static_cast<char>('a' + config.sources.size())) {
+            if (c>='a' && c<static_cast<char>('a' + sources.size())) {
                 streamer.Stop();
-                streamer.set_source( config.sources[c-'a'].get() );
+                streamer.set_source( sources[c-'a'].get() );
                 streamer.Start();
             } else if (c==27) { // Esc
                 streamer.Stop();
                 break;
             } else if (c==32) { // space
-                list_all_sources( config.sources );
-                print_prompt( config.sources.size() );
+                list_all_sources( sources );
+                print_prompt( sources.size() );
             }
             
         }
