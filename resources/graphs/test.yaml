@@ -1,0 +1,18 @@
+processors:
+  source:
+    class: NlxReader
+    options:
+      batch_size: 1
+      update_interval: 0
+
+  sink(1-2):
+    class: DummySink
+
+connections:
+  - source.tt(1-2)=p:data.f:sink(1-2)
+
+states:
+  - [sink1.tickle, sink2.tickle]
+
+
+
