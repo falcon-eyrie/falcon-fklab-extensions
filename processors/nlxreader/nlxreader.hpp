@@ -170,8 +170,8 @@ protected:
     options::Measurement<std::uint64_t,false> update_interval_{
         20,
         "second",
-        options::zeroismax<std::uint64_t>() +
-        options::multiplied<std::uint64_t>(NLX_SIGNAL_SAMPLING_FREQUENCY)
+        options::multiplied<std::uint64_t>(NLX_SIGNAL_SAMPLING_FREQUENCY) +
+        options::zeroismax<std::uint64_t>()
     };
     options::Bool dispatch_{true, options::invert()};
     options::Value<uint32_t,false> hardware_trigger_channel_{0};
