@@ -29,7 +29,7 @@ using Base = AnyType;
 
 struct Parameters : Base::Parameters {
     Parameters( unsigned int n )
-        : IData::Parameters(), size(n) {}
+        : Base::Parameters(), size(n) {}
     
     unsigned int size;
 };
@@ -46,7 +46,7 @@ public:
 template <typename TYPE>
 class Data : public Base::Data {
 public:
-    Initialize( const Parameters & parameters ) {
+    void Initialize( const Parameters & parameters ) {
         data_.reserve(parameters.size);
     }
     
@@ -66,7 +66,7 @@ public:
         data_[index] = data;
     }
     
-    const std::vector<TYPE> data() { return data_; }
+    std::vector<TYPE> & data() { return data_; }
     
 protected:
     std::vector<TYPE> data_;
