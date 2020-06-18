@@ -24,48 +24,48 @@
 
 constexpr uint16_t NlxReader::MAX_NCHANNELS;
 constexpr decltype(NlxReader::MAX_NCHANNELS) NlxReader::UDP_BUFFER_SIZE;
-constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY) NlxReader::SAMPLING_PERIOD_MICROSEC;
-constexpr decltype(NlxReader::delta_) NlxReader::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
-constexpr decltype(NlxReader::timestamp_) NlxReader::INVALID_TIMESTAMP;
+//constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) NlxReader::SAMPLING_PERIOD_MICROSEC;
+//constexpr decltype(NlxReader::delta_) NlxReader::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
+//constexpr decltype(NlxReader::timestamp_) NlxReader::INVALID_TIMESTAMP;
 
-void NlxReaderStats::clear_stats() {
+// void NlxReaderStats::clear_stats() {
     
-    n_invalid = 0;
-    n_duplicated = 0;
-    n_outoforder = 0;
-    n_missed = 0;
-    n_gaps = 0;
-}
+//     n_invalid = 0;
+//     n_duplicated = 0;
+//     n_outoforder = 0;
+//     n_missed = 0;
+//     n_gaps = 0;
+// }
 
-bool NlxReader::CheckPacket(char * buffer, int recvlen) {
+// bool NlxReader::CheckPacket(char * buffer, int recvlen) {
     
-    if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
-        ++stats_.n_invalid;
-        LOG(INFO) << name() << ": Received invalid record.";
-        return false;
-    }
+//     if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
+//         ++stats_.n_invalid;
+//         LOG(INFO) << name() << ": Received invalid record.";
+//         return false;
+//     }
     
-    timestamp_ = nlxrecord_.timestamp();
+//     timestamp_ = nlxrecord_.timestamp();
     
-    if ( last_timestamp_ == INVALID_TIMESTAMP ) {
-        last_timestamp_ = timestamp_;
-    } else if ( timestamp_ == last_timestamp_ ) {
-        ++stats_.n_duplicated;
-    } else if ( timestamp_ < last_timestamp_ ) {
-        ++stats_.n_outoforder;
-    } else {
-        delta_ = timestamp_ - last_timestamp_;
-        if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
-            int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
-            stats_.n_missed += n_missed;
-            ++stats_.n_gaps;
-            LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
-        }
-        last_timestamp_ = timestamp_;
-    }
+//     if ( last_timestamp_ == INVALID_TIMESTAMP ) {
+//         last_timestamp_ = timestamp_;
+//     } else if ( timestamp_ == last_timestamp_ ) {
+//         ++stats_.n_duplicated;
+//     } else if ( timestamp_ < last_timestamp_ ) {
+//         ++stats_.n_outoforder;
+//     } else {
+//         delta_ = timestamp_ - last_timestamp_;
+//         if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
+//             int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
+//             stats_.n_missed += n_missed;
+//             ++stats_.n_gaps;
+//             LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
+//         }
+//         last_timestamp_ = timestamp_;
+//     }
     
-    return true;
-}
+//     return true;
+// }
 
 
 NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
@@ -137,10 +137,10 @@ void NlxReader::Preprocess( ProcessingContext& context ) {
     valid_packet_counter_ = 0;
     const int y = 1;
     
-    timestamp_ = INVALID_TIMESTAMP;
-    last_timestamp_ = INVALID_TIMESTAMP;
+    timestamp_ = nlx::INVALID_TIMESTAMP;
+    last_timestamp_ = nlx::INVALID_TIMESTAMP;
     
-    stats_.clear_stats();
+    stats_.clear();
     
     if ( context.test() ) {
         prepare_latency_test( context );
@@ -197,20 +197,28 @@ void NlxReader::Process( ProcessingContext& context ) {
             
             int recvlen = recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
             
-            if (!CheckPacket( buffer_, recvlen )) { continue; }
+            //if (!CheckPacket( buffer_, recvlen )) { continue; }
             
+            if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
+                ++stats_.n_invalid;
+                LOG(INFO) << name() << ": Received invalid record.";
+                continue;
+            }
+
+            timestamp_ = nlx::CheckTimestamp(nlxrecord_, last_timestamp_, stats_);
+
             valid_packet_counter_++;
             
             if (valid_packet_counter_==1) {
                 first_valid_packet_arrival_time_ = Clock::now();
                 LOG(UPDATE) << name() << ": Received first valid data packet" <<
-                    " (TS = " << nlxrecord_.timestamp() << ").";
+                    " (TS = " << timestamp_ << ").";
             }
             
             update_time = valid_packet_counter_%update_interval_()== 0;
             LOG_IF(UPDATE, update_time ) << name() << ": " <<
                 valid_packet_counter_ << " packets (" <<
-                valid_packet_counter_/NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
+                valid_packet_counter_/nlx::NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
             print_stats( update_time );
             
             if (!dispatch_()) {
@@ -230,7 +238,7 @@ void NlxReader::Process( ProcessingContext& context ) {
                     data_vector[data_index] = it.second->slot(0)->ClaimData(false);
                     // set data bucket metadata
                     data_vector[data_index]->set_hardware_timestamp(
-                        nlxrecord_.timestamp() );
+                        timestamp_ );
                     data_vector[data_index]->set_source_timestamp();
                     data_index++;
                 }

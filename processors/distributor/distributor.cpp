@@ -10,23 +10,10 @@ Distributor::Distributor() : IProcessor( PRIORITY_MEDIUM ) {
         "Mapping of channels to proccessor output ports.");
 };
 
-void Distributor::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-//    // how many packets to pack into single multi-channel data bucket
-//    batch_size_ = node["batch_size"].as<decltype(batch_size_)>(DEFAULT_BATCHSIZE);
-//    
-    // acquisition entities : map of vector<int>
-    //if (node["channelmap"]) {
-    //    channelmap_ = node["channelmap"].as<decltype(channelmap_)>();
-    //}
-    
-}
-
 void Distributor::CreatePorts() {
     
     input_port_ = create_input_port<MultiChannelType<double>>(
-        "data",
-        MultiChannelType<double>::Capabilities(ChannelRange(1, 128)), // MAX_N_CHANNELS
+        MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
         PortInPolicy( SlotRange(1) )
     );
     
@@ -35,7 +22,7 @@ void Distributor::CreatePorts() {
             it.first,
             MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
             MultiChannelType<double>::Parameters(),
-            PortOutPolicy( SlotRange(1), 2000, WaitStrategy::kBlockingStrategy ) );
+            PortOutPolicy( SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY) );
     }
 }
 
@@ -65,6 +52,12 @@ void Distributor::Prepare( GlobalContext& context ) {
     
     // check channel map
     for ( auto const& it : channelmap_() ) {
+        
+        if (it.second.size()==0) {
+            throw ProcessingPrepareError(
+                "Channel map entry " + it.first + " has zero channels.", name());
+        }
+
         for ( auto const& ch: it.second ) {
             if (ch >= max_n_channels_) {
                 throw ProcessingPrepareError( "Channel "
@@ -74,41 +67,39 @@ void Distributor::Prepare( GlobalContext& context ) {
     }
 }
 
-void Distributor::Preprocess( ProcessingContext& context ) {
-
-    
-}
 
 void Distributor::Process( ProcessingContext& context ) {
       
     MultiChannelType<double>::Data* data_in = nullptr;
     int port_index = 0;
     unsigned int ch, s;
-//    MultiChannelData<double>::channel_iterator data_in_iter;
     std::vector<MultiChannelType<double>::Data*> data_out_vector( data_ports_.size() );
     
     while ( !context.terminated() ) {
 
-        // retrieve new data
+        // retrieve new data packet
         if (!input_port_->slot(0)->RetrieveData( data_in )) {break;}
 
-        // write timestamps
+        // claim output data buckets
+        // and copy timestamps from upstream
         port_index = 0;
-        for (auto const& it : data_ports_ ) {
+        for (auto const& it : data_ports_) {
             data_out_vector[port_index] = it.second->slot(0)->ClaimData(false);
             data_out_vector[port_index]->set_hardware_timestamp(
-                data_in->hardware_timestamp() );
-            data_out_vector[port_index]->set_source_timestamp();
+                data_in->hardware_timestamp());
+            data_out_vector[port_index]->set_source_timestamp(
+                data_in->source_timestamp());
             port_index++;
         }
         
-        // write signals 
+        // for each entry in the channel map
+        // 
         port_index = 0;
         for ( auto const& it_chmap : channelmap_() ) {
             
             data_out_vector[port_index]->set_sample_timestamps(
                 data_in->sample_timestamps() );
-            assert(it_chmap.second.size() > 0);
+            
             for ( ch=0; ch<it_chmap.second.size(); ch++ ) {
                 for ( s=0; s<incoming_batch_size_; s++ ) {
                     data_out_vector[port_index]->set_data_sample(
@@ -122,6 +113,8 @@ void Distributor::Process( ProcessingContext& context ) {
         for (auto & it: data_ports_ ) {
             it.second->slot(0)->PublishData();
         }
+
+        // release input data bucket
         input_port_->slot(0)->ReleaseData();
         
     }//while

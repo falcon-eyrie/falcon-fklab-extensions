@@ -84,15 +84,15 @@
 
 typedef std::map<std::string,std::vector<unsigned int>> ChannelMap;
 
-struct NlxReaderStats {
-    int64_t n_invalid;
-    int64_t n_duplicated;
-    int64_t n_outoforder;
-    int64_t n_missed;
-    int64_t n_gaps;
+// struct NlxReaderStats {
+//     int64_t n_invalid;
+//     int64_t n_duplicated;
+//     int64_t n_outoforder;
+//     int64_t n_missed;
+//     int64_t n_gaps;
     
-    void clear_stats();
-};
+//     void clear_stats();
+// };
 
 class NlxReader : public IProcessor 
 {
@@ -110,14 +110,14 @@ public:
 
 // methods
 protected:
-    bool CheckPacket(char * buffer, int recvlen);
+    //bool CheckPacket(char * buffer, int recvlen);
     void print_stats( bool condition = true );
 
 // constants
 public:
     static constexpr uint16_t MAX_NCHANNELS = 128;
     static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
-        NLX_PACKETBYTESIZE(MAX_NCHANNELS);
+        nlx::NLX_PACKETBYTESIZE(MAX_NCHANNELS);
 
 // variables
 protected:
@@ -136,25 +136,16 @@ protected:
     struct timeval timeout_;
     
     char buffer_[UDP_BUFFER_SIZE]; //UDP_BUFFER_SIZE is in bytes, so divide by size of int32_t
-    NlxSignalRecord nlxrecord_;
+    nlx::NlxSignalRecord nlxrecord_;
     
-    NlxReaderStats stats_;
-    decltype(timestamp_) delta_;
+    nlx::NlxStatistics stats_;
+    //decltype(timestamp_) delta_;
     
     std::map<std::string, PortOut<MultiChannelType<double>>*> data_ports_;
 
 // constants
 public:
     
-    static constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
-        SAMPLING_PERIOD_MICROSEC = 1e6 / NLX_SIGNAL_SAMPLING_FREQUENCY;
-
-    const decltype(timeout_.tv_sec) TIMEOUT_SEC = 3;
-    static constexpr decltype(delta_) MAX_ALLOWABLE_TIMEGAP_MICROSECONDS =
-        trunc( SAMPLING_PERIOD_MICROSEC ) + 1;
-    static constexpr decltype(timestamp_) INVALID_TIMESTAMP =
-        std::numeric_limits<decltype(timestamp_)>::max();
-
 // OPTIONS
 protected:
 
@@ -170,7 +161,7 @@ protected:
     options::Measurement<std::uint64_t,false> update_interval_{
         20,
         "second",
-        options::multiplied<std::uint64_t>(NLX_SIGNAL_SAMPLING_FREQUENCY) +
+        options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
         options::zeroismax<std::uint64_t>()
     };
     options::Bool dispatch_{true, options::invert()};

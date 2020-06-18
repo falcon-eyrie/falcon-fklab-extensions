@@ -7,12 +7,15 @@
 
 constexpr uint16_t NlxParser::MAX_NCHANNELS;
 constexpr decltype(NlxParser::MAX_NCHANNELS) NlxParser::UDP_BUFFER_SIZE;
-constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY) NlxParser::SAMPLING_PERIOD_MICROSEC;
-constexpr decltype(NlxParser::delta_) NlxParser::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
-constexpr decltype(NlxParser::timestamp_) NlxParser::INVALID_TIMESTAMP;
+// constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) NlxParser::SAMPLING_PERIOD_MICROSEC;
+// constexpr decltype(NlxParser::delta_) NlxParser::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
+// constexpr decltype(NlxParser::timestamp_) NlxParser::INVALID_TIMESTAMP;
 
 NlxParser::NlxParser() : IProcessor(PRIORITY_HIGH) {
     
+    // TODO: remove nchannels options, should be automatially
+    // derived from upstream nlxpurereader
+
     add_option("batch_size", batch_size_,
         "The number of data packets to concatenate into "
         "single multi-channel data bucket.");
@@ -30,13 +33,11 @@ NlxParser::NlxParser() : IProcessor(PRIORITY_HIGH) {
 
 void NlxParser::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
-    // number of AD channels of the system
-    //nchannels_ = node["nchannels"].as<decltype(nchannels_)>( DEFAULT_NCHANNELS );
+    // TODO: next line should go the CompleteStreamInfo ?
     nlxrecord_.set_nchannels( nchannels_() );
     
-    // how many packets to pack into single multi-channel data bucket
-    //batch_size_ = node["batch_size"].as<decltype(batch_size_)>( DEFAULT_BATCHSIZE );
-    
+    // TODO: create enum for gaps fill option
+
     // whether or not to fill missed packets with the last available sample
     gaps_filling_ = node["gaps_filling"].as<decltype(gaps_filling_)>( DEFAULT_GAPS_FILLING );
     if ( gaps_filling_!="none" and gaps_filling_!="asap" and gaps_filling_!="distributed") {
@@ -44,21 +45,6 @@ void NlxParser::Configure( const YAML::Node & node, const GlobalContext& context
         throw ProcessingConfigureError( msg, name() );
     }
     
-    // how often updates about data stream will be sent out
-    //decltype(update_interval_) value = node["update_interval"].as<decltype(
-    //    update_interval_)>(DEFAULT_UPDATE_INTERVAL_SEC);
-    //update_interval_ = value * NLX_SIGNAL_SAMPLING_FREQUENCY;
-    //if (update_interval_==0) {
-    //    update_interval_ = std::numeric_limits<uint64_t>::max();
-    //}
-    
-    // whether or not to wait for hardware trigger to start dispatching
-    //hardware_trigger_ = node["hardware_trigger"].as<decltype(hardware_trigger_)>(
-    //    DEFAULT_HARDWARE_TRIGGER );
-    //dispatch_ = !hardware_trigger_;
-    // digital input channel to use as hardware trigger
-    //hardware_trigger_channel_ = node["hardware_trigger_channel"].as<decltype(
-    //    hardware_trigger_channel_)>(DEFAULT_HARDWARE_TRIGGER_CHANNEL);
 }
 
 void NlxParser::CreatePorts() {
@@ -90,7 +76,10 @@ void NlxParser::CreatePorts() {
 }
 
 void NlxParser::CompleteStreamInfo() {
-    
+
+    // TODO: set # channels based on upstream vector size
+    // NLX_NCHANNELS_FROM_PACKETBYTESIZE(data_in_port_->slot(0)->streaminfo().parameters().size)
+
     output_port_signal_->streaminfo(0).set_parameters(
         MultiChannelType<double>::Parameters(
             nchannels_(),
@@ -128,10 +117,10 @@ void NlxParser::Preprocess( ProcessingContext& context ) {
     sample_counter_ = batch_size_();
     valid_packet_counter_ = 0;
     
-    timestamp_ = INVALID_TIMESTAMP;
-    last_timestamp_ = INVALID_TIMESTAMP;
+    timestamp_ = nlx::INVALID_TIMESTAMP;
+    //last_timestamp_ = INVALID_TIMESTAMP;
     
-    stats_.clear_stats();
+    stats_.clear();
     n_filling_packets_ = 0;
 }
 
@@ -156,7 +145,16 @@ void NlxParser::Process( ProcessingContext& context ) {
 
         if (!data_in_port_->slot(0)->RetrieveData(data_in)) {break;}
 
-        if ( !CheckPacket( data_in->data().data() ) ) {continue;}
+        //if ( !CheckPacket( data_in->data().data() ) ) {continue;}
+
+        if (!nlxrecord_.FromNetworkBuffer(data_in->data())) {
+            ++stats_.n_invalid;
+            LOG(INFO) << name() << ": Received invalid record.";
+            continue;
+        }
+
+        timestamp_ = nlx::CheckTimestamp(nlxrecord_, last_timestamp_, stats_);
+
         valid_packet_counter_ ++;
         
         data_in_port_->slot(0)->ReleaseData();
@@ -281,41 +279,44 @@ void NlxParser::print_stats( bool condition ) {
             data_in_port_->slot(0)->streaminfo().stream_rate() * 1e3 << " ms."; 
 }
 
-void NlxParserStats::clear_stats() {
+// void NlxParserStats::clear_stats() {
     
-    n_duplicated = 0;
-    n_outoforder = 0;
-    n_missed = 0;
-    n_gaps = 0;
-}
+//     n_duplicated = 0;
+//     n_outoforder = 0;
+//     n_missed = 0;
+//     n_gaps = 0;
+// }
 
-bool NlxParser::CheckPacket(char * buffer) {
+// bool NlxParser::CheckPacket(char * buffer) {
     
-    //if (!nlxrecord_.FromNetworkBuffer( buffer, UDP_BUFFER_SIZE, false )) {
-    if (!nlxrecord_.FromNetworkBuffer( buffer, UDP_BUFFER_SIZE )) {
-        n_invalid_->set( n_invalid_->get() + 1 );
-        LOG(UPDATE) << name() << ": Received invalid record.";
-        return false;
-    }
+//     // TODO move to neuralynx lib??
+//     // 
+
+//     //if (!nlxrecord_.FromNetworkBuffer( buffer, UDP_BUFFER_SIZE, false )) {
+//     if (!nlxrecord_.FromNetworkBuffer( buffer, UDP_BUFFER_SIZE )) {
+//         n_invalid_->set( n_invalid_->get() + 1 );
+//         LOG(UPDATE) << name() << ": Received invalid record.";
+//         return false;
+//     }
     
-    timestamp_ = nlxrecord_.timestamp();
+//     timestamp_ = nlxrecord_.timestamp();
     
-    if ( last_timestamp_ == INVALID_TIMESTAMP ) {
-        last_timestamp_ = timestamp_;
-    } else if ( timestamp_ == last_timestamp_ ) {
-        ++stats_.n_duplicated;
-    } else if ( timestamp_ < last_timestamp_ ) {
-        ++stats_.n_outoforder;
-    } else {
-        delta_ = timestamp_ - last_timestamp_;
-        if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
-            int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
-            stats_.n_missed += n_missed;
-            ++stats_.n_gaps;
-            LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
-        }
-        last_timestamp_ = timestamp_;
-    }
+//     if ( last_timestamp_ == INVALID_TIMESTAMP ) {
+//         last_timestamp_ = timestamp_;
+//     } else if ( timestamp_ == last_timestamp_ ) {
+//         ++stats_.n_duplicated;
+//     } else if ( timestamp_ < last_timestamp_ ) {
+//         ++stats_.n_outoforder;
+//     } else {
+//         delta_ = timestamp_ - last_timestamp_;
+//         if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
+//             int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
+//             stats_.n_missed += n_missed;
+//             ++stats_.n_gaps;
+//             LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
+//         }
+//         last_timestamp_ = timestamp_;
+//     }
     
-    return true;
-}
+//     return true;
+// }

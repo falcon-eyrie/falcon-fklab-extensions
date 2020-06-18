@@ -18,28 +18,13 @@ constexpr decltype(NlxPureReader::MAX_NCHANNELS) NlxPureReader::UDP_BUFFER_SIZE;
         "(0 means continuous recording).");
  }
 
-void NlxPureReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    // address_ = node["address"].as<decltype(address_)>(DEFAULT_ADDRESS);
-    
-    // port_ = node["port"].as<decltype(port_)>(DEFAULT_PORT);
-    
-    // // npackets : int (number of packets to read, 0 means continuous recording)
-    // npackets_ = node["npackets"].as<decltype(npackets_)>(DEFAULT_NPACKETS);
-    // if (npackets_==0) {
-    //     npackets_ = std::numeric_limits<decltype(npackets_)>::max();
-    // }
-    
-    // roundtrip_latency_test_ = node["roundtrip_latency_test"].as<decltype(roundtrip_latency_test_)>(
-    //     DEFAULT_LATENCY_TEST );
-}
 
 void NlxPureReader::CreatePorts() {
     
     output_port_ = create_output_port<VectorType<char>>(
         "udp",
         VectorType<char>::Capabilities(),
-        VectorType<char>::Parameters(UDP_BUFFER_SIZE),
+        VectorType<char>::Parameters(UDP_BUFFER_SIZE), // TODO: set vector size to buffer size for actual number channels
         PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
     
     n_invalid_ = create_broadcaster_state<uint64_t>(
@@ -50,7 +35,7 @@ void NlxPureReader::CreatePorts() {
 }
 
 void NlxPureReader::CompleteStreamInfo() {
-    output_port_->streaminfo(0).set_stream_rate(NLX_SIGNAL_SAMPLING_FREQUENCY);
+    output_port_->streaminfo(0).set_stream_rate(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY);
 }
 
 void NlxPureReader::Prepare( GlobalContext& context ) {
@@ -113,8 +98,9 @@ void NlxPureReader::Process( ProcessingContext& context ) {
             
             data_out_ = output_port_->slot(0)->ClaimData(false);
             
+            // TODO: set buffer size to actual size based on number of channels
             recvlen_ = recvfrom( udp_socket_, data_out_->data().data(),
-                UDP_BUFFER_SIZE, 0, NULL, NULL);
+                UDP_BUFFER_SIZE, 0, NULL, NULL); 
             
             if ( recvlen_ != UDP_BUFFER_SIZE ) {
                 n_invalid_->set( n_invalid_->get() + 1 );

@@ -7,11 +7,8 @@
  * output ports:
  * udp <VectorData<char>> (1 slot)
  *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
+ * states:
+ * n_invalid (broadcast) number of received invalid data packets
  *
  * options:
  * address <string> - IP address of Digilynx system
@@ -43,8 +40,6 @@ class NlxPureReader : public IProcessor {
     
 public:
     NlxPureReader();
-    
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
     virtual void CompleteStreamInfo() override;
     virtual void Prepare( GlobalContext& context ) override;
@@ -55,7 +50,7 @@ public:
 public:
     static constexpr uint16_t MAX_NCHANNELS = 128;
     static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
-        NLX_PACKETBYTESIZE(MAX_NCHANNELS);
+        nlx::NLX_PACKETBYTESIZE(MAX_NCHANNELS);
     
 // config options
 protected:
@@ -82,8 +77,8 @@ protected:
     VectorType<char>::Data* data_out_;
     
 public:
-    static constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
-        SAMPLING_PERIOD_MICROSEC = 1e6 / NLX_SIGNAL_SAMPLING_FREQUENCY;
+    //static constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY)
+    //    SAMPLING_PERIOD_MICROSEC = 1e6 / nlx::NLX_SIGNAL_SAMPLING_FREQUENCY;
     //const std::string DEFAULT_ADDRESS = "127.0.0.1"; //testbench
     //const decltype(port_) DEFAULT_PORT = 5000;
     //const decltype(npackets_) DEFAULT_NPACKETS = 0;

@@ -1,30 +1,21 @@
-/* Dispatcher: reads raw data from a Neuralynx Digilynx data acquisition 
- * system and turns it into multiple MultiChannelData output streams 
- * based on a channel mapping
+/* Distributor
+ * 
+ * reads multi-channel data stream and splits the data across
+ * multiple output streams based on a channel mapping
  * 
  * input ports:
- * data <MultiChannelData> (1 slot)
+ * data <MultiChannelType<double>> (1 slot)
  *
  * output ports:
- * [configurable] <MultiChannelData> (1 slot)
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
+ * [configurable] <MultiChannelType<double>> (1 slot)
  *
  * options:
- * batch_size <unsigned int> - how many samples to pack into single
- *   MultiChannelData bucket
- * channelmap - mapping between AD channels and output ports
- * hardware_trigger <bool> - enable use of hardware triggered dispatching
- * hardware_trigger_channel <uint8> - which DIO channel to use as trigger
+ * channelmap - mapping between input channels and output ports
  * 
  * extra information:
  * The channelmap defines the output port names and for each port lists 
- * the AD channels that will be copied to the MultiChannelData buckets 
- * on that port. The channelmap option should be specified as follows:
+ * the channels that will be copied to the data buckets on that port.
+ * The channelmap option should be specified as follows:
  * 
  * channelmap:
  *   portnameA: [0,1,2,3,4]
@@ -33,8 +24,8 @@
  * 
  */
 
-#ifndef DISPATCHER_HPP
-#define DISPATCHER_HPP
+#ifndef DISTRIBUTOR_HPP
+#define DISTRIBUTOR_HPP
 
 #include <map>
 #include <vector>
@@ -49,28 +40,35 @@ typedef std::map<std::string,std::vector<unsigned int>> ChannelMap;
 
 
 class Distributor : public IProcessor {
+
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    Distributor();
-    
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context ) override;
+    Distributor();    
     virtual void CreatePorts() override;
     virtual void CompleteStreamInfo() override;
     virtual void Prepare( GlobalContext& context ) override;
-    virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
-    
+
+// PORTS
 protected:
     PortIn<MultiChannelType<double>>* input_port_;
     std::map<std::string, PortOut<MultiChannelType<double>>*> data_ports_;
-    
+
+// variables
+protected:
     //ChannelMap channelmap_;
-//    unsigned int n_samples_;
+    //unsigned int n_samples_;
     unsigned int incoming_batch_size_;
     unsigned int max_n_channels_;
     
 //public:
 //    const decltype(batch_size_) DEFAULT_BATCHSIZE = 1;
+// constants
+protected:
+    const unsigned int MAX_N_CHANNELS = 4096; // maximum number of channels that the distributor can handle
+    const int BUFFER_SIZE = 2000; // ring buffer size on the output ports
+    const WaitStrategy WAIT_STRATEGY = WaitStrategy::kBlockingStrategy;
 
 // OPTIONS
 protected:
@@ -78,4 +76,4 @@ protected:
   
 };
 
-#endif // dispatcher.hpp
+#endif // distributor.hpp
