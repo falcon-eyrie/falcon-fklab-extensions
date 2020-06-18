@@ -47,7 +47,7 @@ FileSource::~FileSource() {
 std::string FileSource::string() {
     
     return "file \"" + file() + "\" (fs = " + 
-        to_string_n(NLX_SIGNAL_SAMPLING_FREQUENCY) + ")";
+        to_string_n(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) + ")";
 }
 
 std::string FileSource::file() const {

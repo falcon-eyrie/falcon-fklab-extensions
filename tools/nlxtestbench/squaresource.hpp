@@ -51,7 +51,7 @@ protected:
     uint64_t counter_;
     double current_amplitude_;
     
-    NlxSignalRecord record_;
+    nlx::NlxSignalRecord record_;
     
     char buffer_[BUFFERSIZE];
     

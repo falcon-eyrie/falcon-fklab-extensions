@@ -47,7 +47,7 @@ protected:
     uint64_t timestamp_ = 0;
     uint64_t delta_;
     
-    NlxSignalRecord record_;
+    nlx::NlxSignalRecord record_;
     
     double omega_;
     

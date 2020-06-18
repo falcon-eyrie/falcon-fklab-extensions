@@ -50,7 +50,7 @@ protected:
     
     std::ifstream raw_data_file;
     
-    char buffer_[NLX_PACKETBYTESIZE(128)];
+    char buffer_[nlx::NLX_PACKETBYTESIZE(128)];
 };
 
 #endif // FILESOURCE_H
