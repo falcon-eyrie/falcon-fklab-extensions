@@ -40,6 +40,8 @@
 #include <cmath>
 #include <netinet/in.h>
 
+namespace nlx {
+
 // a digilynx raw packet has the following layout
 //  int32            | start of transmission identifier == 2048
 //  int32            | packet type identifier == 1
@@ -57,6 +59,9 @@ constexpr uint16_t NLX_NFIELDS_EXTRA = 10;
 constexpr uint16_t NLX_FIELDBYTESIZE = 4;
 constexpr uint16_t NLX_NFIELDS(uint16_t c) { return (8 + NLX_NFIELDS_EXTRA + (c)); }
 constexpr uint16_t NLX_PACKETBYTESIZE(uint16_t c) { return (NLX_FIELDBYTESIZE * NLX_NFIELDS(c)); }
+constexpr uint16_t NLX_NCHANNELS_FROM_PACKETBYTESIZE(uint16_t sz) {
+    return ((sz/NLX_FIELDBYTESIZE) - 8 - NLX_NFIELDS_EXTRA);
+}
 constexpr uint16_t NLX_FIELD_STX = 0;
 constexpr uint16_t NLX_FIELD_RAWPACKETID = 1;
 constexpr uint16_t NLX_FIELD_PACKETSIZE = 2;
@@ -70,6 +75,7 @@ constexpr double NLX_AD_BIT_MICROVOLTS = 0.015624999960550667;
 constexpr int32_t NLX_STX = 2048;
 constexpr int32_t NLX_RAWPACKETID = 1;
 constexpr uint16_t NLX_DEFAULT_NCHANNELS = 128;
+constexpr uint16_t NLX_MAX_NCHANNELS = 1024;
 constexpr double NLX_SIGNAL_SAMPLING_FREQUENCY = 32000;
 constexpr unsigned int NLX_DEFAULT_BUFFERSIZE = NLX_PACKETBYTESIZE(NLX_DEFAULT_NCHANNELS);
 
@@ -127,36 +133,37 @@ class NlxSignalRecord {
 public:
     NlxSignalRecord( unsigned int nchannels = NLX_DEFAULT_NCHANNELS );
     
-    unsigned int nchannels();
+    unsigned int nchannels() const;
     void set_nchannels( unsigned int n );
     
-    bool FromNetworkBuffer( char * buffer, size_t n );
+    bool FromNetworkBuffer( const char * buffer, size_t n );
+    bool FromNetworkBuffer(const std::vector<char> & buffer);
     size_t ToNetworkBuffer( char * buffer, size_t n );
     
     void Initialize(); // set required fields 1-3
     void Finalize(); // compute CRC
     
-    int32_t crc();
+    int32_t crc() const;
     
-    bool initialized();
-    bool finalized();
+    bool initialized() const;
+    bool finalized() const;
     
     bool valid();
     
     // timestamp access functions
-    uint64_t timestamp();
+    uint64_t timestamp() const;
     void set_timestamp( uint64_t t );
     void inc_timestamp( uint64_t delta );
     void inc_timestamp( double delta );
     
     // digital input/output access methods
-    uint32_t parallel_port();
+    uint32_t parallel_port() const;
     void set_parallel_port( uint32_t dio = 0 );
     
     // data (int32) getter methods
-    void data( std::vector<int32_t>& v ); // will copy
-    std::vector<int32_t>::iterator data( std::vector<int32_t>::iterator it ); // will copy
-    int32_t sample( unsigned int index );
+    void data( std::vector<int32_t>& v ) const; // will copy
+    std::vector<int32_t>::iterator data( std::vector<int32_t>::iterator it ) const; // will copy
+    int32_t sample( unsigned int index ) const;
     
     // data (int32) setter methods
     void set_data( int32_t value = 0 );
@@ -164,9 +171,9 @@ public:
     void set_data( std::vector<int32_t>::iterator it );
     
     // data (microVolt) getter methods
-    void data( std::vector<double>& v ); // will convert to uV and copy
-    std::vector<double>::iterator data( std::vector<double>::iterator it);
-    double sample_microvolt( unsigned int index );
+    void data( std::vector<double>& v ) const; // will convert to uV and copy
+    std::vector<double>::iterator data( std::vector<double>::iterator it) const;
+    double sample_microvolt( unsigned int index ) const;
     
     // data (microVolt) setter methods
     void set_data( double value = 0 );
@@ -176,6 +183,9 @@ public:
 protected:
     std::vector<int32_t>::iterator data_begin();
     std::vector<int32_t>::iterator data_end();
+
+    std::vector<int32_t>::const_iterator data_begin() const;
+    std::vector<int32_t>::const_iterator data_end() const;
     
     unsigned int nchannels_;
     std::vector<int32_t> buffer_;
@@ -189,5 +199,35 @@ protected:
     int32_t nlx_packetsize_;
 };
 
+// timestamp related constants
+// sampling period (microseconds)
+constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
+    SAMPLING_PERIOD_MICROSEC = 1e6 / NLX_SIGNAL_SAMPLING_FREQUENCY;
+// maximum tolerated difference between two timstamps that
+// is not considered a gap with missing data packets
+const uint64_t MAX_ALLOWABLE_TIMEGAP_MICROSECONDS =
+        trunc( SAMPLING_PERIOD_MICROSEC ) + 1;
+// value for an invalid timestamp
+constexpr uint64_t INVALID_TIMESTAMP =
+        std::numeric_limits<uint64_t>::max();
+
+class NlxStatistics {
+public:
+    NlxStatistics() : n_invalid(0), n_duplicated(0), n_outoforder(0), n_missed(0), n_gaps(0) {}
+
+public:
+    uint64_t n_invalid;
+    uint64_t n_duplicated;
+    uint64_t n_outoforder;
+    uint64_t n_missed;
+    uint64_t n_gaps;
+    
+    void clear();
+
+};
+
+uint64_t CheckTimestamp(const NlxSignalRecord & rec, uint64_t & last_timestamp, NlxStatistics & stats);
+
+} // namespace nlx
 
 #endif // nlx.hpp

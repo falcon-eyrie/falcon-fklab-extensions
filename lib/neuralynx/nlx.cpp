@@ -20,6 +20,8 @@
 #include <cassert>
 #include "nlx.hpp"
 
+using namespace nlx;
+
 bool valid_nlx_vt( VideoRec* vt_record, std::uint16_t vt_id,
     ErrorNLXVT::Code& error_code, decltype(NLX_VIDEO_RESOLUTION) resolution ) {
     
@@ -53,7 +55,7 @@ NlxSignalRecord::NlxSignalRecord( unsigned int nchannels ) {
     set_nchannels( nchannels );
 }
 
-unsigned int NlxSignalRecord::nchannels() {
+unsigned int NlxSignalRecord::nchannels() const {
     
     return nchannels_;
 }
@@ -72,7 +74,7 @@ void NlxSignalRecord::set_nchannels( unsigned int n ) {
     Initialize();
 }
     
-bool NlxSignalRecord::FromNetworkBuffer( char * buffer, size_t n ) {
+bool NlxSignalRecord::FromNetworkBuffer( const char * buffer, size_t n ) {
     
     // check size
     if (n!=nlx_packetbytesize_) { return false; }
@@ -85,6 +87,10 @@ bool NlxSignalRecord::FromNetworkBuffer( char * buffer, size_t n ) {
     
     // test if valid record (record size os OK, first 3 fields are OK, CRC checks out)
     return valid();
+}
+
+bool NlxSignalRecord::FromNetworkBuffer(const std::vector<char> & buffer) {
+    return FromNetworkBuffer(buffer.data(), buffer.size());
 }
     
 size_t NlxSignalRecord::ToNetworkBuffer( char * buffer, size_t n ) {
@@ -119,7 +125,7 @@ void NlxSignalRecord::Finalize() {
     finalized_ = true;
 }
     
-int32_t NlxSignalRecord::crc() {
+int32_t NlxSignalRecord::crc() const {
     
     int32_t c = 0;
     for ( unsigned int k=0; k<nlx_nfields_-1; ++k ) {
@@ -128,12 +134,12 @@ int32_t NlxSignalRecord::crc() {
     return c;
 }
 
-bool NlxSignalRecord::initialized() {
+bool NlxSignalRecord::initialized() const {
 
     return initialized_;
 }
 
-bool NlxSignalRecord::finalized() {
+bool NlxSignalRecord::finalized() const {
     
     return finalized_;
 }
@@ -159,7 +165,7 @@ bool NlxSignalRecord::valid() {
     return true;
 }
     
-uint64_t NlxSignalRecord::timestamp() {
+uint64_t NlxSignalRecord::timestamp() const {
     
     uint64_t t;
     t = (uint32_t) buffer_[NLX_FIELD_TIMESTAMP_HIGH];
@@ -181,7 +187,7 @@ void NlxSignalRecord::inc_timestamp( double delta ) {
     set_timestamp( timestamp() + static_cast<uint64_t>(1000000 * delta / NLX_SIGNAL_SAMPLING_FREQUENCY) );
 }
     
-uint32_t NlxSignalRecord::parallel_port() {
+uint32_t NlxSignalRecord::parallel_port() const {
     
     return static_cast<uint32_t>( buffer_[NLX_FIELD_DIO] );
 }
@@ -191,18 +197,18 @@ void NlxSignalRecord::set_parallel_port( uint32_t dio ) {
     finalized_ = false;
 }
     
-void NlxSignalRecord::data( std::vector<int32_t>& v ) {
+void NlxSignalRecord::data( std::vector<int32_t>& v ) const {
     
     if (v.size()<nchannels_) {v.resize(nchannels_);}
     std::copy( data_begin(), data_end(), v.begin() ); 
 }
 
-std::vector<int32_t>::iterator NlxSignalRecord::data( std::vector<int32_t>::iterator it ) {
+std::vector<int32_t>::iterator NlxSignalRecord::data( std::vector<int32_t>::iterator it ) const {
     
     return std::copy( data_begin(), data_end(), it );
 }
 
-int32_t NlxSignalRecord::sample( unsigned int index ) {
+int32_t NlxSignalRecord::sample( unsigned int index ) const {
     
     return buffer_[NLX_FIELD_DATA_FIRST+index];
 }
@@ -226,12 +232,12 @@ void NlxSignalRecord::set_data( std::vector<int32_t>::iterator it ) {
     finalized_ = false;
 }
     
-void NlxSignalRecord::data( std::vector<double>& v ){
+void NlxSignalRecord::data( std::vector<double>& v ) const {
     
     if (v.size()<nchannels_) {v.resize(nchannels_);}
     data( v.begin() );
 }
-std::vector<double>::iterator NlxSignalRecord::data( std::vector<double>::iterator it) {
+std::vector<double>::iterator NlxSignalRecord::data( std::vector<double>::iterator it) const {
    
     auto first = data_begin();
     auto last = data_end();
@@ -242,7 +248,7 @@ std::vector<double>::iterator NlxSignalRecord::data( std::vector<double>::iterat
     return it;
 }
 
-double NlxSignalRecord::sample_microvolt( unsigned int index ) {
+double NlxSignalRecord::sample_microvolt( unsigned int index ) const {
     
     return static_cast<double>( buffer_[NLX_FIELD_DATA_FIRST+index] * NLX_AD_BIT_MICROVOLTS );
 }
@@ -278,4 +284,48 @@ std::vector<int32_t>::iterator NlxSignalRecord::data_begin() {
 std::vector<int32_t>::iterator NlxSignalRecord::data_end() {
     
     return buffer_.begin() + nlx_field_data_last_ + 1;
+}
+
+std::vector<int32_t>::const_iterator NlxSignalRecord::data_begin() const {
+    
+    return buffer_.begin() + NLX_FIELD_DATA_FIRST;
+}
+
+std::vector<int32_t>::const_iterator NlxSignalRecord::data_end() const {
+    
+    return buffer_.begin() + nlx_field_data_last_ + 1;
+}
+
+
+
+void NlxStatistics::clear() {
+    n_invalid = 0;
+    n_duplicated = 0;
+    n_outoforder = 0;
+    n_missed = 0;
+    n_gaps = 0;
+}
+
+uint64_t nlx::CheckTimestamp(const NlxSignalRecord & rec, uint64_t & last_timestamp, NlxStatistics & stats) {
+    
+    uint64_t timestamp = rec.timestamp();
+    
+    if ( last_timestamp == INVALID_TIMESTAMP ) {
+        last_timestamp = timestamp;
+    } else if ( timestamp == last_timestamp ) {
+        ++stats.n_duplicated;
+    } else if ( timestamp < last_timestamp ) {
+        ++stats.n_outoforder;
+    } else {
+        uint64_t delta = timestamp - last_timestamp;
+        if ( delta > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
+            int64_t n_missed = round ( delta / SAMPLING_PERIOD_MICROSEC ) - 1;
+            stats.n_missed += n_missed;
+            ++stats.n_gaps;
+            //LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
+        }
+        last_timestamp = timestamp;
+    }
+
+    return timestamp;
 }
