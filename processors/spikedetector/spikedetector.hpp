@@ -55,32 +55,34 @@
 #include "spikedata/spikedata.hpp"
 #include "eventdata/eventdata.hpp"
 #include "multichanneldata/multichanneldata.hpp"
+#include "options/options.hpp"
 
 class SpikeDetector : public IProcessor {
 
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
+    SpikeDetector();
     virtual void CreatePorts( ) override;
     virtual void CompleteStreamInfo() override;
     virtual void Prepare( GlobalContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override; 
-    virtual void Unprepare( GlobalContext& context ) override;
 
+// PORTS
 protected:
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<SpikeType>* data_out_port_spikes_;
     PortOut<EventType>* data_out_port_events_;
-    
+
+// STATES
+protected:
     StaticState<double>* threshold_;
     StaticState<unsigned int>* peak_lifetime_;
-    
+
+// variables
+protected:
     unsigned int n_channels_;
-    double initial_threshold_;
-    unsigned int initial_peak_lifetime_;
-    bool invert_signal_;
-    double buffer_size_ms_;
-    bool strict_time_bin_check_;
+
     size_t n_incoming_;
     size_t incoming_buffer_size_samples_;
     
@@ -92,20 +94,31 @@ protected:
     EventType::Data* event_data_out_;
     
     uint64_t n_streamed_events_;
-    
+
+// constants  
 public:
-    const decltype(initial_threshold_) DEFAULT_THRESHOLD = 60.0;
-    const decltype(invert_signal_) DEFAULT_INVERT_SIGNAL = true;
-    const decltype(initial_peak_lifetime_) DEFAULT_PEAK_LIFETIME = 8;
-    const decltype(buffer_size_ms_) DEFAULT_BUFFER_SIZE_MS = 0.5;
-    const decltype(strict_time_bin_check_) DEFAULT_STRICT_TIME_BIN_CHECK = true;
     const decltype(n_channels_) MAX_N_CHANNELS = 8;
 
-    const std::string PEAK_LIFETIME_S = "peak_lifetime";
-    const std::string THRESHOLD_S = "threshold";
+    const std::string PEAK_LIFETIME = "peak lifetime";
+    const std::string THRESHOLD = "threshold";
     
 protected:
     const int RINGBUFFER_SIZE = 1e5;
+
+// OPTIONS
+protected:
+    options::Double initial_threshold_{60.};
+    options::Bool invert_signal_{true};
+    options::Measurement<double,false> buffer_size_{
+        0.5,
+        "ms",
+        options::positive<double>(true)
+    };
+    options::Bool strict_time_bin_check_{true};
+    options::Measurement<unsigned int,false> initial_peak_lifetime_{
+        8,
+        "sample"
+    };
     
 };
 

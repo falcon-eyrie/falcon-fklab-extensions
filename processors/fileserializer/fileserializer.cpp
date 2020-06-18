@@ -24,6 +24,22 @@
 
 #include <fstream>
 
+
+FileSerializer::FileSerializer() : IProcessor() {
+    add_option("path", path_, "Path (server-side) where to save data.");
+    add_option("encoding", encoding_, "Binary or YAML encoding.");
+    add_option("format", format_,
+        "Data format (none, full, headeronly, streamheader, compact).");
+    add_option("overwrite", overwrite_, "Overwrite existing files.");
+    add_option("throttle/enabled", throttle_,
+        "Progressively drop incoming data packets if saving cannot keep up.");
+    add_option("throttle/threshold", throttle_threshold_,
+        "Buffer fill level (fraction between 0 and 1) at which throttling kicks in.");
+    add_option("throttle/smooth", throttle_smooth_,
+        "Smoothly changes throttle level as threshold is reached "
+        "(value between 0 and 1).");
+}
+
 void FileSerializer::CreatePorts() {
     
     data_port_ = create_input_port<AnyType>(
@@ -33,38 +49,18 @@ void FileSerializer::CreatePorts() {
 }
 
 void FileSerializer::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    path_ = node["path"].as<std::string>( DEFAULT_PATH );
-    
-    encoding_ = node["encoding"].as<std::string>( DEFAULT_ENCODING );
-    std::transform( encoding_.begin(), encoding_.end(), encoding_.begin(),
-        (int (*)(int))std::tolower );
-    if ( encoding_ != "binary" and encoding_ !="yaml" ) {
-        throw ProcessingConfigureError(
-            "Invalid encoding mode. Must be either binary or yaml", name() );
-    }
-    
-    format_ = Serialization::string_to_format( node["format"].as<std::string>(
-        Serialization::format_to_string( DEFAULT_FORMAT ) ) );
-    
-    overwrite_ = node["overwrite"].as<bool>( DEFAULT_OVERWRITE );
-    
-    throttle_ = node["throttle"].as<bool>( DEFAULT_THROTTLE );
-    throttle_threshold_ = node["throttle_threshold"].as<double>(
-        DEFAULT_THROTTLE_THRESHOLD );
-    if (throttle_threshold_<0 || throttle_threshold_>1) {
-        throw ProcessingConfigureError("Throttle threshold should be in range 0-1.", name());
-    }
-    throttle_smooth_ = node["throttle_smooth"].as<double>( DEFAULT_THROTTLE_SMOOTH );
-    if (throttle_smooth_<0 || throttle_smooth_>1) {
-        throw ProcessingConfigureError("Throttle smooth value should be in range 0-1.", name());
-    }
+
+    LOG(INFO) << "format: " << format_.to_yaml();
+    LOG(INFO) << "encoding: " << encoding_.to_yaml();
+    LOG(INFO) << "throttle enabled: " << throttle_();
+    LOG(INFO) << "throttle threshold: " << throttle_threshold_();
+    LOG(INFO) << "throttle smooth: " << throttle_smooth_();
 }
 
 void FileSerializer::Preprocess(ProcessingContext& context) {
     
     // create serializer object
-    serializer_.reset( Serialization::serializer_from_string( encoding_, format_ ) );
+    serializer_.reset( Serialization::serializer( encoding_(), format_() ) );
     
     // initialization
     packetid_.assign( data_port_->number_of_slots(), 0 );
@@ -75,7 +71,7 @@ void FileSerializer::Preprocess(ProcessingContext& context) {
     // create output file streams
     streams_.clear();
     
-    std::string path = context.resolve_path( path_, "run" );
+    std::string path = context.resolve_path( path_(), "run" );
     std::string address;
     std::string filename;
     std::unique_ptr<std::ostream> stream;
@@ -87,7 +83,7 @@ void FileSerializer::Preprocess(ProcessingContext& context) {
             "." + serializer_->extension();
         
         // if file exists
-        if (!overwrite_ && path_exists(filename)) {
+        if (!overwrite_() && path_exists(filename)) {
             throw ProcessingError( "Output file " + filename + " exists.", name() );
         }
         // try to open file
@@ -119,8 +115,8 @@ void FileSerializer::create_preamble( std::ostream & out, int slot ) {
     node["date"] = time_to_string( std::time(nullptr) );
     node["version"] = static_cast<int>( Serialization::VERSION );
     node["interleaved"] = false;
-    node["format"] = Serialization::format_to_string(format_);
-    node["encoding"] = encoding_;
+    node["format"] = format_.to_yaml();
+    node["encoding"] = encoding_.to_yaml();
     
     node["stream"] = slot;
     
@@ -132,7 +128,6 @@ void FileSerializer::create_preamble( std::ostream & out, int slot ) {
     emit << YAML::EndDoc;
     
 }
-
 
 void FileSerializer::Process(ProcessingContext& context) {
       
@@ -153,7 +148,7 @@ void FileSerializer::Process(ProcessingContext& context) {
             
             if (nread==0) { data_port_->slot(k)->ReleaseData(); continue; }
             
-            if (!throttle_) {
+            if (!throttle_()) {
                 
                 LOG_IF(WARNING,(nread>0.5*upstream_buffer_size_[k])) << name() <<
                     ": buffer is more than half full (stream " << k << ")";
@@ -164,9 +159,9 @@ void FileSerializer::Process(ProcessingContext& context) {
             } else {
                 
                 // update throttle level
-                throttle_level_ *= (1-throttle_smooth_);
-                if (nread>throttle_threshold_*upstream_buffer_size_[k]) {
-                    throttle_level_ += throttle_smooth_;
+                throttle_level_ *= (1-throttle_smooth_());
+                if (nread>throttle_threshold_()*upstream_buffer_size_[k]) {
+                    throttle_level_ += throttle_smooth_();
                 }
                 
                 remainder = std::floor( 1.0 / ( 0.5 - std::abs(throttle_level_ - 0.5)));

@@ -67,9 +67,42 @@ bool NlxReader::CheckPacket(char * buffer, int recvlen) {
     return true;
 }
 
+
+NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
+
+    add_option("address", address_, 
+        "IP address of Digilynx acquisition system.");
+    add_option("port", port_,
+        "Port number for communication with Digilynx acquisition system.");
+    add_option("channelmap", channelmap_,
+        "Mapping of channels to proccessor output ports.");
+    add_option("npackets", npackets_,
+        "The total number of data packets to read "
+        "(0 means continuous recording).");
+    add_option("batch size", batch_size_,
+        "The number of data packets to concatenate into "
+        "single multi-channel data bucket.");
+    add_option("nchannels", nchannels_,
+        "The number of channels of the Digilynx acquisition system.");
+    add_option("update_interval", update_interval_,
+        "The time interval for updates on the received data from "
+        "the Digilynx acquisition system.");
+    add_option("hardware trigger", dispatch_,
+        "Whether or not to wait for hardware trigger to start "
+        "streaming data packets.");
+    add_option("hardware trigger channel", hardware_trigger_channel_,
+        "Digital input channel to use as hardware trigger");
+
+};
+
+void NlxReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
+    
+    nlxrecord_.set_nchannels( nchannels_() );  
+}
+
 void NlxReader::CreatePorts() {
     
-    for (auto & it : channelmap_ ) {
+    for (auto & it : channelmap_() ) {
         data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
             it.first,
             MultiChannelType<double>::Capabilities( ChannelRange(it.second.size()) ),
@@ -83,68 +116,24 @@ void NlxReader::CompleteStreamInfo() {
     for (auto & it : data_ports_ ) {
         // finalize data type with nsamples == batch_size and nchannels taken from channel map
         it.second->streaminfo(0).set_parameters(
-            MultiChannelType<double>::Parameters( channelmap_[it.first].size(),
-                                                  batch_size_, 
+            MultiChannelType<double>::Parameters( channelmap_().at(it.first).size(),
+                                                  batch_size_(), 
                                                   NLX_SIGNAL_SAMPLING_FREQUENCY ) );
-        it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_ );
+        it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_() );
     }
-}
-
-void NlxReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    // ip address : string
-    address_ = node["address"].as<decltype(address_)>(DEFAULT_ADDRESS);
-    // port : unsigned int
-    port_ = node["port"].as<decltype(port_)>(DEFAULT_PORT);
-    
-    // acquisition entities : map of vector<int>
-    if (node["channelmap"]) {
-        channelmap_ = node["channelmap"].as<decltype(channelmap_)>();
-    }
-    
-    // npackets : int (number of packets to read, 0 means continuous recording)
-    npackets_ = node["npackets"].as<decltype(npackets_)>(DEFAULT_NPACKETS);
-    if (npackets_==0) {
-        npackets_ = std::numeric_limits<decltype(npackets_)>::max();
-    }
-    
-    // how many packets to pack into single multi-channel data bucket
-    batch_size_ = node["batch_size"].as<decltype(batch_size_)>(DEFAULT_BATCHSIZE);
-    
-    // number of AD channels of the system
-    nchannels_ = node["nchannels"].as<decltype(nchannels_)>(DEFAULT_NCHANNELS);
-    nlxrecord_.set_nchannels( nchannels_ );
-    
-    // how often updates about data stream will be sent out
-    decltype(update_interval_) value = node["update_interval"].as<decltype(
-        update_interval_)>(DEFAULT_UPDATE_INTERVAL_SEC);
-    update_interval_ = value * NLX_SIGNAL_SAMPLING_FREQUENCY;
-    if (update_interval_==0) {
-        update_interval_ = std::numeric_limits<uint64_t>::max();
-    }
-    
-    // whether or not to wait for hardware trigger to start dispatching
-    hardware_trigger_ = node["hardware_trigger"].as<decltype(hardware_trigger_)>(
-        DEFAULT_HARDWARE_TRIGGER);
-    dispatch_ = !hardware_trigger_;
-    
-    // digital input channel to use as hardware trigger
-    hardware_trigger_channel_ = node["hardware_trigger_channel"].as<decltype(
-        hardware_trigger_channel_)>(DEFAULT_HARDWARE_TRIGGER_CHANNEL);
-    
 }
 
 void NlxReader::Prepare( GlobalContext& context ) {
     
     memset((char *)&server_addr_, 0, sizeof(server_addr_));
     server_addr_.sin_family = AF_INET;
-    server_addr_.sin_addr.s_addr = inet_addr(address_.c_str());
-    server_addr_.sin_port = htons(port_);
+    server_addr_.sin_addr.s_addr = inet_addr(address_().c_str());
+    server_addr_.sin_port = htons(port_());
 }
 
 void NlxReader::Preprocess( ProcessingContext& context ) {
 
-    sample_counter_ = batch_size_;
+    sample_counter_ = batch_size_();
     valid_packet_counter_ = 0;
     const int y = 1;
     
@@ -171,13 +160,13 @@ void NlxReader::Preprocess( ProcessingContext& context ) {
 }
 
 void NlxReader::Process( ProcessingContext& context ) {
-      
+    
     bool update_time = false;
     int data_index = 0;
     MultiChannelType<double>::Data::sample_iterator data_iter;
     std::vector<MultiChannelType<double>::Data*> data_vector(data_ports_.size());
     
-    while ( !context.terminated() && valid_packet_counter_<npackets_ ) {
+    while ( !context.terminated() && valid_packet_counter_<npackets_() ) {
         
         // check if packets have arrived (with time-out)
         FD_ZERO (&file_descriptor_set_); //clear the file descriptor set
@@ -218,24 +207,24 @@ void NlxReader::Process( ProcessingContext& context ) {
                     " (TS = " << nlxrecord_.timestamp() << ").";
             }
             
-            update_time = valid_packet_counter_%update_interval_== 0;
+            update_time = valid_packet_counter_%update_interval_()== 0;
             LOG_IF(UPDATE, update_time ) << name() << ": " <<
                 valid_packet_counter_ << " packets (" <<
                 valid_packet_counter_/NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
             print_stats( update_time );
             
-            if (!dispatch_) {
+            if (!dispatch_()) {
                 LOG_IF(UPDATE, (valid_packet_counter_ == 1)) << name() <<
                     ". Waiting for hardware trigger on channel "
-                    << hardware_trigger_channel_ << ".";
-                if (nlxrecord_.parallel_port() & (1<<hardware_trigger_channel_) ) {
+                    << hardware_trigger_channel_() << ".";
+                if (nlxrecord_.parallel_port() & (1<<hardware_trigger_channel_()) ) {
                     dispatch_=true;
                     LOG(UPDATE) << name() << ". Dispatching starts now.";
                 } else { continue; }
             }
             
             // claim new data buckets
-            if (sample_counter_ == batch_size_) {
+            if (sample_counter_ == batch_size_()) {
                 data_index = 0;
                 for (auto & it : data_ports_ ) {
                     data_vector[data_index] = it.second->slot(0)->ClaimData(false);
@@ -250,7 +239,7 @@ void NlxReader::Process( ProcessingContext& context ) {
                         
             // copy data onto buffers for each configured channel group
             data_index = 0;
-            for (auto & it : channelmap_ ) {
+            for (auto & it : channelmap_() ) {
                 data_vector[data_index]->set_sample_timestamp(
                     sample_counter_, nlxrecord_.timestamp() );
                 data_iter = data_vector[data_index]->begin_sample( sample_counter_ );
@@ -264,7 +253,7 @@ void NlxReader::Process( ProcessingContext& context ) {
             ++sample_counter_;
             
             // publish data buckets
-            if (sample_counter_ == batch_size_) {
+            if (sample_counter_ == batch_size_()) {
                 for (auto & it : data_ports_ ) {
                     it.second->slot(0)->PublishData();
                 }
@@ -287,7 +276,7 @@ void NlxReader::Process( ProcessingContext& context ) {
 
 void NlxReader::Postprocess( ProcessingContext& context ) {
     
-    LOG_IF(UPDATE, (valid_packet_counter_ == npackets_) ) << 
+    LOG_IF(UPDATE, (valid_packet_counter_ == npackets_()) ) << 
         "Requested number of packets was read. You can now STOP processing.";
     
     std::chrono::milliseconds runtime( 

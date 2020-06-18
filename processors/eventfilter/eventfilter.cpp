@@ -23,50 +23,58 @@
 #include <thread>
 #include <algorithm>
 
-void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context) {
-    
-    target_event_ = EventType::Data( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
-    
-    blockout_time_ms_ = node["blockout_time_ms"].as<decltype(blockout_time_ms_)>(
-        DEFAULT_BLOCKOUT_TIME_MS );
-    
-    synch_time_ms_ = node["synch_time_ms"].as<decltype(synch_time_ms_)>(
-        DEFAULT_SYNCH_TIME_MS );
-    
-    time_in_ms_ = node["time_in_ms"].as<decltype(time_in_ms_)>( DEFAULT_TIME_IN_MS );
-    
-    discard_warnings_ = node["discard_warnings"].as<decltype(discard_warnings_)>
-        ( DEFAULT_WARNINGS_DISCARDED );
-    
-    auto detection_criterion = node["detection_criterion"].as<std::string>( "any" );
-    if ( detection_criterion == "any" ) {
-        detections_to_criterion_ = 1;
-    } else if ( detection_criterion == "all" ) {
-        detections_to_criterion_ = ALL; // 'all' criteria will be configured in Prepare
+void DetectionCriterionValue::from_yaml(const YAML::Node & node) {
+
+    auto v = node.as<std::string>();
+
+    if (v=="any") {
+        this->set_value(1);
+    } else if (v=="all") {
+        this->set_value(0);
     } else {
-        detections_to_criterion_ =
-            node["detection_criterion"].as<decltype(detections_to_criterion_)>( 1 );
-        // check is in Prepare
+        Value<SlotType,false>::from_yaml(node);
     }
-    
+}
+
+
+EventFilter::EventFilter() : EventSync() {
+    add_option("block duration", blockout_time_,
+        "The duration over which events will be filtered out "
+        "following the arrival of a blocking event.");
+
+    add_option("block wait time", block_wait_time_,
+        "The waiting time after a target event has been received "
+        "to check if any blocking event also occurred.");
+
+    add_option("sync time", sync_time_,
+        "Time interval over which incoming events are considered to be synchronuous.");
+
+    add_option("discard warnings", discard_warnings_,
+        "Do not emit warnings for discarded events.");
+
+    add_option("detection criterion", detections_to_criterion_,
+        "The criterion for triggering a detection, which is the number of "
+        "input slots with a target event. Acceptable values range from 1 to "
+        "the total number of input slots. A value of 0 or 'all' is equivalent "
+        "to the total number of input slots. A value of 'any' is equivalent to 1.");
 }
 
 void EventFilter::CreatePorts() {
     
     data_in_port_ = create_input_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1, 256), false, 0 ) );
     
     block_in_port_ = create_input_port<EventType>(
-        "blocking_events",
+        "blocking events",
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1, 256), false, 0 ) );
 
     data_out_port_ = create_output_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
-        EventType::Parameters( target_event_.event() ),
+        EventType::Parameters( target_event_().event() ),
         PortOutPolicy( SlotRange(1) ) );
     
 }
@@ -76,18 +84,18 @@ void EventFilter::Prepare( GlobalContext& context ) {
     auto nslots = data_in_port_->number_of_slots();
     
     // complete Configure
-    if ( detections_to_criterion_ == ALL ) {
+    if ( detections_to_criterion_() == 0 ) {
         detections_to_criterion_ = nslots;
     }
     
     // check detections_to_criterion value
-    if ( detections_to_criterion_ < 1 or detections_to_criterion_ > nslots ) {
+    if ( detections_to_criterion_() < 1 or detections_to_criterion_() > nslots ) {
         auto err_msg = std::string("Invalid number of detections to criterion.")
             + "It must be a number between 1 and " + std::to_string(nslots) + ".";
         throw ProcessingPrepareError( err_msg, name() );
     }
     LOG(INFO) << name() << ". Criterion for triggering an event is set to " <<
-        detections_to_criterion_ << " events.";
+        detections_to_criterion_() << " events.";
     LOG(INFO) << name() << ". Criterion for triggering a blocking event is set to 1 event.";
 }
 
@@ -96,9 +104,9 @@ void EventFilter::Preprocess( ProcessingContext& context ) {
     // init gate_close_time, but make sure the first event won't be excluded
     // if no blocking event will be received
     gate_close_time_ = Clock::now();
-    if ( blockout_time_ms_ > 0 ) {
+    if ( blockout_time_() > 0 ) {
         std::this_thread::sleep_for( std::chrono::milliseconds(
-            static_cast<int>( blockout_time_ms_ ) ) );
+            static_cast<int>( blockout_time_() ) ) );
     }
 }
 
@@ -109,13 +117,13 @@ void EventFilter::Process(ProcessingContext& context) {
     bool alive = false;
     bool detection_criterion = false;
     bool event_received = false;
-    decltype(detections_to_criterion_) counter_to_detection = 0;
+    SlotType counter_to_detection = 0;
     bool detection_block = false;
     std::size_t slot_last = 0;
     
     bool gate_just_closed = false;
     TimePoint t_detection;
-    std::chrono::duration<double, std::milli> duration_ms;
+    std::chrono::duration<double, std::milli> duration;
 
     std::vector<TimePoint> arrival_times_per_slot_events( data_in_port_->number_of_slots(),
         std::numeric_limits<TimePoint>::min() );
@@ -125,7 +133,7 @@ void EventFilter::Process(ProcessingContext& context) {
     // not used but needs to be passed
     std::vector<TimePoint> arrival_times_per_slot_blocking_events(
         block_in_port_->number_of_slots(), std::numeric_limits<TimePoint>::min() ); 
-    std::vector<uint64_t> arrival_hwTS_per_slot_blockingevents(
+    std::vector<uint64_t> arrival_hwTS_per_slot_blocking_events(
         block_in_port_->number_of_slots(), 0 );
     
     // t >= (t_last - time_in_ms ) for t in log_n_slots-> how many slots meet criterion?
@@ -144,11 +152,11 @@ void EventFilter::Process(ProcessingContext& context) {
                 counter_to_detection = 0;
                 for ( auto t: arrival_times_per_slot_events ) {
                     if ( time_between( arrival_times_per_slot_events[slot_last], t )
-                    < time_in_ms_ ) {
+                    < sync_time_() ) {
                         ++ counter_to_detection;
                     }
                 }
-                detection_criterion = ( counter_to_detection >= detections_to_criterion_ );
+                detection_criterion = ( counter_to_detection >= detections_to_criterion_() );
                 LOG(DEBUG) << name() << ". Detection criterion met.";
             }
             
@@ -156,7 +164,7 @@ void EventFilter::Process(ProcessingContext& context) {
             std::tie( alive, detection_block, std::ignore ) = is_there_target(
                 block_in_port_, blocking_events_counter_,
                 arrival_times_per_slot_blocking_events,
-                arrival_hwTS_per_slot_blockingevents );
+                arrival_hwTS_per_slot_blocking_events );
             if ( not alive ) {break;}
             if ( detection_block ) {
                 gate_close_time_ = Clock::now();
@@ -168,27 +176,27 @@ void EventFilter::Process(ProcessingContext& context) {
 
             t_detection = Clock::now();
             // check if gate is closed
-            if ( time_since( gate_close_time_ ) <= blockout_time_ms_ ) {
+            if ( time_since( gate_close_time_ ) <= blockout_time_() ) {
                 ++ n_blocked_events_;
                 detection_criterion = false;
-                LOG( UPDATE ) << name() << ". Target event " << target_event_.event()
+                LOG( UPDATE ) << name() << ". Target event " << target_event_().event()
                     << " was filtered out.";
             } else {
                 // if open, before streaming the event on the output,
                 // check if blocking event is coming soon after the target event
                 // is received on the "events" port with this dedicated read loop
                 
-                // read incoming blocking events for synch_time_ms_
-                while ( time_since( t_detection ) < synch_time_ms_ and detection_criterion ) {
+                // read incoming blocking events for block_wait_time_ms_
+                while ( time_since( t_detection ) < block_wait_time_() and detection_criterion ) {
                     std::tie( alive, gate_just_closed, std::ignore ) = is_there_target(
                         block_in_port_, blocking_events_counter_,
                         arrival_times_per_slot_blocking_events,
-                        arrival_hwTS_per_slot_blockingevents );
+                        arrival_hwTS_per_slot_blocking_events );
                     if ( not alive ) {break;} // exit inner while loop
 
                     if ( gate_just_closed ) {
                         ++ n_blocked_events_;
-                        LOG( UPDATE ) << name() << ". Target event " << target_event_.event()
+                        LOG( UPDATE ) << name() << ". Target event " << target_event_().event()
                             << " was filtered out (blocking event arrived after target).";
                         detection_criterion = false;
                         gate_close_time_ = Clock::now();
@@ -246,7 +254,7 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
             input_port->slot(s)->ReleaseData();
             continue;
         }
-        if ( nread>1 and not discard_warnings_ ) {
+        if ( nread>1 and not discard_warnings_() ) {
             std::string events_list = data_in[1]->event();
             for ( auto el=data_in.begin()+1; el!=data_in.end()-1; ++el ) {
                 events_list += ( ", " + (*el)->event() );
@@ -258,10 +266,10 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
         ++ event_counter.all_received;
 
         // if there's data, check if it is a target event
-        if ( *data_in.back() == target_event_ ) {
+        if ( *data_in.back() == target_event_() ) {
             
             LOG(DEBUG) << name() << ". Received target event " <<
-                target_event_.event() << " on port " << input_port->name() << " slot " << s;
+                target_event_().event() << " on port " << input_port->name() << " slot " << s;
             
             ++ event_counter.target;
             arrival_times[s] = Clock::now();

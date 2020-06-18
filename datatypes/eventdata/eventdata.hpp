@@ -21,11 +21,12 @@
 #define EVENTDATA_HPP
 
 #include "idata.hpp"
+#include "yaml-cpp/yaml.h"
 
 typedef unsigned int EventIDType;
 
 const std::string DEFAULT_EVENT = "none";
-const std::string EVENTDATA_S = "events"; // to be used for port names using spike data
+const std::string EVENTDATA = "events"; // to be used for port names using spike data
 
 namespace nsEventType {
 
@@ -61,11 +62,13 @@ public:
     std::string event() const;
     size_t hash() const;
 
+    size_t size() const;
+    
     void set_event( std::string event );
     void set_event( const Data &source );
 
-    friend bool operator==(Data &e1, Data &e2);
-    friend bool operator!=(Data &e1, Data &e2);
+    friend bool operator==(const Data &e1, const Data &e2);
+    friend bool operator!=(const Data &e1, const Data &e2);
     
     virtual void SerializeBinary( std::ostream& stream,
         Serialization::Format format = Serialization::Format::FULL ) const override;
@@ -94,5 +97,24 @@ public:
     using Data = nsEventType::Data;
 
 };
+
+namespace YAML {
+
+template<>
+struct convert<EventType::Data> {
+    static Node encode(const EventType::Data& rhs) {
+        Node node;
+        node = rhs.event();
+        return node;
+    }
+
+    static bool decode(const Node& node, EventType::Data& rhs) {
+        rhs.set_event(node.as<std::string>());
+        return true;
+    }
+
+};
+
+}
 
 #endif // eventdata.hpp

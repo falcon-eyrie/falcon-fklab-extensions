@@ -48,34 +48,45 @@
 //#include "neuralynx/nlx.hpp"
 #include "utilities/time.hpp"
 
+#include "options/options.hpp"
+#include "options/units.hpp"
+
 class Rebuffer : public IProcessor
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
+
+    Rebuffer();
+
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
     virtual void CreatePorts( ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void CompleteStreamInfo( ) override;
 
+// DATA PORTS
 protected:   
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<MultiChannelType<double>>* data_out_port_;
+
+// variables
+protected:
+    std::vector<unsigned int> sample_buffer_;
+
+// OPTIONS
+protected:
+
+    options::Value<unsigned int, false> downsample_factor_{
+        1,
+        options::positive<unsigned int>(true)
+    };
     
-    std::string buffer_unit_;
-    unsigned int buffer_size_samples_;
-    double buffer_size_seconds_;
-    unsigned int downsample_factor_;
-    
-    std::vector<decltype(buffer_size_samples_)> buffer_size_;
-    
-public:
-    static const decltype(downsample_factor_) DEFAULT_DOWNSAMPLE_FACTOR = 1;
-    const std::string DEFAULT_BUFFER_UNIT = "samples";
-    static constexpr decltype(buffer_size_samples_) DEFAULT_BUFFER_SIZE_SAMPLES = 10;
-    static constexpr decltype(buffer_size_seconds_) DEFAULT_BUFFER_SIZE_SECONDS =
-        samples2time<decltype(buffer_size_seconds_)>(
-            DEFAULT_BUFFER_SIZE_SAMPLES,
-            32000 / DEFAULT_DOWNSAMPLE_FACTOR );
-    
+    options::Measurement<double,false> buffer_size_{
+        10.,
+        "sample",
+        options::positive<double>(),
+        {"second"}
+    };
+
 };
 
 #endif //rebuffer.hpp

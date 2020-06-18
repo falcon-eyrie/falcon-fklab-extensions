@@ -65,41 +65,37 @@
 #include <memory>
 
 class BurstDetector : public IProcessor {
-    
+
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    virtual void Configure( const YAML::Node & node, const GlobalContext& context) override;
+    BurstDetector();
     virtual void CreatePorts( ) override;
     virtual void CompleteStreamInfo( ) override;
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;    
 
+// PORTS
 protected:
     PortIn<MUAType>* data_in_port_;
     PortOut<EventType>* data_out_port_;
     PortOut<MultiChannelType<double>>* stats_out_port_;
-    
+
+// STATES
+protected: 
     BroadcasterState<double>* threshold_;
     BroadcasterState<double>* signal_mean_;
     BroadcasterState<double>* signal_dev_;
     BroadcasterState<bool>* burst_;
     FollowerState<double>* bin_size_mua_;
     
-    double initial_threshold_dev_;
-    unsigned int initial_detection_lockout_time_;
-    bool default_stream_events_;
-    double initial_smooth_time_;
-    bool initial_stats_out_;
-    
-    StaticState<decltype(initial_threshold_dev_)>* threshold_dev_;
-    StaticState<decltype(initial_smooth_time_)>* smooth_time_;
-    StaticState<decltype(initial_detection_lockout_time_)>*
-        detection_lockout_time_;
-    StaticState<decltype(default_stream_events_)>* stream_events_;
-    StaticState<decltype(initial_stats_out_)>* stats_out_;
+    StaticState<double>* threshold_dev_;
+    StaticState<double>* smooth_time_;
+    StaticState<double>* detection_lockout_time_;
+    StaticState<bool>* stream_events_;
+    StaticState<bool>* stats_out_;
     
     bool stats_out_enabled_;
-    double stats_buffer_size_;
     std::uint64_t stats_nsamples_;
     
     std::uint64_t block_;
@@ -112,26 +108,39 @@ protected:
     std::unique_ptr<dsp::algorithms::ThresholdCrosser> threshold_detector_;
 
 public:
-    const decltype(initial_threshold_dev_) DEFAULT_THRESHOLD_DEV = 6.0;
-    const decltype(initial_smooth_time_) DEFAULT_SMOOTH_TIME = 10.0;
-    const decltype(initial_detection_lockout_time_)
-        DEFAULT_DETECTION_LOCKOUT_TIME = 30;
-    const decltype(default_stream_events_) DEFAULT_STREAM_EVENTS = true;
-    const decltype(initial_stats_out_) DEFAULT_STREAM_STATISTICS = true;
-
-    const decltype(stats_buffer_size_) DEFAULT_STATISTICS_BUFFER_SIZE = 0.5; // in seconds
-    
-public:
     // configure options names ( keep common between options and states )
-    const std::string THRESHOLD_DEV_S = "threshold_dev";
-    const std::string SMOOTH_TIME_S = "smooth_time";
-    const std::string DETECTION_LOCKOUT_TIME_S = "detection_lockout_time_ms";
-    const std::string STREAM_EVENTS_S = "stream_events";
-    const std::string STREAM_STATISTICS_S = "stream_statistics";
-    const std::string STATISTICS_BUFFER_SIZE_S = "statistics_buffer_size";
+    const std::string THRESHOLD_DEV = "threshold dev";
+    const std::string SMOOTH_TIME = "smooth time";
+    const std::string DETECTION_LOCKOUT_TIME = "detection lockout time";
+    const std::string STREAM_EVENTS = "stream events";
+    const std::string STREAM_STATISTICS = "stream statistics";
+    const std::string STATISTICS_BUFFER_SIZE = "statistics buffer size";
     
 protected:
     const unsigned int N_STATS_OUT = 2;
+
+// OPTIONS
+protected:
+
+    options::Double initial_threshold_dev_{6.};
+    options::Measurement<double,false> initial_smooth_time_{
+        10.,
+        "second",
+        options::positive<double>(true)
+    };
+    options::Measurement<double,false> initial_detection_lockout_time_{
+        30.,
+        "ms",
+        options::positive<double>(true)
+    };
+    options::Bool default_stream_events_{true};
+    options::Bool initial_stats_out_{true};
+    options::Measurement<double,false> stats_buffer_size_{
+        0.5,
+        "second",
+        options::positive<double>(true)
+    };
+   
 };
 
 #endif	// burstdetector.hpp

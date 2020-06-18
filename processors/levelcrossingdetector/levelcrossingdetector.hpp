@@ -52,50 +52,67 @@
 #include "eventdata/eventdata.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 
+#include "options/units.hpp"
 
 class LevelCrossingDetector : public IProcessor {
 
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context) override;
+    LevelCrossingDetector();
     virtual void CreatePorts( ) override;
     virtual void Preprocess( ProcessingContext& context) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
     
+// DATA PORTS
 protected:
     PortIn<MultiChannelType<double>>* data_in_port_;
     PortOut<EventType>* data_out_port_;
-    
+
+// STATES
+protected:
     StaticState<double>* threshold_;
     StaticState<bool>* upslope_;
     StaticState<unsigned int>* post_detect_block_;
     
-    double initial_threshold_;
-    bool initial_upslope_;
-    unsigned int initial_post_detect_block_;
-    
+// variables
+protected:
     std::vector<double> previous_sample_;
-    
-    EventType::Data event_prototype_;
     uint64_t n_detections_;
     
     MultiChannelType<double>::Data* data_in_;
     EventType::Data* data_out_;
-    
+
+// methods
 protected:
     void post_detection_block_update(
-        decltype(initial_post_detect_block_) post_detection_block );
+        unsigned int post_detection_block );
 
+// constants, option and state names
 public:
-    const decltype(initial_threshold_) DEFAULT_THRESHOLD = 0.0;
-    const decltype(initial_upslope_) DEFAULT_UPSLOPE = true;
-    const decltype(initial_post_detect_block_) DEFAULT_POST_DETECT_BLOCK = 2;
-    const std::string DEFAULT_EVENT = "threshold_crossing";  
-    const decltype(initial_post_detect_block_) LOW_POST_DETECTION_BLOCK_US = 30;
 
-    const std::string THRESHOLD_S = "threshold";
-    const std::string UPSLOPE_S = "upslope";
-    const std::string POST_DETECT_BLOCK_S = "post_detect_block";
+    const std::string DEFAULT_EVENT = "threshold_crossing";  
+    const unsigned int LOW_POST_DETECTION_BLOCK_US = 30;
+
+    const std::string THRESHOLD = "threshold";
+    const std::string UPSLOPE = "upslope";
+    const std::string POST_DETECT_BLOCK = "post detect block";
+
+// OPTIONS
+protected:
+
+    options::Double initial_threshold_{0.0};
+    options::Bool initial_upslope_{true};
+    
+    options::Measurement<unsigned int,false> initial_post_detect_block_{
+        2,
+        "sample"
+    };
+    
+    options::Value<EventType::Data,false> event_prototype_{
+        DEFAULT_EVENT, 
+        options::notempty<EventType::Data>()
+    };
 
 };
 

@@ -46,6 +46,10 @@ size_t Data::hash() const {
     return hash_;
 }
 
+size_t Data::size() const {
+    return event_.size();
+}
+
 void Data::set_event( std::string event ) {
     
     event_ = event;
@@ -59,12 +63,12 @@ void Data::set_event( const Data &source ) {
 
 namespace nsEventType {
 
-bool operator==(Data &e1, Data &e2) {
+bool operator==(const Data &e1, const Data &e2) {
     
     return e1.hash_==e2.hash_;
 }
 
-bool operator!=(Data &e1, Data &e2) {
+bool operator!=(const Data &e1, const Data &e2) {
     
     return e1.hash_!=e2.hash_;
 }

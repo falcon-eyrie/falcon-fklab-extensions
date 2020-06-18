@@ -36,4 +36,6 @@ public:
 
 };
 
+std::vector<std::unique_ptr<DataSource>> datasources_from_yaml(const YAML::Node & node);
+
 #endif // DATASOURCE_H

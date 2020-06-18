@@ -19,39 +19,20 @@
 
 #include "burstdetector.hpp"
 
-void BurstDetector::Configure(const YAML::Node& node, const GlobalContext& context) {
-    
-    initial_threshold_dev_ = node[THRESHOLD_DEV_S].as<decltype(initial_threshold_dev_)>
-        ( DEFAULT_THRESHOLD_DEV );
-    
-    initial_smooth_time_ = node[SMOOTH_TIME_S].as<decltype(initial_smooth_time_)>(
-        DEFAULT_SMOOTH_TIME );
-    if ( initial_smooth_time_ <= 0 ) {
-        auto err_msg = SMOOTH_TIME_S + " must be a positive number.";
-        throw ProcessingConfigureError( err_msg, name() );
-    }
-    
-    initial_detection_lockout_time_ =
-        node[DETECTION_LOCKOUT_TIME_S].as<decltype( initial_detection_lockout_time_ )>
-            ( DEFAULT_DETECTION_LOCKOUT_TIME );
-    if ( initial_detection_lockout_time_ == 0 ) {
-        throw ProcessingConfigureError(
-            "Minimum detection lock out time must greater than 0 ms.", name() );
-    }
-    
-    default_stream_events_ = node[STREAM_EVENTS_S].as<decltype(default_stream_events_)>
-        ( DEFAULT_STREAM_EVENTS );
-    
-    initial_stats_out_ = node[STREAM_STATISTICS_S].as<decltype(initial_stats_out_)>
-        ( DEFAULT_STREAM_STATISTICS );
-    
-    stats_buffer_size_ =
-        node[STATISTICS_BUFFER_SIZE_S].as<decltype(stats_buffer_size_)>
-            ( DEFAULT_STATISTICS_BUFFER_SIZE );
-    if ( stats_buffer_size_<=0 ) {
-        throw ProcessingConfigureError("Buffer size should be equal larger than zero.",
-            name());
-    }
+BurstDetector::BurstDetector() : IProcessor() {
+    add_option(THRESHOLD_DEV, initial_threshold_dev_,
+        "Multiplier (in number of signal standard deviations) to "
+        "compute the initial threshold.");
+    add_option(SMOOTH_TIME, initial_smooth_time_,
+        "Integration time for estimating signal statistics.");
+    add_option(DETECTION_LOCKOUT_TIME, initial_detection_lockout_time_,
+        "Lockout time (in seconds) to avoid over-stimulation.");
+    add_option(STREAM_EVENTS, default_stream_events_,
+        "Enable streaming of burst events.");
+    add_option(STREAM_STATISTICS, initial_stats_out_,
+        "Enable streaming of statistics.");
+    add_option(STATISTICS_BUFFER_SIZE, stats_buffer_size_,
+        "Size (in seconds) for statistics output buffers.");
 }
 
 void BurstDetector::CreatePorts() {
@@ -62,7 +43,7 @@ void BurstDetector::CreatePorts() {
         PortInPolicy( SlotRange(1) ) );
     
     data_out_port_ = create_output_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         EventType::Parameters( "burst" ),
         PortOutPolicy( SlotRange(1) ) );
@@ -74,47 +55,47 @@ void BurstDetector::CreatePorts() {
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_broadcaster_state(
-        "threshold_uV2",
+        "threshold",
         0.0,
         Permission::READ );
     
     signal_mean_ = create_broadcaster_state(
-        "mean_uV2",
+        "mean",
         0.0,
         Permission::READ );
     
     signal_dev_ = create_broadcaster_state(
-        "deviation_uV2",
+        "deviation",
         0.0,
         Permission::READ );
     
     threshold_dev_ = create_static_state(
-        THRESHOLD_DEV_S,
-        initial_threshold_dev_,
+        THRESHOLD_DEV,
+        initial_threshold_dev_(),
         true,
         Permission::WRITE );
     
     detection_lockout_time_ = create_static_state(
-        DETECTION_LOCKOUT_TIME_S,
-        initial_detection_lockout_time_,
+        DETECTION_LOCKOUT_TIME,
+        initial_detection_lockout_time_(),
         true,
         Permission::WRITE );
     
     stream_events_ = create_static_state(
-        STREAM_EVENTS_S,
-        default_stream_events_,
+        STREAM_EVENTS,
+        default_stream_events_(),
         true,
         Permission::WRITE );
     
     smooth_time_ = create_static_state(
-        SMOOTH_TIME_S,
-        initial_smooth_time_,
+        SMOOTH_TIME,
+        initial_smooth_time_(),
         true,
         Permission::WRITE );
     
     stats_out_ = create_static_state(
-        STREAM_STATISTICS_S,
-        initial_stats_out_,
+        STREAM_STATISTICS,
+        initial_stats_out_(),
         true,
         Permission::WRITE );
     
@@ -124,14 +105,14 @@ void BurstDetector::CreatePorts() {
         Permission::READ );
     
     bin_size_mua_ = create_follower_state(
-        "bin_size",
+        "bin size",
         1.0,
         Permission::READ );
 }
 
 void BurstDetector::CompleteStreamInfo( ) {
     
-    stats_nsamples_ = stats_buffer_size_ * 1e3 / data_in_port_->streaminfo(0).parameters().bin_size;
+    stats_nsamples_ = stats_buffer_size_() * 1e3 / data_in_port_->streaminfo(0).parameters().bin_size;
     if ( stats_nsamples_ == 0 ) {
         throw ProcessingCreatePortsError("Stats buffersize is smaller than MUA bin size.", name());
     }
@@ -157,11 +138,11 @@ void BurstDetector::Preprocess( ProcessingContext& context ) {
     
     LOG(UPDATE) << name() << ". Incoming Sample rate: " << sample_rate_;
     
-    burn_in_ = initial_smooth_time_ * sample_rate_;
+    burn_in_ = initial_smooth_time_() * sample_rate_;
     
     if ( burn_in_ == 0 ) {
         burn_in_ = 1;
-        LOG(UPDATE) << name() << ". " << SMOOTH_TIME_S <<
+        LOG(UPDATE) << name() << ". " << SMOOTH_TIME <<
             " too low. Burn-in set to 1 sample.";
     }
 
@@ -189,7 +170,7 @@ void BurstDetector::Process(ProcessingContext& context) {
         
         if ( not burnin_update_sent ) {
             LOG(UPDATE) << name() << ": burn-in period starting (" <<
-                initial_smooth_time_ << " seconds)";
+                initial_smooth_time_() << " seconds)";
             burnin_update_sent = true;
         }
         

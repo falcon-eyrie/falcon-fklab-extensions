@@ -17,7 +17,7 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSink: takes an EventData stream and logs the arrival of a target event
+/* EventLogger: takes an EventData stream and logs the arrival of a target event
  * 
  * input ports:
  * events <EventType> (1 slot)
@@ -42,20 +42,28 @@
 #include "iprocessor.hpp"
 #include "eventdata/eventdata.hpp"
 #include "utilities/general.hpp"
+#include "options/options.hpp"
+#include "options/units.hpp"
 
 class EventLogger : public IProcessor
 {
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
-    virtual void Configure( const YAML::Node& node, const GlobalContext& context) override;
+    EventLogger();
     virtual void CreatePorts() override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override; 
 
+// DATA PORTS
 protected:
     PortIn<EventType>* event_port_;
-    EventType::Data target_event_;
-    
     EventCounter event_counter_;
+
+// OPTIONS
+protected:
+    options::Value<EventType::Data,false> target_event_{
+        DEFAULT_EVENT, 
+        options::notempty<EventType::Data>()};
 };
 
 #endif //eventlogger.hpp

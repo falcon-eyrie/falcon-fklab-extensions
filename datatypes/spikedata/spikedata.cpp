@@ -149,11 +149,11 @@ void Data::SerializeYAML( YAML::Node & node, Serialization::Format format ) cons
     Base::Data::SerializeYAML( node, format );
     
     if ( format==Serialization::Format::FULL || format==Serialization::Format::COMPACT ) {
-        node[N_CHANNELS_S] = static_cast<unsigned int>(n_channels_);  // TODO: move to preamble
-        node[N_DETECTED_SPIKES_S] = static_cast<unsigned int>(n_detected_spikes_);
+        node[N_CHANNELS] = static_cast<unsigned int>(n_channels_);  // TODO: move to preamble
+        node[N_DETECTED_SPIKES] = static_cast<unsigned int>(n_detected_spikes_);
         if (n_detected_spikes_ > 0) {
-            node[TS_DETECTED_SPIKES_S] = hw_ts_detected_spikes_;
-            node[SPIKE_AMPLITUDES_S] = amplitudes_;
+            node[TS_DETECTED_SPIKES] = hw_ts_detected_spikes_;
+            node[SPIKE_AMPLITUDES] = amplitudes_;
         }
     }
 }
@@ -163,20 +163,20 @@ void Data::YAMLDescription( YAML::Node & node, Serialization::Format format ) co
     Base::Data::YAMLDescription( node, format );
     
     if ( format==Serialization::Format::FULL ) {
-        node.push_back( N_DETECTED_SPIKES_S + " " +
+        node.push_back( N_DETECTED_SPIKES + " " +
             get_type_string<decltype(n_detected_spikes_)>() + " (1)" );
-        node.push_back( TS_DETECTED_SPIKES_S + " " +
+        node.push_back( TS_DETECTED_SPIKES + " " +
             get_type_string<uint64_t>() +
             " (" + std::to_string(MAX_N_SPIKES_IN_BUFFER) + ")" );
-        node.push_back( SPIKE_AMPLITUDES_S + " " + get_type_string<double>() +
+        node.push_back( SPIKE_AMPLITUDES + " " + get_type_string<double>() +
             " (" + std::to_string(MAX_N_SPIKES_IN_BUFFER) + ","
             + std::to_string(n_channels_) + ")" );
     }
     
     if ( format == Serialization::Format::COMPACT ) {
-        node.push_back( TS_DETECTED_SPIKES_S + " " +
+        node.push_back( TS_DETECTED_SPIKES + " " +
             get_type_string<uint64_t>() + " (1)" );
-        node.push_back( SPIKE_AMPLITUDES_S + " " + get_type_string<double>() + 
+        node.push_back( SPIKE_AMPLITUDES + " " + get_type_string<double>() +
             " (" + std::to_string(n_channels_) + ")" );
     }
 }

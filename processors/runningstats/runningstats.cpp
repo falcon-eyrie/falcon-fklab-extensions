@@ -19,6 +19,24 @@
 
 #include "runningstats.hpp"
 
+RunningStats::RunningStats() : IProcessor() {
+    
+    add_option("integration time", integration_time_,
+        "Time window for exponential smoothing.");
+
+    add_option("outlier/protection", outlier_protection_, 
+        "enable outlier protectection. "
+        "Outliers are values larger than a predefined z-score. "
+        "The contribution of an outlier is reduced by an amount "
+        "that depends on the magnitude of the outlier.");
+
+    add_option("outlier/zscore", outlier_zscore_, "z-score that defines an outlier.");
+
+    add_option("outlier/half life", outlier_half_life_,
+        "The number of standard deviations above the outlier "
+        "z-score at which the influence of the outlier is halved.");
+}
+
 void RunningStats::CreatePorts( ) {
     
     data_in_port_ = create_input_port<MultiChannelType<double>>(
@@ -34,16 +52,6 @@ void RunningStats::CreatePorts( ) {
     
 }
 
-void RunningStats::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    integration_time_ = node["integration_time"].as<double>(DEFAULT_INTEGRATION_TIME);
-    
-    outlier_protection_ = node["outlier_protection"].as<bool>(DEFAULT_OUTLIER_PROTECTION);
-    outlier_zscore_ = node["outlier_zscore"].as<double>(DEFAULT_OUTLIER_ZSCORE);
-    outlier_half_life_ = node["outlier_half_life"].as<double>(DEFAULT_OUTLIER_HALF_LIFE);
-    
-}
-
 void RunningStats::CompleteStreamInfo( ) {
        
     for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
@@ -56,14 +64,14 @@ void RunningStats::CompleteStreamInfo( ) {
 void RunningStats::Preprocess( ProcessingContext& context ) {
     
     double sample_rate = data_in_port_->slot(0)->streaminfo().parameters().sample_rate;
-    double alpha = 1.0 / (integration_time_ * sample_rate);
+    double alpha = 1.0 / (integration_time_() * sample_rate);
     
     stats_.reset( new dsp::algorithms::RunningMeanMAD(
         alpha,
-        integration_time_*sample_rate,
-        outlier_protection_,
-        outlier_zscore_,
-        outlier_half_life_ ) );
+        integration_time_()*sample_rate,
+        outlier_protection_(),
+        outlier_zscore_(),
+        outlier_half_life_() ) );
     
 }
 

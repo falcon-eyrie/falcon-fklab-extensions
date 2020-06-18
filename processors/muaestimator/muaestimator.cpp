@@ -21,15 +21,15 @@
 
 #include "utilities/general.hpp"
 
-void MUAEstimator::Configure( const YAML::Node  & node, const GlobalContext& context) {
 
-    initial_bin_size_ = node[BIN_SIZE_S].as<decltype(initial_bin_size_)>( DEFAULT_BIN_SIZE );
+MUAEstimator::MUAEstimator() : IProcessor() {
+    add_option(BIN_SIZE, initial_bin_size_);
 }
 
 void MUAEstimator::CreatePorts() {
     
     data_in_port_ = create_input_port<SpikeType>(
-        SPIKEDATA_S,
+        SPIKEDATA,
         SpikeType::Capabilities(),
         PortInPolicy( SlotRange(1, 64) ) );
     
@@ -40,8 +40,8 @@ void MUAEstimator::CreatePorts() {
         PortOutPolicy( SlotRange(1) ) );
     
     bin_size_ = create_static_state(
-        BIN_SIZE_S,
-        initial_bin_size_,
+        BIN_SIZE,
+        initial_bin_size_(),
         true,
         Permission::WRITE );
     
@@ -53,8 +53,8 @@ void MUAEstimator::CreatePorts() {
 
 void MUAEstimator::CompleteStreamInfo() {
     
-    data_out_port_->streaminfo(0).set_parameters( MUAType::Parameters(initial_bin_size_) );
-    data_out_port_->streaminfo(0).set_stream_rate( 1e3 / initial_bin_size_ );
+    data_out_port_->streaminfo(0).set_parameters( MUAType::Parameters(initial_bin_size_()) );
+    data_out_port_->streaminfo(0).set_stream_rate( 1e3 / initial_bin_size_() );
 }
 
 void MUAEstimator::Prepare( GlobalContext& context ) {
@@ -71,8 +71,11 @@ void MUAEstimator::Prepare( GlobalContext& context ) {
     }
     
     try {
-        check_buffer_sizes_and_log( spike_buffer_size_, initial_bin_size_, true,
+        // work around until check_buffer_sizes has been fixed
+        double x = initial_bin_size_();
+        check_buffer_sizes_and_log( spike_buffer_size_, x, true,
             n_spike_buffers_, name() );
+        initial_bin_size_ = x;
     } catch( std::runtime_error& error ) {
         throw ProcessingStreamInfoError( error.what(), name() );
     }
