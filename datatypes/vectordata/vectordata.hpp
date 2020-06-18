@@ -47,7 +47,7 @@ template <typename TYPE>
 class Data : public Base::Data {
 public:
     void Initialize( const Parameters & parameters ) {
-        data_.reserve(parameters.size);
+        data_.resize(parameters.size);
     }
     
     void setData( const std::vector<TYPE>& data ) {
