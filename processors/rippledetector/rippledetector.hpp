@@ -120,11 +120,11 @@ protected:
 
 // shared option and state names
 public:
-    const std::string THRESHOLD_DEV_S = "threshold_dev";
-    const std::string SMOOTH_TIME_S = "smooth_time";
-    const std::string DETECTION_LOCKOUT_TIME_S = "detection_lockout_time";
-    const std::string STREAM_EVENTS_S = "stream_events";
-    const std::string STREAM_STATISTICS_S = "stream_statistics";
+    const std::string THRESHOLD_DEV = "threshold dev";
+    const std::string SMOOTH_TIME = "smooth time";
+    const std::string DETECTION_LOCKOUT_TIME = "detection lockout time";
+    const std::string STREAM_EVENTS = "stream events";
+    const std::string STREAM_STATISTICS = "stream statistics";
     
 // OPTIONS
 protected:

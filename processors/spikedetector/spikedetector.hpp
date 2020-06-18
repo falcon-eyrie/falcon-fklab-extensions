@@ -99,8 +99,8 @@ protected:
 public:
     const decltype(n_channels_) MAX_N_CHANNELS = 8;
 
-    const std::string PEAK_LIFETIME_S = "peak_lifetime";
-    const std::string THRESHOLD_S = "threshold";
+    const std::string PEAK_LIFETIME = "peak lifetime";
+    const std::string THRESHOLD = "threshold";
     
 protected:
     const int RINGBUFFER_SIZE = 1e5;

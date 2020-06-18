@@ -96,8 +96,8 @@ protected:
     bool default_enabled_;
     StaticState<decltype(default_enabled_)>* enabled_state_;
     
-    int default_lockout_period_ms_;
-    StaticState<decltype(default_lockout_period_ms_)>* lockout_period_ms_;
+    int default_lockout_period_;
+    StaticState<decltype(default_lockout_period_)>* lockout_period_;
     
     bool save_stim_events_;
     std::wstring device_name_;
@@ -113,20 +113,20 @@ protected:
     decltype(nreceived_events_) n_locked_out_events_;
     
     uint64_t previous_TS_nostim_;
-    decltype(default_lockout_period_ms_) delta_TS_ms_;
+    decltype(default_lockout_period_) delta_TS_;
     
 public:
     const decltype(default_enabled_) DEFAULT_ENABLED = true;
-    const decltype(default_lockout_period_ms_) DEFAULT_LOCKOUT_PERIOD_MS = 300;
+    const decltype(default_lockout_period_) DEFAULT_LOCKOUT_PERIOD = 300;
     const decltype(save_stim_events_) DEFAULT_SAVE_STIM_EVENTS = true;
-    const unsigned int DEFAULT_PULSE_WIDTH_MICROSEC = 400;
+    const unsigned int DEFAULT_PULSE_WIDTH = 400;
     const unsigned int DEFAULT_DUMMY_NCHANNELS = 16;
 
-    const std::string ENABLED_S = "enabled";
-    const std::string LOCKOUT_PERIOD_S = "lockout_period";
+    const std::string ENABLED = "enabled";
+    const std::string LOCKOUT_PERIOD = "lockout period";
 
 protected:
-    const std::string STIM_EVENT_S = "stim_";
+    const std::string STIM_EVENT = "stim_";
 };
 
 #endif // digitaloutput.hpp

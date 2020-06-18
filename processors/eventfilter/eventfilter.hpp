@@ -86,8 +86,8 @@ protected:
     // return the time in milliseconds past from two given time points
     inline double time_between( TimePoint t2, TimePoint t1 ) {
         
-        duration_ms_ = t2 - t1;
-        return duration_ms_.count();
+        duration = t2 - t1;
+        return duration.count();
     }
 
     // return the time in milliseconds past from a given time point
@@ -109,7 +109,7 @@ protected:
     
     TimePoint gate_close_time_;
 
-    std::chrono::duration<double, std::milli> duration_ms_;
+    std::chrono::duration<double, std::milli> duration;
 
 // constants
 protected:
@@ -118,19 +118,19 @@ protected:
 // OPTIONS
 protected:
 
-    options::Measurement<double,false> blockout_time_ms_{
+    options::Measurement<double,false> blockout_time_{
         10.,
         "ms",
         options::positive<double>()
     };
 
-    options::Measurement<double,false> block_wait_time_ms_{
+    options::Measurement<double,false> block_wait_time_{
         1.5,
         "ms",
         options::positive<double>()
     };
     
-    options::Measurement<double,false> sync_time_ms_{
+    options::Measurement<double,false> sync_time_{
         3.5,
         "ms",
         options::positive<double>()

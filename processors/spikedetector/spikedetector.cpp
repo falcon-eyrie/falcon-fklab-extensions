@@ -20,14 +20,14 @@
 #include "spikedetector.hpp"
 
 SpikeDetector::SpikeDetector() : IProcessor() {
-    add_option("threshold", initial_threshold_,
+    add_option(THRESHOLD, initial_threshold_,
         "Spike detection threshold in data units.");
     add_option("invert signal", invert_signal_, "Invert signal before spike detection.");
     add_option("buffer size", buffer_size_,
         "Size (in seconds) of data buffer used for spike detection.");
     add_option("strict time bin check", strict_time_bin_check_,
         "Strict check of compatibility of spike detection buffer size with the upstream processor");
-    add_option(PEAK_LIFETIME_S, initial_peak_lifetime_,
+    add_option(PEAK_LIFETIME, initial_peak_lifetime_,
         "Peak life time in samples");
 }
 
@@ -39,25 +39,25 @@ void SpikeDetector::CreatePorts( ) {
         PortInPolicy( SlotRange(1) ) );
     
     data_out_port_spikes_ = create_output_port<SpikeType>(
-        SPIKEDATA_S,
+        SPIKEDATA,
         SpikeType::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
         SpikeType::Parameters(buffer_size_()),
         PortOutPolicy( SlotRange(1), RINGBUFFER_SIZE ) );
     
     data_out_port_events_ = create_output_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         EventType::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_static_state(
-        THRESHOLD_S,
+        THRESHOLD,
         initial_threshold_(),
         true,
         Permission::WRITE);
     
     peak_lifetime_ = create_static_state(
-        PEAK_LIFETIME_S,
+        PEAK_LIFETIME,
         initial_peak_lifetime_(),
         true,
         Permission::WRITE);

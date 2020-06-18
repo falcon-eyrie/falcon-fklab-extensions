@@ -27,7 +27,7 @@ EventLogger::EventLogger() : IProcessor() {
 void EventLogger::CreatePorts() {
     
     event_port_ = create_input_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
 }

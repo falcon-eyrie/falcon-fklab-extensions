@@ -1,15 +1,31 @@
 processors:
-  source:
-    class: NlxReader
-    options:
-      batch_size: 1
-      update_interval: 0
-
-  sink(1-2):
+  sink:
     class: DummySink
 
+  logger:
+    class : EventLogger
+    options:
+      target event: "events"
+
+  event source (1-3):
+    class : EventSource
+    options:
+      events : ["events", "data"]
+      rate : 30
+
+  event filter :
+    class : EventFilter
+    options :
+      block duration : 10
+      block wait time: 2
+
+
+
 connections:
-  - source.tt(1-2)=p:data.f:sink(1-2)
+  - event source1.events=p:data.f:sink
+  - event source2.events=p:events.f:event filter
+  - event source3.events=p:blocking events.f:event filter
+  - event filter.events = logger.events
 
 states:
   - [sink1.tickle, sink2.tickle]

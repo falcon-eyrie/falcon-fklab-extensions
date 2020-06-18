@@ -82,7 +82,7 @@ protected:
     
 // state name
 public:
-    const std::string BIN_SIZE_S = "bin_size_ms";
+    const std::string BIN_SIZE = "bin size";
 
 //OPTIONS
 protected:

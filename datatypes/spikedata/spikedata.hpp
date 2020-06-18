@@ -126,10 +126,10 @@ public:
     
 protected:
     // for serialization
-    const std::string N_CHANNELS_S = "n_channels";
-    const std::string N_DETECTED_SPIKES_S = "n_detected_spikes";
-    const std::string TS_DETECTED_SPIKES_S = "TS_detected_spikes";
-    const std::string SPIKE_AMPLITUDES_S = "spike_amplitudes";
+    const std::string N_CHANNELS = "n_channels";
+    const std::string N_DETECTED_SPIKES = "n_detected_spikes";
+    const std::string TS_DETECTED_SPIKES = "TS_detected_spikes";
+    const std::string SPIKE_AMPLITUDES = "spike_amplitudes";
     
 };
 

@@ -23,13 +23,13 @@
 
 
 MUAEstimator::MUAEstimator() : IProcessor() {
-    add_option("bin size", initial_bin_size_);
+    add_option(BIN_SIZE, initial_bin_size_);
 }
 
 void MUAEstimator::CreatePorts() {
     
     data_in_port_ = create_input_port<SpikeType>(
-        SPIKEDATA_S,
+        SPIKEDATA,
         SpikeType::Capabilities(),
         PortInPolicy( SlotRange(1, 64) ) );
     
@@ -40,7 +40,7 @@ void MUAEstimator::CreatePorts() {
         PortOutPolicy( SlotRange(1) ) );
     
     bin_size_ = create_static_state(
-        BIN_SIZE_S,
+        BIN_SIZE,
         initial_bin_size_(),
         true,
         Permission::WRITE );

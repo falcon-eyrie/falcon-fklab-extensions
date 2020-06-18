@@ -26,12 +26,12 @@ EventSync::EventSync() : IProcessor() {
 void EventSync::CreatePorts() {
     
     data_in_port_ = create_input_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1, 256) ) );
     
     data_out_port_ = create_output_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         EventType::Parameters( target_event_().event() ),
         PortOutPolicy( SlotRange(1) ) );

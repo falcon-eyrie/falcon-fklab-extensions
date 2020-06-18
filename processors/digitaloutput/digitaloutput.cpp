@@ -25,24 +25,24 @@
 void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& context) {
     
     default_enabled_ =
-        node[ENABLED_S].as<decltype(default_enabled_)>( DEFAULT_ENABLED );
+        node[ENABLED].as<decltype(default_enabled_)>( DEFAULT_ENABLED );
     
-    default_lockout_period_ms_ =
-        node[LOCKOUT_PERIOD_S].as<decltype(default_lockout_period_ms_)>(
-        DEFAULT_LOCKOUT_PERIOD_MS );
+    default_lockout_period_ =
+        node[LOCKOUT_PERIOD].as<decltype(default_lockout_period_)>(
+        DEFAULT_LOCKOUT_PERIOD );
     
-    if ( default_lockout_period_ms_ <= 0 ) {
+    if ( default_lockout_period_ <= 0 ) {
         LOG(INFO) << name() << ". No lockout period set.";
     } else {
         LOG(INFO) << name() << ". Max stimulation frequency set to " <<
-            1e3 / static_cast<double>( default_lockout_period_ms_ ) << " Hz.";
+            1e3 / static_cast<double>( default_lockout_period_ ) << " Hz.";
     }
     
-    save_stim_events_ = node["enable_saving"].as<decltype(save_stim_events_)> (
+    save_stim_events_ = node["enable saving"].as<decltype(save_stim_events_)> (
         DEFAULT_SAVE_STIM_EVENTS );
     
     unsigned int pulse_width =
-        node["pulse_width"].as<unsigned int>( DEFAULT_PULSE_WIDTH_MICROSEC );
+        node["pulse width"].as<unsigned int>( DEFAULT_PULSE_WIDTH );
     
     if (!node["device"] || !node["device"].IsMap() || !node["device"]["type"]) {
         throw ProcessingConfigureError(
@@ -92,19 +92,19 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
 void DigitalOutput::CreatePorts() {
     
     data_in_port_ = create_input_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
     enabled_state_ = create_static_state(
-        ENABLED_S,
+        ENABLED,
         default_enabled_,
         true,
         Permission::WRITE);
     
-    lockout_period_ms_ = create_static_state(
-        LOCKOUT_PERIOD_S,
-        default_lockout_period_ms_,
+    lockout_period_ = create_static_state(
+        LOCKOUT_PERIOD,
+        default_lockout_period_,
         true,
         Permission::WRITE);
 }
@@ -161,10 +161,10 @@ void DigitalOutput::Process( ProcessingContext& context ) {
                 
                 if ( save_stim_events_ ) { //save stim events to disk
                     
-                    filename = STIM_EVENT_S + data_in->event();
+                    filename = STIM_EVENT + data_in->event();
                     // filename will also be the key to the container of files
                     // check if this type of event has been saved before
-                    if ( streams_.count( STIM_EVENT_S + data_in->event() ) == 0 ) {
+                    if ( streams_.count( STIM_EVENT + data_in->event() ) == 0 ) {
                         create_file( prefix, filename );
                     }
                     ts = data_in->serial_number();
@@ -202,9 +202,9 @@ bool DigitalOutput::to_lock_out( const uint64_t current_timestamp ) {
         
         throw ProcessingError( "Non-sequential stimulation event timestamp.", name() );
     }
-    delta_TS_ms_ = (current_timestamp - previous_TS_nostim_) / 1000;
+    delta_TS_ = (current_timestamp - previous_TS_nostim_) / 1000;
 
-    if ( delta_TS_ms_ <= lockout_period_ms_->get() ) { return true;}
+    if ( delta_TS_ <= lockout_period_->get() ) { return true;}
     
     previous_TS_nostim_ = current_timestamp;
     return false;

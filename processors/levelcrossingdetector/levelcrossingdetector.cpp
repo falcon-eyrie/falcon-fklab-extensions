@@ -21,9 +21,9 @@
 
 
 LevelCrossingDetector::LevelCrossingDetector() : IProcessor() {
-    add_option("threshold", initial_threshold_, "Threshold (in data units) that needs to be crossed.");
-    add_option("upslope", initial_upslope_,"Either detect upward (true) or downward (false) threshold crossings.");
-    add_option("post detect block", initial_post_detect_block_, "Refractory period after threshold crossing detection (in number of samples).");
+    add_option(THRESHOLD, initial_threshold_, "Threshold (in data units) that needs to be crossed.");
+    add_option(UPSLOPE, initial_upslope_,"Either detect upward (true) or downward (false) threshold crossings.");
+    add_option(POST_DETECT_BLOCK, initial_post_detect_block_, "Refractory period after threshold crossing detection (in number of samples).");
     add_option("event", event_prototype_, "The event to emit when the input signal crosses the threshold.");
 }
 
@@ -35,25 +35,25 @@ void LevelCrossingDetector::CreatePorts( ) {
         PortInPolicy( SlotRange(1) ) );
     
     data_out_port_ = create_output_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         EventType::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_static_state(
-        THRESHOLD_S,
+        THRESHOLD,
         initial_threshold_(),
         true,
         Permission::WRITE);
     
     upslope_ = create_static_state(
-        UPSLOPE_S,
+        UPSLOPE,
         initial_upslope_(),
         true,
         Permission::WRITE);
     
     post_detect_block_ = create_static_state(
-        POST_DETECT_BLOCK_S,
+        POST_DETECT_BLOCK,
         initial_post_detect_block_(),
         true,
         Permission::WRITE);

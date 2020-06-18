@@ -20,20 +20,20 @@
 #include "rippledetector.hpp"
 
 RippleDetector::RippleDetector() : IProcessor() {
-    add_option(THRESHOLD_DEV_S, initial_threshold_dev_,
+    add_option(THRESHOLD_DEV, initial_threshold_dev_,
         "Multiplier (in number of signal standard deviations) to "
         "compute the initial threshold.");
-    add_option(SMOOTH_TIME_S, initial_smooth_time_,
+    add_option(SMOOTH_TIME, initial_smooth_time_,
         "Integration time for estimating signal statistics.");
-    add_option(DETECTION_LOCKOUT_TIME_S, initial_detection_lockout_time_, 
+    add_option(DETECTION_LOCKOUT_TIME, initial_detection_lockout_time_,
         "Lockout time (in seconds) to avoid over-stimulation.");
-    add_option(STREAM_EVENTS_S, default_stream_events_, 
+    add_option(STREAM_EVENTS, default_stream_events_,
         "Enable streaming of ripple events.");
-    add_option(STREAM_STATISTICS_S, initial_stats_out_, 
+    add_option(STREAM_STATISTICS, initial_stats_out_,
         "Enable streaming of statistics.");
-    add_option("statistics_buffer_size", stats_buffer_size_, 
+    add_option("statistics buffer size", stats_buffer_size_,
         "Size (in seconds) for statistics output buffers.");
-    add_option("statistics_downsample_factor", stats_downsample_factor_, 
+    add_option("statistics downsample factor", stats_downsample_factor_,
         "Downsample factor of streamed statistics signal");
     add_option("use_power", use_power_,
         "Use power of signal for detection.");
@@ -47,7 +47,7 @@ void RippleDetector::CreatePorts( ) {
         PortInPolicy( SlotRange(1) ) );
     
     event_out_port_ = create_output_port<EventType>(
-        EVENTDATA_S,
+        EVENTDATA,
         EventType::Capabilities(),
         EventType::Parameters("ripple"),
         PortOutPolicy( SlotRange(1) ) );
@@ -77,31 +77,31 @@ void RippleDetector::CreatePorts( ) {
         Permission::READ );
     
     threshold_dev_ = create_static_state(
-        THRESHOLD_DEV_S,
+        THRESHOLD_DEV,
         initial_threshold_dev_(),
         true,
         Permission::WRITE );
     
     detection_lockout_time_ = create_static_state(
-        DETECTION_LOCKOUT_TIME_S,
+        DETECTION_LOCKOUT_TIME,
         initial_detection_lockout_time_(),
         true,
         Permission::WRITE );
     
     stream_events_ = create_static_state(
-        STREAM_EVENTS_S,
+        STREAM_EVENTS,
         default_stream_events_(),
         true,
         Permission::WRITE );
     
     smooth_time_ = create_static_state(
-        SMOOTH_TIME_S,
+        SMOOTH_TIME,
         initial_smooth_time_(),
         true,
         Permission::WRITE );
     
     stats_out_ = create_static_state(
-        STREAM_STATISTICS_S,
+        STREAM_STATISTICS,
         initial_stats_out_(),
         true,
         Permission::WRITE );

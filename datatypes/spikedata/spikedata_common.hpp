@@ -23,9 +23,9 @@
 #include <string>
 #include <vector>
 
-const std::string SPIKEDATA_S = "spikes"; // to be used for port names using spike data
+const std::string SPIKEDATA = "spikes"; // to be used for port names using spike data
 
-static const double DEFAULT_BUFFER_SIZE_MS = 12.75;
+static const double DEFAULT_BUFFER_SIZE = 12.75;
 static const unsigned int MAX_N_CHANNELS_SPIKE_DETECTION = 16;
 static const unsigned int MAX_N_SPIKES_IN_BUFFER = 100;
 static std::vector<uint64_t> zero_timestamps( MAX_N_SPIKES_IN_BUFFER, 0 );
