@@ -1,0 +1,25 @@
+Description: Rebuffer and downsample multiple MultiChannelData streams. No anti-aliasing filter is applied before downsampling.
+
+Long description :
+
+Input port :
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1-256
+    description:
+
+Output port :
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1-256
+    description:
+
+Options:
+  - name: downsample factor
+    type: unsigned int
+    default: 1.0
+    description:
+  - name: buffer size
+    type: unsigned int
+    default: 10 samples or equivalent in second based on the downsample factor depending of the buffer unit.
+    description: Output buffer size in samples or seconds.

@@ -35,7 +35,7 @@ RippleDetector::RippleDetector() : IProcessor() {
         "Size (in seconds) for statistics output buffers.");
     add_option("statistics downsample factor", stats_downsample_factor_,
         "Downsample factor of streamed statistics signal");
-    add_option("use_power", use_power_,
+    add_option("use power", use_power_,
         "Use power of signal for detection.");
 }
 

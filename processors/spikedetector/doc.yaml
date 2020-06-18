@@ -1,0 +1,56 @@
+Description: Detect ripples in a MultiChannelData stream and emits a ripple event in response
+
+Long description :
+
+Input ports :
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1
+    description:
+
+Output port :
+  - name: events
+    type: EventData
+    slots: 1
+    description: A stream of events.
+  - name: spikes
+    type: SpikeData
+    slots: 1
+    description: A stream of detected spikes
+
+Options:
+  - name: threshold
+    type: double
+    default: 60.0
+    description: threshold that a single channel must cross.
+  - name: invert signal
+    type: bool
+    default: True
+    description: whether the signal does (true) or does not (false) need to be inverted when detecting spikes
+  - name: strict time bin check
+    type: bool
+    default: True
+    description:
+  - name: buffer size
+    type: double
+    default: 0.5 ms
+    description: amount of data that will be used to look for spikes [ms]
+  - name: peak lifetime
+    type: unsigned int
+    default: 8 samples
+    description: number of samples that will be used to look for a peak
+
+States:
+  static:
+     - name: threshold
+       type: double
+       initial value: see option threshold
+       shared: true
+       external access: write
+       description:
+     - name: peak lifetime
+       type: unsigned int
+       initial value: see option peak lifetime
+       shared: true
+       external access: write
+       description:

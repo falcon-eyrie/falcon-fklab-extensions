@@ -84,7 +84,7 @@ NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
         "single multi-channel data bucket.");
     add_option("nchannels", nchannels_,
         "The number of channels of the Digilynx acquisition system.");
-    add_option("update_interval", update_interval_,
+    add_option("update interval", update_interval_,
         "The time interval for updates on the received data from "
         "the Digilynx acquisition system.");
     add_option("hardware trigger", dispatch_,

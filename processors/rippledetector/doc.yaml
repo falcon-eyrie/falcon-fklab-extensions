@@ -1,0 +1,118 @@
+Description: Detect ripples in a MultiChannelData stream and emits a ripple event in response
+
+Long description :
+
+Input port :
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1
+    description:
+
+Output port :
+  - name: events
+    type: EventData
+    slots: 1
+    description: A stream of 'ripple' events.
+  - name: statistics
+    type: MultiChannelData <double>
+    slots: 1
+    description:
+
+Options:
+  - name: threshold dev
+    type: double
+    default: 6.0
+    description: for threshold multiplier. Same unit as signal standard deviations.
+  - name: smooth time
+    type: double
+    default: 10.0 seconds
+    description: Integration time for estimating signal statistics. Must be a positive number (sec).
+  - name: detection lockout time
+    type: double
+    default: 30 ms
+    description: refractory period after threshold crossing detection that is not considered for updating of statistics
+                and for detecting events. Must greater than 0 ms.
+  - name: stream events
+    type: bool
+    default: True
+    description: enable/disable ripple event output
+  - name: stream statistics
+    type: bool
+    default: True
+    description: enable/disable ripple event output
+  - name: stream statistics
+    type: bool
+    default: True
+    description: enable/disable streaming of ripple detection statistics
+  - name: use power
+    type: bool
+    default: True
+    description:
+  - name: statistics buffer size
+    type: double
+    default: 0.5 sec
+    description: Buffer size (in seconds) for statistics output stream. This value determines
+                 the number of samples that will be collected for each data packet streamed
+                 out on the statistics output port. must be either equals or greater than 0.
+
+States:
+
+  producer :
+     - name: threshold
+       type: double
+       initial value: 0.0
+       cooperative: false
+       external access: read
+       description: Current threshold that needs to be crossed
+     - name: mean
+       type: double
+       initial value: 0.0
+       cooperative: false
+       external access: read
+       description: Current signal mean. Same unit as input signal.
+     - name: deviation
+       type: double
+       initial value: 0.0
+       cooperative: false
+       external access: read
+       description: Current signal deviation. Same unit as input signal.
+
+  broadcaster :
+     - name: ripple
+       type: bool
+       initial value: false
+       external access: read
+       description:
+
+  static :
+     - name: threshold dev
+       data type: double
+       initial value: see option threshold dev
+       external access: write
+       shared: true
+       description:
+     - name: smooth time
+       data type: double
+       initial value: see option smooth time
+       external access: write
+       shared: true
+       description: integration time for signal statistics. Must be a positive number.
+     - name: detection lockout time
+       data type: double
+       initial value: see option detection lockout time
+       external access: write
+       shared: true
+       description: Current refractory period following threshold crossing that is not
+                    considered for  updating signal statistics and for event detection.
+     - name: stream events
+       data type: bool
+       initial value: see option stream events
+       external access: write
+       shared: true
+       description:
+     - name: stream statistics
+       data type: bool
+       initial value: see option stream statistics
+       external access: write
+       shared: true
+       description:

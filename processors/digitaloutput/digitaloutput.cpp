@@ -86,7 +86,7 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
         << " configured output protocols.";
     
     print_protocol_execution_updates_ =
-        node["print_protocol_execution_updates"].as<decltype(print_protocol_execution_updates_)>( true );
+        node["print protocol execution updates"].as<decltype(print_protocol_execution_updates_)>( true );
 }
 
 void DigitalOutput::CreatePorts() {

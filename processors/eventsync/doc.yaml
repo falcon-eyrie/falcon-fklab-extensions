@@ -1,0 +1,21 @@
+Description: Detect population bursts using a threshold crossing algorithm.
+
+Long description:
+
+Input port :
+  - name: events
+    type: EventData
+    slots: 1-256
+    description:
+
+Output port :
+  - name: events
+    type: EventData
+    slots: 1-256
+    description:
+
+Options:
+  - name: target event
+    type: string
+    default: none
+    description: The event to synchronize on.

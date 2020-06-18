@@ -1,3 +1,3 @@
 
-ADD_LIBRARY( eventsource "eventsource.cpp" )
+add_library( eventsource "eventsource.cpp" )
 

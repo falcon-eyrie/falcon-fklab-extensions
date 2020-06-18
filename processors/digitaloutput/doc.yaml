@@ -1,0 +1,52 @@
+Description: Take an EventData stream and sets digital outputs according to an event-specific protocol
+
+Long description :
+
+Input ports :
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+
+Options:
+  - name: lockout period
+    type: unsigned int
+    default: 300 ms
+    description: set the maximal stimulation frequency. If equal to zero, it disabled the feature.
+  - name: enabled
+    type: bool
+    default: true
+    description: enable/disable digital output
+  - name: pulse width
+    type: unsigned int
+    default: 300 ms
+    description: duration of digital output pulse in microseconds
+  - name: enable saving
+    type: bool
+    default: true
+    description: enable/disable saving stimulation events
+  - name: device
+    type: unsigned int
+    default: no default type value - Always specify in the graph config file.
+    description: map specifying the digital output device. A required "type" key indicates which device should be used.
+                 Valid values are "dummy". The dummy device requires an additional "nchannels" key.
+  - name: print protocol execution updates
+    type:
+    default:
+    description: maps events to digital output protocols
+
+States:
+  static:
+     - name: enabled
+       type: bool
+       initial value: see option enabled
+       shared: true
+       external access: write
+       description:
+     - name: lockout period
+       type: bool
+       initial value: see option lockout period
+       shared: true
+       external access: write
+       description:

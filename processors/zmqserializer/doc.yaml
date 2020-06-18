@@ -1,0 +1,28 @@
+Description: Serializes data streams to file
+
+Long description:
+  Input port:
+
+  - name: data
+    type: IData
+    slots: 1-256
+    description:
+
+Options:
+  - name: port
+    type: unsigned int
+    default: 7777
+    description:
+  - name: encoding
+    type: string
+    default: "binary"
+    description: Only two acceptable keyword ('binary' or 'yaml')
+  - name: format
+    type: string
+    default: "full"
+    description: Only tree acceptable keyword ('full', 'nodata', 'compact')
+                See serializer.hpp for more informations on this mode
+  - name: interleave
+    type: bool
+    default: false
+    description: whether data streams from different input slots are interleaved

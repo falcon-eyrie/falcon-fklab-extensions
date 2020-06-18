@@ -1,0 +1,40 @@
+Description: Serializes data streams to file
+
+Long description:
+  Input port:
+
+  - name: data
+    type: IData
+    slots: 1-256
+    description:
+
+Options:
+  - name: path
+    type: string
+    default: "run://"
+    description: server-side path
+  - name: encoding
+    type: string
+    default: "binary"
+    description: Only two acceptable keyword ('binary' or 'yaml')
+  - name: format
+    type: string
+    default: "full"
+    description: Only tree acceptable keyword ('full', 'nodata', 'compact')
+                See serializer.hpp for more informations on this mode
+  - name: overwrite
+    type: bool
+    default: false
+    description: overwrite existing file
+  - name: throttle/enabled
+    type: bool
+    default: false
+    description: throttle saving if we can't keep up
+  - name: throttle/threshold
+    type: double
+    default: 0.3
+    description: upstream ringbuffer fill fraction (between 0-1) at which throttling takes effect
+  - name: throttle/enabled
+    type: double
+    default: 0.5
+    description: smooth level of throttle level (between 0-1)
