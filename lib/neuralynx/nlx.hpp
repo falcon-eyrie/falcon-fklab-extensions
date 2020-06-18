@@ -139,6 +139,7 @@ public:
     bool FromNetworkBuffer( const char * buffer, size_t n );
     bool FromNetworkBuffer(const std::vector<char> & buffer);
     size_t ToNetworkBuffer( char * buffer, size_t n );
+    size_t ToNetworkBuffer( std::vector<char> & buffer );
     
     void Initialize(); // set required fields 1-3
     void Finalize(); // compute CRC

@@ -109,7 +109,17 @@ size_t NlxSignalRecord::ToNetworkBuffer( char * buffer, size_t n ) {
     
     return nlx_packetbytesize_;
 }
+
+size_t NlxSignalRecord::ToNetworkBuffer( std::vector<char> & buffer ) {
     
+    // check size
+    if (buffer.size()<nlx_packetbytesize_) {
+        buffer.resize(nlx_packetbytesize_);
+    }
+    
+    return ToNetworkBuffer(buffer.data(), buffer.size());
+}
+
 void NlxSignalRecord::Initialize() {
     
     std::fill( buffer_.begin(), buffer_.end(), 0 );
@@ -310,7 +320,7 @@ uint64_t nlx::CheckTimestamp(const NlxSignalRecord & rec, uint64_t & last_timest
     
     uint64_t timestamp = rec.timestamp();
     
-    if ( last_timestamp == INVALID_TIMESTAMP ) {
+    if ( last_timestamp == nlx::INVALID_TIMESTAMP ) {
         last_timestamp = timestamp;
     } else if ( timestamp == last_timestamp ) {
         ++stats.n_duplicated;
@@ -318,8 +328,8 @@ uint64_t nlx::CheckTimestamp(const NlxSignalRecord & rec, uint64_t & last_timest
         ++stats.n_outoforder;
     } else {
         uint64_t delta = timestamp - last_timestamp;
-        if ( delta > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
-            int64_t n_missed = round ( delta / SAMPLING_PERIOD_MICROSEC ) - 1;
+        if ( delta > nlx::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
+            int64_t n_missed = round ( delta / nlx::SAMPLING_PERIOD_MICROSEC ) - 1;
             stats.n_missed += n_missed;
             ++stats.n_gaps;
             //LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
