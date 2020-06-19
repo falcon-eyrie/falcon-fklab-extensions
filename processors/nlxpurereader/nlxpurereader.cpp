@@ -5,8 +5,6 @@
 #include <limits>
 #include <memory>
 
-constexpr uint16_t NlxPureReader::MAX_NCHANNELS;
-constexpr decltype(NlxPureReader::MAX_NCHANNELS) NlxPureReader::UDP_BUFFER_SIZE;
 
  NlxPureReader::NlxPureReader() : IProcessor( PRIORITY_HIGH ) {
     add_option("address", address_, 
@@ -16,15 +14,17 @@ constexpr decltype(NlxPureReader::MAX_NCHANNELS) NlxPureReader::UDP_BUFFER_SIZE;
     add_option("npackets", npackets_,
         "The total number of data packets to read "
         "(0 means continuous recording).");
+    add_option("nchannels", nchannels_, 
+        "The number of channels of the Digilynx acquisition system.");
  }
 
 
 void NlxPureReader::CreatePorts() {
     
-    output_port_ = create_output_port<VectorType<char>>(
+    output_port_ = create_output_port<VectorType<uint32_t>>(
         "udp",
-        VectorType<char>::Capabilities(),
-        VectorType<char>::Parameters(UDP_BUFFER_SIZE), // TODO: set vector size to buffer size for actual number channels
+        VectorType<uint32_t>::Capabilities(),
+        VectorType<uint32_t>::Parameters(nlx::NLX_NFIELDS(nchannels_())),
         PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
     
     n_invalid_ = create_broadcaster_state<uint64_t>(
@@ -98,11 +98,10 @@ void NlxPureReader::Process( ProcessingContext& context ) {
             
             data_out_ = output_port_->slot(0)->ClaimData(false);
             
-            // TODO: set buffer size to actual size based on number of channels
-            recvlen_ = recvfrom( udp_socket_, data_out_->data().data(),
-                UDP_BUFFER_SIZE, 0, NULL, NULL); 
+            recvlen_ = recvfrom( udp_socket_, (char*) data_out_->data().data(),
+                data_out_->data().size() * sizeof(uint32_t), 0, NULL, NULL); 
             
-            if ( recvlen_ != UDP_BUFFER_SIZE ) {
+            if ( recvlen_ != (int) data_out_->data().size() * sizeof(uint32_t) ) {
                 n_invalid_->set( n_invalid_->get() + 1 );
                 LOG(UPDATE) << name() << ". Received invalid record.";
                 continue;
@@ -138,7 +137,7 @@ void NlxPureReader::Postprocess( ProcessingContext& context ) {
         << ". Finished reading : "
         << valid_packet_counter_ << " packets received over "
         << static_cast<double>(runtime.count())/1000 << " seconds at a rate of " 
-        << valid_packet_counter_/static_cast<double>(runtime.count())/1000
+        << valid_packet_counter_/(static_cast<double>(runtime.count())/1000)
         << " packets/second."; 
     
     close( udp_socket_ );
@@ -146,3 +145,5 @@ void NlxPureReader::Postprocess( ProcessingContext& context ) {
     LOG(UPDATE) << name() << ". Streamed " << output_port_->slot(0)->nitems_produced()
         << " multi-channel data items.";
 }
+
+REGISTERPROCESSOR(NlxPureReader)

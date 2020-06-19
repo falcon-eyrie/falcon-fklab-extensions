@@ -37,7 +37,8 @@
 
 
 class NlxPureReader : public IProcessor {
-    
+
+// CONSTRUCTOR and OVERLOADED METHODS
 public:
     NlxPureReader();
     virtual void CreatePorts() override;
@@ -46,23 +47,17 @@ public:
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
-    
-public:
-    static constexpr uint16_t MAX_NCHANNELS = 128;
-    static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
-        nlx::NLX_PACKETBYTESIZE(MAX_NCHANNELS);
-    
-// config options
-protected:
-    //std::string address_;
-    //unsigned int port_;
-    //std::uint64_t npackets_;
 
-// internals
+// PORTS
 protected:
-    PortOut<VectorType<char>>* output_port_;
+    PortOut<VectorType<uint32_t>>* output_port_;
+
+// STATES
+protected:
     BroadcasterState<uint64_t>* n_invalid_;
     
+// variables
+protected:
     fd_set file_descriptor_set_;
     int udp_socket_;
     int udp_socket_select_;
@@ -74,14 +69,10 @@ protected:
     
     ssize_t size_;
     int recvlen_;
-    VectorType<char>::Data* data_out_;
-    
+    VectorType<uint32_t>::Data* data_out_;
+
+// constants
 public:
-    //static constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY)
-    //    SAMPLING_PERIOD_MICROSEC = 1e6 / nlx::NLX_SIGNAL_SAMPLING_FREQUENCY;
-    //const std::string DEFAULT_ADDRESS = "127.0.0.1"; //testbench
-    //const decltype(port_) DEFAULT_PORT = 5000;
-    //const decltype(npackets_) DEFAULT_NPACKETS = 0;
     const decltype(timeout_.tv_sec) TIMEOUT_SEC = 3;
 
 //OPTIONS
@@ -92,6 +83,7 @@ protected:
         0,
         options::zeroismax<std::uint64_t>()
     };
+    options::Value<unsigned int,false> nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
 };
 
 #endif // nlxpurereader.hpp
