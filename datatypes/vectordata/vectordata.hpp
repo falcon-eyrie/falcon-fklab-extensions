@@ -68,6 +68,31 @@ public:
     
     std::vector<TYPE> & data() { return data_; }
     
+    virtual void SerializeBinary( std::ostream& stream, Serialization::Format format = Serialization::Format::FULL ) const override {
+
+        Base::Data::SerializeBinary( stream, format );
+        if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
+            stream.write( reinterpret_cast<const char*>( data_.data() ), data_.size() * sizeof(TYPE) );
+        }
+    }
+
+    virtual void SerializeYAML( YAML::Node & node, Serialization::Format format = Serialization::Format::FULL ) const override {
+
+        Base::Data::SerializeYAML( node, format );
+        if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
+            node["data"] = data_;
+        }
+    }
+
+    virtual void YAMLDescription( YAML::Node & node, Serialization::Format format = Serialization::Format::FULL ) const override {
+
+        Base::Data::YAMLDescription( node, format );
+        if (format==Serialization::Format::FULL || format==Serialization::Format::COMPACT) {
+            node.push_back( "data " + get_type_string<TYPE>() + " (" + std::to_string(data_.size()) + ")" );
+        }
+    }
+
+
 protected:
     std::vector<TYPE> data_;
 };
