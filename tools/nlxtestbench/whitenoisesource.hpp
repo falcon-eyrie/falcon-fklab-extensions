@@ -27,11 +27,13 @@
 
 class WhiteNoiseSource : public DataSource {
 public:
-    WhiteNoiseSource( double mean = 0.0, double stdev = 1.0, double sampling_rate = 1.0 );
+    WhiteNoiseSource( double mean = 0.0, double stdev = 1.0,
+        double sampling_rate = 1.0, unsigned int nchannels=128,
+        bool convert_byte_order=true );
     
     virtual std::string string();
     
-    virtual bool Produce( char** data );
+    virtual int64_t Produce( char** data );
     
     virtual YAML::Node to_yaml() const;
     
@@ -46,10 +48,13 @@ protected:
     
     nlx::NlxSignalRecord record_;
     
-    char buffer_[BUFFERSIZE];
+    std::vector<char> buffer_;
     
     std::default_random_engine generator_;
     std::normal_distribution<double> distribution_;
+
+    unsigned int nchannels_;
+    bool convert_byte_order_;
 };
 
 #endif // WHITENOISESOURCE_H
