@@ -1,0 +1,17 @@
+graph:
+  processors:
+    reader:
+      class: NlxPureReader
+      options:
+        address: 127.0.0.1
+        port: 5000
+        nchannels: 64
+    saver:
+      class: FileSerializer
+      options:
+        encoding: binary
+        format: compact
+        preamble: false
+
+  connections:
+    - reader = saver
