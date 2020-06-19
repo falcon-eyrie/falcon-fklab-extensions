@@ -5,59 +5,64 @@
 #include <limits>
 #include <memory>
 
-constexpr uint16_t NlxParser::MAX_NCHANNELS;
-constexpr decltype(NlxParser::MAX_NCHANNELS) NlxParser::UDP_BUFFER_SIZE;
-// constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) NlxParser::SAMPLING_PERIOD_MICROSEC;
-// constexpr decltype(NlxParser::delta_) NlxParser::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
-// constexpr decltype(NlxParser::timestamp_) NlxParser::INVALID_TIMESTAMP;
+
+std::string gapfill_to_string( GapFill x ) {
+    std::string s;
+#define MATCH(p) case(GapFill::p): s = #p; break;
+    switch(x){
+        MATCH(NONE)
+        MATCH(ASAP);
+        MATCH(DISTRIBUTED);
+    }
+#undef MATCH
+    return s;
+}
+
+GapFill string_to_gapfill( std::string s ) {
+    std::transform(s.begin(), s.end(), s.begin(), (int (*)(int))std::toupper);
+#define MATCH(p) if (s==#p) { return GapFill::p;}
+    MATCH(NONE)
+    MATCH(ASAP);
+    MATCH(DISTRIBUTED);
+    throw std::runtime_error("Invalid GapFill value.");
+#undef MATCH
+}
 
 NlxParser::NlxParser() : IProcessor(PRIORITY_HIGH) {
     
-    // TODO: remove nchannels options, should be automatially
-    // derived from upstream nlxpurereader
-
-    add_option("batch_size", batch_size_,
+    add_option("batch size", batch_size_,
         "The number of data packets to concatenate into "
         "single multi-channel data bucket.");
-    add_option("nchannels", nchannels_,
-        "The number of channels of the Digilynx acquisition system.");
-    add_option("update_interval", update_interval_,
+    add_option("update interval", update_interval_,
         "The time interval for updates on the received data from "
         "the Digilynx acquisition system.");
-    add_option("hardware_trigger", dispatch_, 
+    add_option("trigger/enabled", triggered_, 
         "Whether or not to wait for hardware trigger to start "
         "streaming data packets.");
-    add_option("hardware_trigger_channel", hardware_trigger_channel_, 
+    add_option("trigger/channel", hardware_trigger_channel_, 
         "Digital input channel to use as hardware trigger");
+    add_option("gap fill", gap_fill_,
+        "Method of filling in missing data packets. If 'none', no filling of "
+        "missed packets is performed. If 'asap', all missed packets will be "
+        "filled with last available batch of samples. If 'distributed', "
+        "missed packets will be filled with the last available batch of samples "
+        "at each iteration.");
+    add_option("convert byte order", convert_byte_order_,
+        "Perform network to host byte conversion.");
 }
 
-void NlxParser::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    // TODO: next line should go the CompleteStreamInfo ?
-    nlxrecord_.set_nchannels( nchannels_() );
-    
-    // TODO: create enum for gaps fill option
-
-    // whether or not to fill missed packets with the last available sample
-    gaps_filling_ = node["gaps_filling"].as<decltype(gaps_filling_)>( DEFAULT_GAPS_FILLING );
-    if ( gaps_filling_!="none" and gaps_filling_!="asap" and gaps_filling_!="distributed") {
-        auto msg = "Unrecognized gaps filling option (must be none, asap or distributed).";
-        throw ProcessingConfigureError( msg, name() );
-    }
-    
-}
 
 void NlxParser::CreatePorts() {
     
-    data_in_port_ = create_input_port<VectorType<char>>(
+    data_in_port_ = create_input_port<VectorType<uint32_t>>(
         "udp",
-        VectorType<char>::Capabilities(),
+        VectorType<uint32_t>::Capabilities(),
         PortInPolicy(SlotRange(1))
     );
     
     output_port_signal_ = create_output_port<MultiChannelType<double>>(
         "data",
-        MultiChannelType<double>::Capabilities( ChannelRange(1,NlxParser::MAX_NCHANNELS) ),
+        MultiChannelType<double>::Capabilities( ChannelRange(1,nlx::NLX_MAX_NCHANNELS) ),
         MultiChannelType<double>::Parameters(),
         PortOutPolicy(SlotRange(1),500));
     
@@ -77,12 +82,17 @@ void NlxParser::CreatePorts() {
 
 void NlxParser::CompleteStreamInfo() {
 
-    // TODO: set # channels based on upstream vector size
-    // NLX_NCHANNELS_FROM_PACKETBYTESIZE(data_in_port_->slot(0)->streaminfo().parameters().size)
+    nchannels_ = nlx::NLX_NCHANNELS_FROM_NFIELDS(
+        data_in_port_->slot(0)->streaminfo().parameters().size);
+
+    LOG(INFO) << name() << ": parsing " << nchannels_ << " channels raw digilynx data.";
+
+    nlxrecord_.set_nchannels( nchannels_ );
+    nlxrecord_.set_convert_byte_order(convert_byte_order_());
 
     output_port_signal_->streaminfo(0).set_parameters(
         MultiChannelType<double>::Parameters(
-            nchannels_(),
+            nchannels_,
             batch_size_(), 
             data_in_port_->slot(0)->streaminfo().stream_rate()
         )
@@ -106,8 +116,8 @@ void NlxParser::CompleteStreamInfo() {
 void NlxParser::Prepare( GlobalContext& context ) {
 
     // create channel list
-    channel_list_.resize( NlxParser::MAX_NCHANNELS );
-    for (unsigned int i=0; i<NlxParser::MAX_NCHANNELS; i++ ) {
+    channel_list_.resize( nchannels_ );
+    for (unsigned int i=0; i<nchannels_; i++ ) {
         channel_list_[i] = i;
     }
 }
@@ -118,7 +128,7 @@ void NlxParser::Preprocess( ProcessingContext& context ) {
     valid_packet_counter_ = 0;
     
     timestamp_ = nlx::INVALID_TIMESTAMP;
-    //last_timestamp_ = INVALID_TIMESTAMP;
+    last_timestamp_ = nlx::INVALID_TIMESTAMP;
     
     stats_.clear();
     n_filling_packets_ = 0;
@@ -131,31 +141,25 @@ void NlxParser::Process( ProcessingContext& context ) {
     int b=0;
     decltype(n_filling_packets_) packets_lag = 0;
     
-    VectorType<char>::Data* data_in = nullptr;
+    VectorType<uint32_t>::Data* data_in = nullptr;
     MultiChannelType<double>::Data::sample_iterator data_iter;
     MultiChannelType<double>::Data* data_out = nullptr;
     MultiChannelType<uint32_t>::Data* ttl_data_out = nullptr;
     
     
     while ( !context.terminated() ) {
-            
-        // if ( context.test() and roundtrip_latency_test_ ) {
-        //     test_source_timestamps_[valid_packet_counter_] = Clock::now();
-        // }
 
         if (!data_in_port_->slot(0)->RetrieveData(data_in)) {break;}
 
-        //if ( !CheckPacket( data_in->data().data() ) ) {continue;}
-
         if (!nlxrecord_.FromNetworkBuffer(data_in->data())) {
             ++stats_.n_invalid;
-            LOG(INFO) << name() << ": Received invalid record.";
+            LOG(INFO) << name() << ": Received invalid record."; 
             continue;
         }
 
         timestamp_ = nlx::CheckTimestamp(nlxrecord_, last_timestamp_, stats_);
-
-        valid_packet_counter_ ++;
+        
+        valid_packet_counter_++;
         
         data_in_port_->slot(0)->ReleaseData();
 
@@ -165,12 +169,12 @@ void NlxParser::Process( ProcessingContext& context ) {
                 " (TS = " << timestamp_ << ").";
         }
 
-        if (!dispatch_()) {
+        if (triggered_()) {
             LOG_IF(UPDATE, (valid_packet_counter_ == 1)) << name() <<
                 ". Waiting for hardware trigger on channel "
                 << hardware_trigger_channel_() << ".";
             if (nlxrecord_.parallel_port() & (1<<hardware_trigger_channel_()) ) {
-                dispatch_=true;
+                triggered_=false;
                 LOG(UPDATE) << name() << ". Dispatching starts now.";
             } else { continue; }
         }
@@ -209,7 +213,7 @@ void NlxParser::Process( ProcessingContext& context ) {
         }
         
         // stream additional packets if there were missed packets
-        if ( gaps_filling_ != "none" and sample_counter_ == batch_size_() ) {
+        if ( gap_fill_() != GapFill::NONE && sample_counter_ == batch_size_() ) {
             packets_lag = stats_.n_missed - n_filling_packets_;
             if ( packets_lag >= batch_size_() ) {
                 for ( b=0; b<packets_lag/batch_size_(); ++b ) {
@@ -237,7 +241,7 @@ void NlxParser::Process( ProcessingContext& context ) {
                     LOG( UPDATE ) << name() << ". Streamed " << batch_size_() <<
                         " duplicated samples to fill missed packets.";
                     n_filling_packets_ +=  batch_size_();
-                    if (gaps_filling_ == "distributed" ) {break;}
+                    if (gap_fill_() == GapFill::DISTRIBUTED ) {break;}
                 }
             }
         }
@@ -254,22 +258,19 @@ void NlxParser::Postprocess( ProcessingContext& context ) {
         << ". Finished reading : "
         << valid_packet_counter_ << " packets received over "
         << static_cast<double>(runtime.count())/1000 << " seconds at a rate of " 
-        << valid_packet_counter_/static_cast<double>(runtime.count())/1000 <<
+        << valid_packet_counter_/(static_cast<double>(runtime.count())/1000) <<
             " packets/second."; 
     print_stats();
     
     LOG(UPDATE) << name() << ". Streamed " << output_port_signal_->slot(0)->nitems_produced()
         << " multi-channel data items.";
     
-    // if ( context.test() and roundtrip_latency_test_ ) {
-    //     save_source_timestamps_to_disk( valid_packet_counter_ );
-    // }
 }
 
 void NlxParser::print_stats( bool condition ) {
     
     LOG_IF(UPDATE, condition) << name() << ". Stats report: "
-        << n_invalid_->get() <<  " invalid, " 
+        << stats_.n_invalid <<  " invalid, " 
         << stats_.n_duplicated << " duplicated, " 
         << stats_.n_outoforder << " out of order, " 
         << stats_.n_missed << " missed, " 
@@ -279,44 +280,5 @@ void NlxParser::print_stats( bool condition ) {
             data_in_port_->slot(0)->streaminfo().stream_rate() * 1e3 << " ms."; 
 }
 
-// void NlxParserStats::clear_stats() {
-    
-//     n_duplicated = 0;
-//     n_outoforder = 0;
-//     n_missed = 0;
-//     n_gaps = 0;
-// }
 
-// bool NlxParser::CheckPacket(char * buffer) {
-    
-//     // TODO move to neuralynx lib??
-//     // 
-
-//     //if (!nlxrecord_.FromNetworkBuffer( buffer, UDP_BUFFER_SIZE, false )) {
-//     if (!nlxrecord_.FromNetworkBuffer( buffer, UDP_BUFFER_SIZE )) {
-//         n_invalid_->set( n_invalid_->get() + 1 );
-//         LOG(UPDATE) << name() << ": Received invalid record.";
-//         return false;
-//     }
-    
-//     timestamp_ = nlxrecord_.timestamp();
-    
-//     if ( last_timestamp_ == INVALID_TIMESTAMP ) {
-//         last_timestamp_ = timestamp_;
-//     } else if ( timestamp_ == last_timestamp_ ) {
-//         ++stats_.n_duplicated;
-//     } else if ( timestamp_ < last_timestamp_ ) {
-//         ++stats_.n_outoforder;
-//     } else {
-//         delta_ = timestamp_ - last_timestamp_;
-//         if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
-//             int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
-//             stats_.n_missed += n_missed;
-//             ++stats_.n_gaps;
-//             LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
-//         }
-//         last_timestamp_ = timestamp_;
-//     }
-    
-//     return true;
-// }
+REGISTERPROCESSOR(NlxParser)

@@ -48,48 +48,52 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+enum class GapFill { NONE=0, ASAP, DISTRIBUTED };
 
-// struct NlxParserStats {
-//     int64_t n_duplicated;
-//     int64_t n_outoforder;
-//     int64_t n_missed;
-//     int64_t n_gaps;
-    
-//     void clear_stats();
-// };
+std::string gapfill_to_string( GapFill x );
+GapFill string_to_gapfill( std::string s );
+
+namespace YAML {
+
+template<>
+struct convert<GapFill> {
+    static Node encode(const GapFill& rhs) {
+        Node node;
+        node = gapfill_to_string(rhs);
+        return node;
+    }
+
+    static bool decode(const Node& node, GapFill& rhs) {
+        rhs = string_to_gapfill(node.as<std::string>());
+        return true;
+    }
+
+};
+
+}
 
 class NlxParser : public IProcessor {
     
 public:
     NlxParser();
-    virtual void Configure( const YAML::Node  & node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
     virtual void CompleteStreamInfo() override;
     virtual void Prepare( GlobalContext& context ) override;
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
     virtual void Postprocess( ProcessingContext& context ) override;
-      
+
+// methods
 protected:
-    // bool CheckPacket(char * buffer);
     void print_stats( bool condition=true );
     
-public:
-    static constexpr uint16_t MAX_NCHANNELS = 128;
-    static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
-        nlx::NLX_PACKETBYTESIZE(MAX_NCHANNELS);
+// variables
+protected:
+    unsigned int nchannels_;
     
-// config options
-protected:
-    //unsigned int batch_size_;
-    //unsigned int nchannels_;
-    std::string gaps_filling_;
-
-// internals
-protected:
     PortOut<MultiChannelType<double>>* output_port_signal_;
     PortOut<MultiChannelType<uint32_t>>* output_port_ttl_;
-    PortIn<VectorType<char>>* data_in_port_;
+    PortIn<VectorType<uint32_t>>* data_in_port_;
     BroadcasterState<uint64_t>* n_invalid_; 
     
     unsigned int sample_counter_;
@@ -102,45 +106,26 @@ protected:
     
     nlx::NlxSignalRecord nlxrecord_;
     
-    //decltype(valid_packet_counter_) update_interval_;
-    
     nlx::NlxStatistics stats_;
-    //decltype(timestamp_) delta_;
     
     std::vector<unsigned int> channel_list_;
     
-    //bool dispatch_;
-    //bool hardware_trigger_;
-    //uint32_t hardware_trigger_channel_;
-    
     int64_t n_filling_packets_;
     
-public:
-    // static constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY)
-    //     SAMPLING_PERIOD_MICROSEC = 1e6 / nlx::NLX_SIGNAL_SAMPLING_FREQUENCY;
-    //const decltype(batch_size_) DEFAULT_BATCHSIZE = 2;
-    //const decltype(nchannels_) DEFAULT_NCHANNELS = 128;
-    const decltype(gaps_filling_) DEFAULT_GAPS_FILLING = "asap";
-    //const decltype(update_interval_) DEFAULT_UPDATE_INTERVAL_SEC = 20;
-    //const decltype(hardware_trigger_) DEFAULT_HARDWARE_TRIGGER = false;
-    //const decltype(hardware_trigger_channel_) DEFAULT_HARDWARE_TRIGGER_CHANNEL = 0;
-    // static constexpr decltype(delta_) MAX_ALLOWABLE_TIMEGAP_MICROSECONDS =
-    //     trunc( SAMPLING_PERIOD_MICROSEC ) + 1;
-    // static constexpr decltype(timestamp_) INVALID_TIMESTAMP =
-    //     std::numeric_limits<decltype(timestamp_)>::max();
 
 // OPTIONS
 protected:
     options::Value<unsigned int,false> batch_size_{2};
-    options::Value<unsigned int,false> nchannels_{128};
     options::Measurement<std::uint64_t,false> update_interval_{
         20,
         "second",
         options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
         options::zeroismax<std::uint64_t>()
     };
-    options::Bool dispatch_{true, options::invert()};
+    options::Bool triggered_{false};
     options::Value<uint32_t,false> hardware_trigger_channel_{0};
+    options::Value<GapFill,false> gap_fill_{GapFill::ASAP};
+    options::Bool convert_byte_order_{true};
 };
 
 #endif // nlxparser.hpp
