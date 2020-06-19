@@ -132,3 +132,6 @@ void Distributor::Postprocess( ProcessingContext& context ) {
         }
     }
 }
+
+
+REGISTERPROCESSOR(Distributor)

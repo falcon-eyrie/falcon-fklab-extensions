@@ -38,7 +38,6 @@
 
 typedef std::map<std::string,std::vector<unsigned int>> ChannelMap;
 
-
 class Distributor : public IProcessor {
 
 // CONSTRUCTOR and OVERLOADED METHODS
@@ -57,13 +56,9 @@ protected:
 
 // variables
 protected:
-    //ChannelMap channelmap_;
-    //unsigned int n_samples_;
     unsigned int incoming_batch_size_;
     unsigned int max_n_channels_;
-    
-//public:
-//    const decltype(batch_size_) DEFAULT_BATCHSIZE = 1;
+
 // constants
 protected:
     const unsigned int MAX_N_CHANNELS = 4096; // maximum number of channels that the distributor can handle
