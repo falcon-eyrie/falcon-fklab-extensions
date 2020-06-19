@@ -84,15 +84,6 @@
 
 typedef std::map<std::string,std::vector<unsigned int>> ChannelMap;
 
-// struct NlxReaderStats {
-//     int64_t n_invalid;
-//     int64_t n_duplicated;
-//     int64_t n_outoforder;
-//     int64_t n_missed;
-//     int64_t n_gaps;
-    
-//     void clear_stats();
-// };
 
 class NlxReader : public IProcessor 
 {
@@ -110,7 +101,6 @@ public:
 
 // methods
 protected:
-    //bool CheckPacket(char * buffer, int recvlen);
     void print_stats( bool condition = true );
 
 // constants
@@ -139,13 +129,13 @@ protected:
     nlx::NlxSignalRecord nlxrecord_;
     
     nlx::NlxStatistics stats_;
-    //decltype(timestamp_) delta_;
     
     std::map<std::string, PortOut<MultiChannelType<double>>*> data_ports_;
 
 // constants
 public:
-    
+    const decltype(timeout_.tv_sec) TIMEOUT_SEC = 3;
+
 // OPTIONS
 protected:
 
@@ -164,8 +154,9 @@ protected:
         options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
         options::zeroismax<std::uint64_t>()
     };
-    options::Bool dispatch_{true, options::invert()};
+    options::Bool triggered_{false};
     options::Value<uint32_t,false> hardware_trigger_channel_{0};
+    options::Bool convert_byte_order_{true};
     
 };
 

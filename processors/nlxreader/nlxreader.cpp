@@ -87,17 +87,20 @@ NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
     add_option("update interval", update_interval_,
         "The time interval for updates on the received data from "
         "the Digilynx acquisition system.");
-    add_option("hardware trigger", dispatch_,
+    add_option("trigger/enable", triggered_,
         "Whether or not to wait for hardware trigger to start "
         "streaming data packets.");
-    add_option("hardware trigger channel", hardware_trigger_channel_,
+    add_option("trigger/channel", hardware_trigger_channel_,
         "Digital input channel to use as hardware trigger");
+    add_option("convert byte order", convert_byte_order_,
+        "Perform network to host byte conversion.");
 
 };
 
 void NlxReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
-    nlxrecord_.set_nchannels( nchannels_() );  
+    nlxrecord_.set_nchannels( nchannels_() );
+    nlxrecord_.set_convert_byte_order(convert_byte_order_());
 }
 
 void NlxReader::CreatePorts() {
@@ -118,8 +121,8 @@ void NlxReader::CompleteStreamInfo() {
         it.second->streaminfo(0).set_parameters(
             MultiChannelType<double>::Parameters( channelmap_().at(it.first).size(),
                                                   batch_size_(), 
-                                                  NLX_SIGNAL_SAMPLING_FREQUENCY ) );
-        it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_() );
+                                                  nlx::NLX_SIGNAL_SAMPLING_FREQUENCY ) );
+        it.second->streaminfo(0).set_stream_rate( nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_() );
     }
 }
 
@@ -191,9 +194,9 @@ void NlxReader::Process( ProcessingContext& context ) {
 		
         if (size > 0) { // receive packet
             
-            if ( context.test() ) {
-                test_source_timestamps_[valid_packet_counter_] = Clock::now();
-            }
+            // if ( context.test() ) {
+            //     test_source_timestamps_[valid_packet_counter_] = Clock::now();
+            // }
             
             int recvlen = recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
             
@@ -221,12 +224,12 @@ void NlxReader::Process( ProcessingContext& context ) {
                 valid_packet_counter_/nlx::NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
             print_stats( update_time );
             
-            if (!dispatch_()) {
+            if (triggered_()) {
                 LOG_IF(UPDATE, (valid_packet_counter_ == 1)) << name() <<
                     ". Waiting for hardware trigger on channel "
                     << hardware_trigger_channel_() << ".";
                 if (nlxrecord_.parallel_port() & (1<<hardware_trigger_channel_()) ) {
-                    dispatch_=true;
+                    triggered_=true;
                     LOG(UPDATE) << name() << ". Dispatching starts now.";
                 } else { continue; }
             }
@@ -295,7 +298,7 @@ void NlxReader::Postprocess( ProcessingContext& context ) {
         << ". Finished reading : "
         << valid_packet_counter_ << " packets received over "
         << static_cast<double>(runtime.count())/1000 << " seconds at a rate of " 
-        << valid_packet_counter_/static_cast<double>(runtime.count())/1000 << " packets/second."; 
+        << valid_packet_counter_/(static_cast<double>(runtime.count())/1000) << " packets/second."; 
     print_stats();
     
     close( udp_socket_ );
@@ -312,7 +315,7 @@ void NlxReader::print_stats( bool condition ) {
         << stats_.n_duplicated << " duplicated, " 
         << stats_.n_outoforder << " out of order, " 
         << stats_.n_missed << " missed, " 
-        << stats_.n_gaps << " gaps).";
+        << stats_.n_gaps << " gaps.";
 }
 
 REGISTERPROCESSOR(NlxReader)
