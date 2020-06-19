@@ -50,8 +50,8 @@ bool valid_nlx_vt( VideoRec* vt_record, std::uint16_t vt_id,
     return true;
 }
 
-NlxSignalRecord::NlxSignalRecord( unsigned int nchannels ) {
-    
+NlxSignalRecord::NlxSignalRecord( unsigned int nchannels, bool convert_byte_order ) 
+: convert_byte_order_(convert_byte_order) {
     set_nchannels( nchannels );
 }
 
@@ -73,26 +73,34 @@ void NlxSignalRecord::set_nchannels( unsigned int n ) {
     buffer_.resize( nlx_nfields_ );
     Initialize();
 }
-    
+
+bool NlxSignalRecord::convert_byte_order() const {
+    return convert_byte_order_;
+}
+
+void NlxSignalRecord::set_convert_byte_order(bool b) {
+    convert_byte_order_ = b;
+}
+
 bool NlxSignalRecord::FromNetworkBuffer( const char * buffer, size_t n ) {
     
     // check size
     if (n!=nlx_packetbytesize_) { return false; }
     
-    // perform ntoh conversion, copying into local buffer in the process
-    char * p = (char*) buffer_.data();
-    for ( unsigned int k=0; k<n; k+=2 ) {
-        *((uint16_t*) (p+k)) = ntohs( *((uint16_t*) (buffer+k)) );
+    if (convert_byte_order_) {
+        // perform ntoh conversion, copying into local buffer in the process
+        char * p = (char*) buffer_.data();
+        for ( unsigned int k=0; k<n; k+=2 ) {
+            *((uint16_t*) (p+k)) = ntohs( *((uint16_t*) (buffer+k)) );
+        }
+    } else {
+        std::copy(buffer, buffer+n, (char*) buffer_.data());
     }
     
     // test if valid record (record size os OK, first 3 fields are OK, CRC checks out)
     return valid();
 }
-
-bool NlxSignalRecord::FromNetworkBuffer(const std::vector<char> & buffer) {
-    return FromNetworkBuffer(buffer.data(), buffer.size());
-}
-    
+   
 size_t NlxSignalRecord::ToNetworkBuffer( char * buffer, size_t n ) {
     
     // check size
@@ -101,24 +109,20 @@ size_t NlxSignalRecord::ToNetworkBuffer( char * buffer, size_t n ) {
     // finalize if necessary
     if (!finalized_) {Finalize();}
     
-    // perform hton conversion, copying into provided buffer in the process
     char * p = (char*) buffer_.data();
-    for ( unsigned int k=0; k<nlx_packetbytesize_; k+=2 ) {
-        *((uint16_t*) (buffer+k)) = htons( *((uint16_t*) (p+k)) );
+
+    if (convert_byte_order_) {
+        // perform hton conversion, copying into provided buffer in the process
+        for ( unsigned int k=0; k<nlx_packetbytesize_; k+=2 ) {
+            *((uint16_t*) (buffer+k)) = htons( *((uint16_t*) (p+k)) );
+        }
+    } else {
+        std::copy(p, p+n, buffer);
     }
     
     return nlx_packetbytesize_;
 }
 
-size_t NlxSignalRecord::ToNetworkBuffer( std::vector<char> & buffer ) {
-    
-    // check size
-    if (buffer.size()<nlx_packetbytesize_) {
-        buffer.resize(nlx_packetbytesize_);
-    }
-    
-    return ToNetworkBuffer(buffer.data(), buffer.size());
-}
 
 void NlxSignalRecord::Initialize() {
     

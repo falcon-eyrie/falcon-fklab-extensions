@@ -62,6 +62,10 @@ constexpr uint16_t NLX_PACKETBYTESIZE(uint16_t c) { return (NLX_FIELDBYTESIZE * 
 constexpr uint16_t NLX_NCHANNELS_FROM_PACKETBYTESIZE(uint16_t sz) {
     return ((sz/NLX_FIELDBYTESIZE) - 8 - NLX_NFIELDS_EXTRA);
 }
+constexpr uint16_t NLX_NCHANNELS_FROM_NFIELDS(uint16_t n) {
+    return n-8-NLX_NFIELDS_EXTRA;
+}
+
 constexpr uint16_t NLX_FIELD_STX = 0;
 constexpr uint16_t NLX_FIELD_RAWPACKETID = 1;
 constexpr uint16_t NLX_FIELD_PACKETSIZE = 2;
@@ -126,20 +130,39 @@ inline const unsigned int nlx_field_crc( unsigned int nchannels = NLX_DEFAULT_NC
 }
 inline const int32_t nlx_packetsize( unsigned int nchannels = NLX_DEFAULT_NCHANNELS ) {
     
-    return nchannels + 10;
+    return nchannels + NLX_NFIELDS_EXTRA;
 }
 
 class NlxSignalRecord {
 public:
-    NlxSignalRecord( unsigned int nchannels = NLX_DEFAULT_NCHANNELS );
+    NlxSignalRecord( unsigned int nchannels = NLX_DEFAULT_NCHANNELS,
+        bool convert_byte_order = true );
     
     unsigned int nchannels() const;
     void set_nchannels( unsigned int n );
+
+    bool convert_byte_order() const;
+    void set_convert_byte_order(bool b);
     
     bool FromNetworkBuffer( const char * buffer, size_t n );
-    bool FromNetworkBuffer(const std::vector<char> & buffer);
+    
+    template <typename T>
+    bool FromNetworkBuffer(const std::vector<T> & buffer) {
+        return FromNetworkBuffer((char*) buffer.data(), buffer.size()*sizeof(T));
+    }
+    
     size_t ToNetworkBuffer( char * buffer, size_t n );
-    size_t ToNetworkBuffer( std::vector<char> & buffer );
+    
+    template <typename T>
+    size_t ToNetworkBuffer( std::vector<T> & buffer ) {
+            
+        // check size
+        if (buffer.size()<(nlx_packetbytesize_/sizeof(T))) {
+            buffer.resize(nlx_packetbytesize_/sizeof(T));
+        }
+    
+        return ToNetworkBuffer((char*)buffer.data(), buffer.size()*sizeof(T));
+    }
     
     void Initialize(); // set required fields 1-3
     void Finalize(); // compute CRC
@@ -188,6 +211,7 @@ protected:
     std::vector<int32_t>::const_iterator data_begin() const;
     std::vector<int32_t>::const_iterator data_end() const;
     
+    bool convert_byte_order_;
     unsigned int nchannels_;
     std::vector<int32_t> buffer_;
     bool initialized_ = false;
