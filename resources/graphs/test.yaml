@@ -1,0 +1,31 @@
+processors:
+  sink:
+    class: DummySink
+
+  logger:
+    class : SerialOutput
+    target event: test
+    enabled : True
+
+  event source (1-2):
+    class : EventSource
+    options:
+      events : ["events", "data"]
+      rate : 30
+
+  event converter :
+    class : EventConverter
+    options :
+      event name : test
+      replace : True
+
+
+
+connections:
+  - event source1.events=p:data.f:sink
+  - event source2.events=p:events.f:event converter
+  - event converter.events = logger.events
+
+states:
+  - [sink1.tickle, sink2.tickle]
+
