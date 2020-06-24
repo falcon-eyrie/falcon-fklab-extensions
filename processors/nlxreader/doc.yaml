@@ -1,0 +1,60 @@
+Description: reads raw data from a Neuralynx Digilynx data acquisition system and turns it into multiple MultiChannelData
+             output streams based on a channel mapping
+
+Long description : The channelmap defines the output port names and for each port lists the AD channels that will be
+                   copied to the MultiChannelData buckets on that port.
+                   The channelmap option should be specified as follows
+
+                   Example :
+                     channelmap:
+                       portnameA: [0,1,2,3,4]
+                       portnameB: [5,6]
+                       portnameC: [0,5]
+
+Output port:
+  - name: channel name
+    type: MultiChannelData <double>
+    slots: 1
+    description: configurable number - 1 by channel in channelmap
+
+Options:
+  - name: address
+    type: string
+    default: 127.0.0.1
+    description: IP address of Digilynx acquisition system.
+  - name: port
+    type: unsigned int
+    default: 50000
+    description: Port number for communication with Digilynx acquisition system.
+  - name: channelmap
+    type:
+    default:
+    description: Mapping of channels to processor output ports.
+  - name: npackets
+    type: uint64_t
+    default: 0
+    description: The total number of data packets to read (0 means continuous recording).
+  - name: batch size
+    type: unsigned int
+    default: 1
+    description: The number of data packets to concatenate into single multi-channel data bucket.
+  - name: nchannels
+    type: unsigned int
+    default: 128
+    description: The number of channels of the Digilynx acquisition system.
+  - name: update interval
+    type: uint64_t
+    default: 20 seconds
+    description: The time interval for updates on the received data from the Digilynx acquisition system.
+  - name: trigger/enable
+    type: bool
+    default: true
+    description: Whether or not to wait for hardware trigger to start streaming data packets.
+  - name: convert byte order
+    type: bool
+    default: true
+    description: Perform network to host byte conversion.
+  - name: trigger/channel
+    type: uint32_t
+    default: 0
+    description: Digital input channel to use as hardware trigger

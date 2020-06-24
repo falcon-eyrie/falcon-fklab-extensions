@@ -1,28 +1,22 @@
-/* Distributor
- * 
- * reads multi-channel data stream and splits the data across
- * multiple output streams based on a channel mapping
- * 
- * input ports:
- * data <MultiChannelType<double>> (1 slot)
- *
- * output ports:
- * [configurable] <MultiChannelType<double>> (1 slot)
- *
- * options:
- * channelmap - mapping between input channels and output ports
- * 
- * extra information:
- * The channelmap defines the output port names and for each port lists 
- * the channels that will be copied to the data buckets on that port.
- * The channelmap option should be specified as follows:
- * 
- * channelmap:
- *   portnameA: [0,1,2,3,4]
- *   portnameB: [5,6]
- *   portnameC: [0,5]
- * 
- */
+// ---------------------------------------------------------------------
+// This file is part of falcon-core.
+//
+// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+//
+// Falcon-server is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Falcon-server is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
+// ---------------------------------------------------------------------
+
 
 #ifndef DISTRIBUTOR_HPP
 #define DISTRIBUTOR_HPP

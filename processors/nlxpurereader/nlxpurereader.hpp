@@ -1,22 +1,22 @@
-/* NlxPureReader: reads raw data of a Neuralynx Digilynx data acquisition 
- * on a UDP buffer
- * 
- * input ports:
- * none
- *
- * output ports:
- * udp <VectorData<char>> (1 slot)
- *
- * states:
- * n_invalid (broadcast) number of received invalid data packets
- *
- * options:
- * address <string> - IP address of Digilynx system
- * port <unsigned int> - port of Digilynx system
- * npackets <uint64_t> - number of raw data packets to read before
- *   exiting (0 = continuous streaming)
- * 
- */
+// ---------------------------------------------------------------------
+// This file is part of falcon-core.
+//
+// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+//
+// Falcon-server is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Falcon-server is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
+// ---------------------------------------------------------------------
+
 
 #ifndef NLXPUREREADER_HPP
 #define NLXPUREREADER_HPP

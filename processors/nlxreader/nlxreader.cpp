@@ -33,7 +33,7 @@ NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
     add_option("port", port_,
         "Port number for communication with Digilynx acquisition system.");
     add_option("channelmap", channelmap_,
-        "Mapping of channels to proccessor output ports.");
+        "Mapping of channels to processor output ports.");
     add_option("npackets", npackets_,
         "The total number of data packets to read "
         "(0 means continuous recording).");
@@ -152,14 +152,8 @@ void NlxReader::Process( ProcessingContext& context ) {
 		
         if (size > 0) { // receive packet
             
-            // if ( context.test() ) {
-            //     test_source_timestamps_[valid_packet_counter_] = Clock::now();
-            // }
-            
             int recvlen = recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
-            
-            //if (!CheckPacket( buffer_, recvlen )) { continue; }
-            
+
             if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
                 ++stats_.n_invalid;
                 LOG(INFO) << name() << ": Received invalid record.";

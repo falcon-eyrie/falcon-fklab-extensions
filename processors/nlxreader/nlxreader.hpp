@@ -17,48 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* NlxReader: reads raw data from a Neuralynx Digilynx data acquisition 
- * system and turns it into multiple MultiChannelData output streams 
- * based on a channel mapping
- * 
- * input ports:
- * none
- *
- * output ports:
- * [configurable] <MultiChannelType> (1 slot)
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * address <string> - IP address of Digilynx system
- * port <unsigned int> - port of Digilynx system
- * nchannels <unsigned int> - number of channels in Digilynx system
- * batch_size <unsigned int> - how many samples to pack into single
- *   MultiChannelData bucket
- * npackets <uint64_t> - number of raw data packets to read before
- *   exiting (0 = continuous streaming)
- * update_interval <unsigned int> - time interval (in seconds) between
- *   log updates
- * channelmap - mapping between AD channels and output ports
- * hardware_trigger <bool> - enable use of hardware triggered dispatching
- * hardware_trigger_channel <uint8> - which DIO channel to use as trigger
- * 
- * extra information:
- * The channelmap defines the output port names and for each port lists 
- * the AD channels that will be copied to the MultiChannelData buckets 
- * on that port. The channelmap option should be specified as follows:
- * 
- * channelmap:
- *   portnameA: [0,1,2,3,4]
- *   portnameB: [5,6]
- *   portnameC: [0,5]
- * 
- */
-
 #ifndef NLXREADER_HPP
 #define NLXREADER_HPP
 
@@ -147,7 +105,7 @@ protected:
         options::zeroismax<std::uint64_t>()
     };
     options::Value<unsigned int,false> batch_size_{1};
-    options::Value<unsigned int,false> nchannels_{128};
+    options::Value<unsigned int,false> nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
     options::Measurement<std::uint64_t,false> update_interval_{
         20,
         "second",

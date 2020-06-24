@@ -1,34 +1,22 @@
-/* NlxParser
- * 
- * reads raw Neuralynx Digilynx data packets from a NlxPureReader processor
- * and turns it a single MultiChannelData output stream of all available
- * channels. Optionally, multiple data packets are combined into batches.
- * 
- * input ports:
- * udp <VectorType<char>> (1 slot)
- *
- * output ports:
- * data <MultiChannelType<double>> (1 slot)
- * ttl <MultiChannelType<uint32_t>> (1 slot)
- *
- * states:
- * n_invalid (broadcast) number of received invalid data packets
- *
- * options:
- * batch_size <unsigned int> - how many samples to pack into single
- *   MultiChannelData bucket
- * npackets <uint64_t> - number of raw data packets to read before
- *   exiting (0 = continuous streaming)
- * update_interval <unsigned int> - time interval (in seconds) between
- *   log updates
- * gaps_filling <string> - if "none", no filling of missed packets; if "asap"
- *   all missed packets will be filled with last available batch of samples;
- *   if "distributed" missed packets will be filled with the last available
- *   batch of samples at each iteration.
- * hardware_trigger <bool> - enable use of hardware triggered dispatching
- * hardware_trigger_channel <uint8> - which DIO channel to use as trigger
- * 
- */
+// ---------------------------------------------------------------------
+// This file is part of falcon-core.
+//
+// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+//
+// Falcon-server is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Falcon-server is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
+// ---------------------------------------------------------------------
+
 
 #ifndef NLXPARSER_HPP
 #define NLXPARSER_HPP
