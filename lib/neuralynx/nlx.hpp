@@ -17,20 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-// to handle incoming records (e.g. nlxreader)
-// construct a NlxRecord object with required number of channels
-// read packet into char buffer and call NlxRecord::FromNetworkBuffer
-// if valid buffer (i.e. record size is OK, first 3 fields are OK, CRC checks out)
-// grab data, timestamp, parallel port value with member methods
-
-// to create new record
-// construct a NlxRecord object with required number of channels
-// optionally Initialize() (will be done during construction)
-// set timestamp, parallel port values and data using member methods
-// Finalize() (will compute CRC)
-// copy packet into external buffer to be sent over network using ToNetworkBuffer
-
-
 #ifndef NLX_H
 #define NLX_H
 
@@ -228,7 +214,7 @@ protected:
 // sampling period (microseconds)
 constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
     SAMPLING_PERIOD_MICROSEC = 1e6 / NLX_SIGNAL_SAMPLING_FREQUENCY;
-// maximum tolerated difference between two timstamps that
+// maximum tolerated difference between two timestamps that
 // is not considered a gap with missing data packets
 const uint64_t MAX_ALLOWABLE_TIMEGAP_MICROSECONDS =
         trunc( SAMPLING_PERIOD_MICROSEC ) + 1;

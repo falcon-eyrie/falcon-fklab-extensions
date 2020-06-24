@@ -24,48 +24,6 @@
 
 constexpr uint16_t NlxReader::MAX_NCHANNELS;
 constexpr decltype(NlxReader::MAX_NCHANNELS) NlxReader::UDP_BUFFER_SIZE;
-//constexpr decltype(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) NlxReader::SAMPLING_PERIOD_MICROSEC;
-//constexpr decltype(NlxReader::delta_) NlxReader::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
-//constexpr decltype(NlxReader::timestamp_) NlxReader::INVALID_TIMESTAMP;
-
-// void NlxReaderStats::clear_stats() {
-    
-//     n_invalid = 0;
-//     n_duplicated = 0;
-//     n_outoforder = 0;
-//     n_missed = 0;
-//     n_gaps = 0;
-// }
-
-// bool NlxReader::CheckPacket(char * buffer, int recvlen) {
-    
-//     if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
-//         ++stats_.n_invalid;
-//         LOG(INFO) << name() << ": Received invalid record.";
-//         return false;
-//     }
-    
-//     timestamp_ = nlxrecord_.timestamp();
-    
-//     if ( last_timestamp_ == INVALID_TIMESTAMP ) {
-//         last_timestamp_ = timestamp_;
-//     } else if ( timestamp_ == last_timestamp_ ) {
-//         ++stats_.n_duplicated;
-//     } else if ( timestamp_ < last_timestamp_ ) {
-//         ++stats_.n_outoforder;
-//     } else {
-//         delta_ = timestamp_ - last_timestamp_;
-//         if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
-//             int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
-//             stats_.n_missed += n_missed;
-//             ++stats_.n_gaps;
-//             LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
-//         }
-//         last_timestamp_ = timestamp_;
-//     }
-    
-//     return true;
-// }
 
 
 NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
