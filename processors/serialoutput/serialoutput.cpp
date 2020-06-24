@@ -77,9 +77,7 @@ void SerialOutput::Process( ProcessingContext& context ) {
         ++ nreceived_events_;
 
         // select and execute protocol based on event name
-
         if (enabled_->get() && target_event_() == *data_in ) {
-
             ++ntarget_events_;
 
             if ( not to_lock_out( data_in->hardware_timestamp() ) ) {
@@ -87,6 +85,7 @@ void SerialOutput::Process( ProcessingContext& context ) {
                 if ( context.test() ) {
                     test_source_timestamps_[nprotocol_executions_] = Clock::now();
                 }
+
 
                 message = message_->get();
                 if ( (serialport_write( fd_, &message)) != 0 ) {

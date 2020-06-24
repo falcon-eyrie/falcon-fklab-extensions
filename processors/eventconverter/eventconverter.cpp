@@ -51,7 +51,7 @@ void EventConverter::Process(ProcessingContext& context) {
     while ( !context.terminated() ) {
         
         if (!data_in_port_->slot(0)->RetrieveData( data_in )) {break;}
-        LOG(DEBUG) << data_in->event() << event_name_();
+
         data_out = data_out_port_->slot(0)->ClaimData( true );
         data_out->set_hardware_timestamp( data_in->hardware_timestamp() );
 
