@@ -95,6 +95,7 @@ protected:
         0.5,
         options::inrange<double>(0.,1.)
     };
+    options::Bool preamble_{true};
 };
 
 #endif //fileserializer.hpp

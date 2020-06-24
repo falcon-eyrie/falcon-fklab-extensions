@@ -38,6 +38,7 @@ FileSerializer::FileSerializer() : IProcessor() {
     add_option("throttle/smooth", throttle_smooth_,
         "Smoothly changes throttle level as threshold is reached "
         "(value between 0 and 1).");
+    add_option("preamble", preamble_, "Add YAML preamble to file.");
 }
 
 void FileSerializer::CreatePorts() {
@@ -94,7 +95,9 @@ void FileSerializer::Preprocess(ProcessingContext& context) {
             throw ProcessingError( "Error opening output file " + filename + ".", name() );
         }
         
-        create_preamble( *stream.get(), k );
+        if (preamble_()) {
+            create_preamble( *stream.get(), k );
+        }
         
         streams_.push_back( std::move(stream) );
         

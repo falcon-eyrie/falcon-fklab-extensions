@@ -27,11 +27,15 @@
 
 class SineSource : public DataSource {
 public:
-    SineSource( double offset = 0.0, double amplitude = 1.0, double frequency = 1.0, double sampling_rate = 1.0, double noise_stdev = 0 );
+    SineSource(
+        double offset = 0.0, double amplitude = 1.0,
+        double frequency = 1.0, double sampling_rate = 1.0,
+        double noise_stdev = 0, unsigned int nchannels=128,
+        bool convert_byte_order=true );
     
     virtual std::string string();
     
-    virtual bool Produce( char** data );
+    virtual int64_t Produce( char** data );
     
     virtual YAML::Node to_yaml() const;
     
@@ -44,17 +48,21 @@ protected:
     double sampling_rate_;
     double noise_stdev_;
     
+    
     uint64_t timestamp_ = 0;
     uint64_t delta_;
     
-    NlxSignalRecord record_;
+    nlx::NlxSignalRecord record_;
     
     double omega_;
     
-    char buffer_[BUFFERSIZE];
+    std::vector<char> buffer_;
     
     std::default_random_engine generator_;
     std::normal_distribution<double> distribution_;
+
+    unsigned int nchannels_;
+    bool convert_byte_order_;
 };
 
 #endif // SQUARESOURCE_H

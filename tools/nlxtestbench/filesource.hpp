@@ -38,7 +38,7 @@ public:
     
     std::string file() const;
     
-    virtual bool Produce( char** data );
+    virtual int64_t Produce( char** data );
     
     virtual YAML::Node to_yaml() const;
     
@@ -50,7 +50,11 @@ protected:
     
     std::ifstream raw_data_file;
     
-    char buffer_[NLX_PACKETBYTESIZE(128)];
+    std::vector<char> buffer_;
+
+    unsigned int nchannels_;
+    uint16_t buffer_size_;
+    bool convert_byte_order_;
 };
 
 #endif // FILESOURCE_H

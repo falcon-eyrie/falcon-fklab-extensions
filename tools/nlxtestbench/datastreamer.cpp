@@ -48,6 +48,8 @@ DataStreamer::DataStreamer( DataSource * source, double rate, std::string ip, in
     if (max_packets_==0) {
         max_packets_ = std::numeric_limits<uint64_t>::max();
     }
+
+    std::cout << "Streaming to " << ip_ << ":" << port_ << std::endl;
     
 }
     
@@ -73,7 +75,9 @@ void DataStreamer::Terminate() {
 void DataStreamer::Run() {
     
     uint64_t npackets = 0;
-    
+    unsigned int buffer_size = 0;
+    ssize_t sent;
+
     TimePoint start;
     std::chrono::microseconds period( (uint64_t) (1000000./rate_) );
             
@@ -88,13 +92,17 @@ void DataStreamer::Run() {
         
         start = Clock::now();
         
-        if (!source_->Produce( &buffer )) { break; }
+        if ((buffer_size=source_->Produce( &buffer ))==0) { break; }
         
         busysleep_until( start + period );
-        
-        if ( sendto( udp_socket_, buffer, BUFFERSIZE, 0,
-                     (struct sockaddr*) &server_address_, sizeof(server_address_) ) != BUFFERSIZE ) {
-            std::cout << "Error sending data packet." << std::endl;
+
+        if ( (sent=sendto( udp_socket_, (void*)buffer, buffer_size, 0,
+                     (struct sockaddr*) &server_address_, sizeof(server_address_))) != buffer_size ) {
+            if (sent<0) {
+                std::cout << "Error sending data packet: " << std::strerror(errno) << std::endl;
+            } else {
+                std::cout << "Error sending data packet: did not send all data." << std::endl;
+            }
             break;
         }
         

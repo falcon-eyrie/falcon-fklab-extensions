@@ -24,48 +24,6 @@
 
 constexpr uint16_t NlxReader::MAX_NCHANNELS;
 constexpr decltype(NlxReader::MAX_NCHANNELS) NlxReader::UDP_BUFFER_SIZE;
-constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY) NlxReader::SAMPLING_PERIOD_MICROSEC;
-constexpr decltype(NlxReader::delta_) NlxReader::MAX_ALLOWABLE_TIMEGAP_MICROSECONDS;
-constexpr decltype(NlxReader::timestamp_) NlxReader::INVALID_TIMESTAMP;
-
-void NlxReaderStats::clear_stats() {
-    
-    n_invalid = 0;
-    n_duplicated = 0;
-    n_outoforder = 0;
-    n_missed = 0;
-    n_gaps = 0;
-}
-
-bool NlxReader::CheckPacket(char * buffer, int recvlen) {
-    
-    if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
-        ++stats_.n_invalid;
-        LOG(INFO) << name() << ": Received invalid record.";
-        return false;
-    }
-    
-    timestamp_ = nlxrecord_.timestamp();
-    
-    if ( last_timestamp_ == INVALID_TIMESTAMP ) {
-        last_timestamp_ = timestamp_;
-    } else if ( timestamp_ == last_timestamp_ ) {
-        ++stats_.n_duplicated;
-    } else if ( timestamp_ < last_timestamp_ ) {
-        ++stats_.n_outoforder;
-    } else {
-        delta_ = timestamp_ - last_timestamp_;
-        if ( delta_ > MAX_ALLOWABLE_TIMEGAP_MICROSECONDS ) {
-            int64_t n_missed = round ( delta_ / SAMPLING_PERIOD_MICROSEC ) - 1;
-            stats_.n_missed += n_missed;
-            ++stats_.n_gaps;
-            LOG(DEBUG) << n_missed << " timestamps were found to be missing. ";
-        }
-        last_timestamp_ = timestamp_;
-    }
-    
-    return true;
-}
 
 
 NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
@@ -75,7 +33,7 @@ NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
     add_option("port", port_,
         "Port number for communication with Digilynx acquisition system.");
     add_option("channelmap", channelmap_,
-        "Mapping of channels to proccessor output ports.");
+        "Mapping of channels to processor output ports.");
     add_option("npackets", npackets_,
         "The total number of data packets to read "
         "(0 means continuous recording).");
@@ -87,17 +45,20 @@ NlxReader::NlxReader() : IProcessor( PRIORITY_HIGH ) {
     add_option("update interval", update_interval_,
         "The time interval for updates on the received data from "
         "the Digilynx acquisition system.");
-    add_option("hardware trigger", dispatch_,
+    add_option("trigger/enable", triggered_,
         "Whether or not to wait for hardware trigger to start "
         "streaming data packets.");
-    add_option("hardware trigger channel", hardware_trigger_channel_,
+    add_option("trigger/channel", hardware_trigger_channel_,
         "Digital input channel to use as hardware trigger");
+    add_option("convert byte order", convert_byte_order_,
+        "Perform network to host byte conversion.");
 
 };
 
 void NlxReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
     
-    nlxrecord_.set_nchannels( nchannels_() );  
+    nlxrecord_.set_nchannels( nchannels_() );
+    nlxrecord_.set_convert_byte_order(convert_byte_order_());
 }
 
 void NlxReader::CreatePorts() {
@@ -118,8 +79,8 @@ void NlxReader::CompleteStreamInfo() {
         it.second->streaminfo(0).set_parameters(
             MultiChannelType<double>::Parameters( channelmap_().at(it.first).size(),
                                                   batch_size_(), 
-                                                  NLX_SIGNAL_SAMPLING_FREQUENCY ) );
-        it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_() );
+                                                  nlx::NLX_SIGNAL_SAMPLING_FREQUENCY ) );
+        it.second->streaminfo(0).set_stream_rate( nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_() );
     }
 }
 
@@ -137,10 +98,10 @@ void NlxReader::Preprocess( ProcessingContext& context ) {
     valid_packet_counter_ = 0;
     const int y = 1;
     
-    timestamp_ = INVALID_TIMESTAMP;
-    last_timestamp_ = INVALID_TIMESTAMP;
+    timestamp_ = nlx::INVALID_TIMESTAMP;
+    last_timestamp_ = nlx::INVALID_TIMESTAMP;
     
-    stats_.clear_stats();
+    stats_.clear();
     
     if ( context.test() ) {
         prepare_latency_test( context );
@@ -191,34 +152,36 @@ void NlxReader::Process( ProcessingContext& context ) {
 		
         if (size > 0) { // receive packet
             
-            if ( context.test() ) {
-                test_source_timestamps_[valid_packet_counter_] = Clock::now();
-            }
-            
             int recvlen = recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
-            
-            if (!CheckPacket( buffer_, recvlen )) { continue; }
-            
+
+            if (!nlxrecord_.FromNetworkBuffer( buffer_, recvlen )) {
+                ++stats_.n_invalid;
+                LOG(INFO) << name() << ": Received invalid record.";
+                continue;
+            }
+
+            timestamp_ = nlx::CheckTimestamp(nlxrecord_, last_timestamp_, stats_);
+
             valid_packet_counter_++;
             
             if (valid_packet_counter_==1) {
                 first_valid_packet_arrival_time_ = Clock::now();
                 LOG(UPDATE) << name() << ": Received first valid data packet" <<
-                    " (TS = " << nlxrecord_.timestamp() << ").";
+                    " (TS = " << timestamp_ << ").";
             }
             
             update_time = valid_packet_counter_%update_interval_()== 0;
             LOG_IF(UPDATE, update_time ) << name() << ": " <<
                 valid_packet_counter_ << " packets (" <<
-                valid_packet_counter_/NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
+                valid_packet_counter_/nlx::NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
             print_stats( update_time );
             
-            if (!dispatch_()) {
+            if (triggered_()) {
                 LOG_IF(UPDATE, (valid_packet_counter_ == 1)) << name() <<
                     ". Waiting for hardware trigger on channel "
                     << hardware_trigger_channel_() << ".";
                 if (nlxrecord_.parallel_port() & (1<<hardware_trigger_channel_()) ) {
-                    dispatch_=true;
+                    triggered_=true;
                     LOG(UPDATE) << name() << ". Dispatching starts now.";
                 } else { continue; }
             }
@@ -230,7 +193,7 @@ void NlxReader::Process( ProcessingContext& context ) {
                     data_vector[data_index] = it.second->slot(0)->ClaimData(false);
                     // set data bucket metadata
                     data_vector[data_index]->set_hardware_timestamp(
-                        nlxrecord_.timestamp() );
+                        timestamp_ );
                     data_vector[data_index]->set_source_timestamp();
                     data_index++;
                 }
@@ -287,7 +250,7 @@ void NlxReader::Postprocess( ProcessingContext& context ) {
         << ". Finished reading : "
         << valid_packet_counter_ << " packets received over "
         << static_cast<double>(runtime.count())/1000 << " seconds at a rate of " 
-        << valid_packet_counter_/static_cast<double>(runtime.count())/1000 << " packets/second."; 
+        << valid_packet_counter_/(static_cast<double>(runtime.count())/1000) << " packets/second."; 
     print_stats();
     
     close( udp_socket_ );
@@ -304,7 +267,7 @@ void NlxReader::print_stats( bool condition ) {
         << stats_.n_duplicated << " duplicated, " 
         << stats_.n_outoforder << " out of order, " 
         << stats_.n_missed << " missed, " 
-        << stats_.n_gaps << " gaps).";
+        << stats_.n_gaps << " gaps.";
 }
 
 REGISTERPROCESSOR(NlxReader)

@@ -36,7 +36,7 @@ static const int DEFAULT_PORT = 5000;
 static constexpr const double DEFAULT_RATE = 32000;
 static constexpr const uint64_t DEFAULT_NPACKETS = 0;
 static constexpr const char* const DEFAULT_NLX_FILE = "";
-static constexpr const double DEFAULT_SAMPLING_RATE = NLX_SIGNAL_SAMPLING_FREQUENCY;
+static constexpr const double DEFAULT_SAMPLING_RATE = nlx::NLX_SIGNAL_SAMPLING_FREQUENCY;
 
 void list_all_sources( std::vector<std::unique_ptr<DataSource>> & sources ) {
     
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
         std::cout << "npackets = all" << std::endl;
     } else {
         std::cout << "npackets = " << to_string_n(config.npackets()) << "( " <<
-            to_string_n( config.npackets() / NLX_SIGNAL_SAMPLING_FREQUENCY ) << " s)" <<
+            to_string_n( config.npackets() / nlx::NLX_SIGNAL_SAMPLING_FREQUENCY ) << " s)" <<
             std::endl;
     }
     if (autostart) {

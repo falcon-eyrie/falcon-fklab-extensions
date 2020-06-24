@@ -22,6 +22,6 @@
 
 #include "neuralynx/nlx.hpp"
 
-constexpr unsigned int BUFFERSIZE = NLX_DEFAULT_BUFFERSIZE;
+constexpr unsigned int BUFFERSIZE = nlx::NLX_DEFAULT_BUFFERSIZE;
 
 #endif

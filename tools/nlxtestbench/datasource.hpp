@@ -28,7 +28,7 @@ class DataSource {
 public:
     virtual ~DataSource() {}
     
-    virtual bool Produce( char** data ) = 0;
+    virtual int64_t Produce( char** data ) = 0;
     
     virtual std::string string() = 0;
     

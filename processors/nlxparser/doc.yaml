@@ -1,0 +1,60 @@
+Description: reads raw Neuralynx Digilynx data packets from a NlxPureReader processor and turns it a single MultiChannelData
+             output stream of all available channels. Optionally, multiple data packets are combined into batches.
+
+Long description :
+
+Input port :
+  - name: udp
+    type: VectorType <char>
+    slots: 1
+    description:
+
+Output port :
+  - name: data
+    type: MultiChannelType <double>
+    slots: 1
+    description:
+  - name: ttl
+    type: MultiChannelType <uint32_t>
+    slots: 1
+    description:
+
+Options:
+  - name: batch size
+    type: unsigned int
+    default: 1
+    description: The number of data packets to concatenate into single multi-channel data bucket.
+  - name: update interval
+    type: uint64_t
+    default: 20 seconds
+    description: The time interval for updates on the received data from the Digilynx acquisition system.
+  - name: trigger/enable
+    type: bool
+    default: true
+    description: Whether or not to wait for hardware trigger to start streaming data packets.
+  - name: trigger/channel
+    type: uint32_t
+    default: 0
+    description: Digital input channel to use as hardware trigger
+  - name: gap fill
+    type: string
+    default: asap
+    description: Method of filling in missing data packets.
+                 If 'none', no filling of " missed packets is performed.
+                 If 'asap', all missed packets will be filled with last available batch of samples.
+                 If 'distributed', missed packets will be filled with the last available batch of samples at each iteration.
+
+  - name: convert byte order
+    type: bool
+    default: true
+    description: Perform network to host byte conversion.
+
+
+States:
+
+  broadcaster :
+     - name: n_invalid
+       type: uint64_t
+       initial value: O
+       external access: read
+       description: The number of invalid packets that were received.

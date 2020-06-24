@@ -23,11 +23,20 @@
 #include <stdexcept>
 #include <cmath>
 
-SineSource::SineSource( double offset, double amplitude, double frequency, double sampling_rate, double noise_stdev ) :
+SineSource::SineSource(
+    double offset, double amplitude, double frequency, 
+    double sampling_rate, double noise_stdev, unsigned int nchannels,
+    bool convert_byte_order ) :
     
-    offset_(offset), amplitude_(amplitude), frequency_(frequency), sampling_rate_(sampling_rate), noise_stdev_(noise_stdev), delta_(1000000/sampling_rate), distribution_(0.0, noise_stdev) {
+    offset_(offset), amplitude_(amplitude), frequency_(frequency),
+    sampling_rate_(sampling_rate), noise_stdev_(noise_stdev),
+    delta_(1000000/sampling_rate), distribution_(0.0, noise_stdev),
+    nchannels_(nchannels), convert_byte_order_(convert_byte_order) {
     
     omega_ = 2 * 3.14159265358979 * frequency_ / 1000000;
+
+    record_.set_nchannels(nchannels_);
+    record_.set_convert_byte_order(convert_byte_order_);
     
 }
     
@@ -35,18 +44,22 @@ std::string SineSource::string() {
     return "sine wave (fs = " + to_string_n(sampling_rate_) + " Hz, " +
            "offset = " + to_string_n(offset_) + " uV, " +
            "amplitude = " + to_string_n(amplitude_) + " uV, " +
-           "frequency = " + to_string_n(frequency_) + " Hz, "
-           "noise stdev = " + to_string_n(noise_stdev_) + " uV)";
+           "frequency = " + to_string_n(frequency_) + " Hz, " +
+           "noise stdev = " + to_string_n(noise_stdev_) + " uV, " +
+           "number of channels = " + std::to_string(nchannels_) + ", " +
+           "convert byte order = " + std::to_string(convert_byte_order_) + ")";
 }
     
-bool SineSource::Produce( char** data ) {
+int64_t SineSource::Produce( char** data ) {
         
     record_.set_data( distribution_(generator_) + offset_ + amplitude_*std::sin( timestamp_*omega_ ) );
     record_.set_timestamp( timestamp_ );
     timestamp_ = timestamp_ + delta_;
-    record_.ToNetworkBuffer( buffer_, BUFFERSIZE );
-    *data = buffer_;
-    return true;
+    
+    auto n = record_.ToNetworkBuffer( buffer_ );
+    *data = buffer_.data();
+
+    return n;
 }
 
 YAML::Node SineSource::to_yaml() const {
@@ -58,6 +71,8 @@ YAML::Node SineSource::to_yaml() const {
     node["frequency"] = frequency_;
     node["sampling_rate"] = sampling_rate_;
     node["noise_stdev"] = noise_stdev_;
+    node["nchannels"] = nchannels_;
+    node["convert_byte_order"] = convert_byte_order_;
     
     return node;
 }
@@ -68,5 +83,7 @@ SineSource* SineSource::from_yaml( const YAML::Node node ) {
                            node["amplitude"].as<double>(1.0),
                            node["frequency"].as<double>(1.0),
                            node["sampling_rate"].as<double>(32000),
-                           node["noise_stdev"].as<double>(0) );
+                           node["noise_stdev"].as<double>(0),
+                           node["nchannels"].as<unsigned int>(128),
+                           node["convert_byte_order"].as<bool>(true));
 }
