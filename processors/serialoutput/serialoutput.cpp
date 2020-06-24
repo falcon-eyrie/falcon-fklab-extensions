@@ -1,3 +1,22 @@
+// ---------------------------------------------------------------------
+// This file is part of falcon-core.
+//
+// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+//
+// Falcon-server is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Falcon-server is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
+// ---------------------------------------------------------------------
+
 #include "serialoutput.hpp"
 
 #include "g3log/src/g2log.hpp"
@@ -6,14 +25,14 @@
 #include <fstream>
 
 SerialOutput::SerialOutput(){
-    add_option(ENABLED_S , default_enabled_, "");
-    add_option(LOCKOUT_PERIOD_S, initial_lockout_period_, "");
-    add_option("enable saving", save_stim_events_, "");
-    add_option("port address", port_address_, "");
+    add_option(ENABLED_S , default_enabled_, "Enabled the processing of incoming events.");
+    add_option(LOCKOUT_PERIOD_S, initial_lockout_period_, "Lock out time after the processing of an event.");
+    add_option("enable saving", save_stim_events_, "Enabled the saving in a local file");
+    add_option("port address", port_address_, "Address of serial port");
     add_option(MESSAGE_S, default_message_, "");
-    add_option("target event", target_event_, "");
-    add_option("baud rate", baudrate_, "");
-    add_option("print protocol execution updates",print_transmission_updates_, "");
+    add_option("target event", target_event_, "Event to be processed");
+    add_option("baud rate", baudrate_, "Serial rate exchange");
+    add_option("print protocol execution updates",print_transmission_updates_, "Log message (UPDATE level) if true");
 
 
 }
@@ -77,7 +96,7 @@ void SerialOutput::Process( ProcessingContext& context ) {
         ++ nreceived_events_;
 
         // select and execute protocol based on event name
-        if (enabled_->get() && target_event_() == *data_in ) {
+        if (enabled_->get() && if (target_event_() == *data_in ) {
             ++ntarget_events_;
 
             if ( not to_lock_out( data_in->hardware_timestamp() ) ) {

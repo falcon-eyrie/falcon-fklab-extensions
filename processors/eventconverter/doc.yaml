@@ -1,0 +1,24 @@
+Description: Convert incoming EventData into another event
+
+Input ports :
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Output ports :
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+
+Options:
+  - name: event name
+    type: string
+    default:
+    description: name for generating the delayed event
+  - name: replace
+    type: bool
+    default: true
+    description: replace or append the name of the delayed event
