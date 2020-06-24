@@ -7,28 +7,25 @@ processors:
     options:
       target event: "events"
 
-  event source (1-3):
+  event source (1-2):
     class : EventSource
     options:
       events : ["events", "data"]
       rate : 30
 
-  event filter :
-    class : EventFilter
+  event converter :
+    class : EventConverter
     options :
-      block duration : 10
-      block wait time: 2
+      event name : test
+      replace : false
 
 
 
 connections:
   - event source1.events=p:data.f:sink
-  - event source2.events=p:events.f:event filter
-  - event source3.events=p:blocking events.f:event filter
-  - event filter.events = logger.events
+  - event source2.events=p:events.f:event converter
+  - event converter.events = logger.events
 
 states:
   - [sink1.tickle, sink2.tickle]
-
-
 

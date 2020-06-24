@@ -17,26 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSync: synchronizes on the occurrence of a target event on all
- * its input slots, before emitting the same target event
- * 
- * input ports:
- * events <EventType> (1-256 slots)
- *
- * output ports:
- * events <EventType> (1 slot)
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * target_event <string> - target event
- * 
- */
-
 #ifndef EVENTSYNC_HPP
 #define EVENTSYNC_HPP
 

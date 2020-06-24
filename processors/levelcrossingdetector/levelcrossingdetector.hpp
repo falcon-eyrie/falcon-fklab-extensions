@@ -17,33 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* LevelCrossingDetector: detects a threshold crossing on any of the
- * channels in the incoming MultiChannelData stream and emits an event
- * in response
- * 
- * input ports:
- * data <MultiChannelType> (1 slot)
- *
- * output ports:
- * events <EventType> (1 slot)
- *
- * exposed states:
- * threshold <double> - threshold that needs to be crossed
- * upslope <bool> - whether to look for upward (true) or downward (false)
- *   threshold crossings
- * post_detect_block <unsigned int> - refractory period after threshold 
- *   crossing detection (in number of samples )
- *
- * exposed methods:
- * none
- *
- * options:
- * threshold <double> - default threshold state
- * upslope <bool> - default upslope state
- * post_detect_block <unsigned int> - default post_detect_block state
- * event <string> - event to emit upon detection of threshold crossing
- * 
- */
 
 #ifndef LEVELCROSSINGDETECTOR_HPP
 #define LEVELCROSSINGDETECTOR_HPP

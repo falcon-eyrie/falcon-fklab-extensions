@@ -33,7 +33,7 @@ void DummySink::CreatePorts() {
         AnyType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
-    tickle_state_ = create_readable_shared_state( "tickle", false, Permission::READ, Permission::WRITE);
+    tickle_state_ = create_static_state( "tickle", false, true, Permission::WRITE);
     
     expose_method( "kick", &DummySink::Kick );
 }

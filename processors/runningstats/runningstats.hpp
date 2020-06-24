@@ -17,31 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* RunningStats: computes running statistics
- * 
- * input ports:
- * data <MultiChannelType> (1 slot)
- *
- * output ports:
- * data <MultiChannelType> (1 slot)
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * integration_time <double> - time window for exponential smoothing
- * outlier_protection <bool> - enable outlier protectection. Outliers are
- *   values larger than a predefined z-score. The contribution of an
- *   outlier is reduced by an amount that depends on the magnitude of
- *   the outlier.
- * outlier_zscore <double> - z-score that defines an outlier
- * outlier_half_life <double> - the number of standard deviations above
- *   the outlier z-score at which the influence of the outlier is halved.
- * 
- */
  
 #ifndef RUNNINGSTATS_H
 #define RUNNINGSTATS_H

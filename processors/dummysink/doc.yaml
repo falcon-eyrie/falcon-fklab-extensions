@@ -1,0 +1,22 @@
+Description: Take an EventData stream and sets digital outputs according to an event-specific.
+
+Input ports :
+  - name: data
+    type: AnyType
+    slots: 1
+    description:
+
+
+Method :
+  - name : kick
+    description : log message
+
+
+State :
+  static:
+    - name: tickled
+        type: bool
+        initial value: false
+        shared: true
+        external access: write
+        description:

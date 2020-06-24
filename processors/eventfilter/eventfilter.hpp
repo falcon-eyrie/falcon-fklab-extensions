@@ -17,35 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* 
- * EventFilter: processes neural data
- * 
- * input ports:
- * events <EventType> ( 1-256 slots)
- * blocking_events <EventType> ( 1-256 slots)
- * 
- * output ports:
- * events <EventType> (1 slot)
- * 
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- * 
- * options:
- * target_event <string> - target event to be filtered out
- * blockout_time_ms <double> - time during which target events are filtered out
- * synch_time_ms <double> - time used to check if any blocking target event is present
- * after a target event has been received 
- * detection_criterion <string OR unsigned int> - string or number to determine 
- * the criterion for a triggering detection; acceptable string values: 'any', 'all'
- * acceptable integer values: any value between 1 (equivalent to 'any') and the 
- * number of input slots 
- * discard_warnings <bool> - if true, warnings about discarded events will not
- * be generated
- */
-
 #ifndef EVENT_FILTER_HPP
 #define	EVENT_FILTER_HPP
 
@@ -67,7 +38,7 @@ class EventFilter : public EventSync {
 // CONSTRUCTOR and OVERLOADED METHODS
 public:
     EventFilter();
-     virtual void CreatePorts() override;
+    virtual void CreatePorts() override;
     virtual void Prepare( GlobalContext& context ) override;
     virtual void Preprocess( ProcessingContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;

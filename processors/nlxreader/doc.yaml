@@ -5,11 +5,11 @@ Long description : The channelmap defines the output port names and for each por
                    copied to the MultiChannelData buckets on that port.
                    The channelmap option should be specified as follows
 
-                   Example :
-                     channelmap:
-                       portnameA: [0,1,2,3,4]
-                       portnameB: [5,6]
-                       portnameC: [0,5]
+Example :
+    channelmap:
+        portnameA: [0,1,2,3,4]
+        portnameB: [5,6]
+        portnameC: [0,5]
 
 Output port:
   - name: channel name

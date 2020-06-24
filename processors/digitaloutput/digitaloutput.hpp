@@ -17,54 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* DigitalOutput: takes an EventType stream and sets digital outputs
- * according to an event-specific protocol
- * 
- * input ports:
- * events <EventType> (1 slot)
- *
- * output ports:
- * none
- *
- * exposed states:
- * enabled <bool> - enable/disable digital output
- *
- * exposed methods:
- * none
- *
- * options:
- * enabled <bool> - default for enabled state
- * pulse_width <unsigned int> - duration of digital output pulse in microseconds
- * device - map specifying the digital output device. A required "type" 
- *   key indicates which device should be used. Valid values are "dummy"
- *   and "advantech". The dummy device requires an additional "nchannels"
- *   key. The advantech device needs an additional "description" key,
- *   and has optional port and delay keys. If port<0, then all ports on
- *   the device are used, otherwise the specified port will be used.
- *   The delay specifies, in microseconds, the imposed delay before
- *   reading or writing a state. If all port<0, then higher port numbers
- *   will have higher delays, because individual p1orts on the Advantech
- *   device are read/written separately in sequence. 
- * protocols - maps events to digital output protocols (see below)
- * 
- * extra information:
- * The protocols option specifies a map with  for each target event
- * a map of actions for selected digital output channels. Note that each
- * channel can only be associated with a single action (even if it is
- * listed more than once). There are 4 possible actions: high, low, 
- * toggle and pulse. Events that are not in the protocols map are
- * ignored. Example configuration for protocols option:
- * 
- * protocols:
- *   event_a:
- *     high: [0,1]
- *   event_b:
- *     low: [0]
- *     toggle: [1]
- *   event_c:
- *     pulse: [2]
- * 
- */
 
 #ifndef DIGITALOUTPUT_HPP
 #define DIGITALOUTPUT_HPP

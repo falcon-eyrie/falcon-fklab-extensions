@@ -17,27 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* Rebuffer: rebuffers and downsamples multiple MultiChannelData streams.
- * No anti-aliasing filter is applied before downsampling.
- * 
- * input ports:
- * data <MultiChannelType> (1-256 slots)
- *
- * output ports:
- * data <MultiChannelType> (1-256 slots)
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * buffer_size : output buffer size in samples or time
- * buffer_unit : samples or seconds
- * downsample : downsample factor
- * 
- */
 
 #ifndef REBUFFER_HPP
 #define REBUFFER_HPP

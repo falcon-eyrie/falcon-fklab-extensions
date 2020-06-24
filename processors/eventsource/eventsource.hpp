@@ -17,27 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* EventSource: generates an EventData stream by randomly emitting
- * events from a list of candidates at a predefined rate
- * 
- * input ports:
- * none
- *
- * output ports:
- * events <EventType> (1 slot)
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * events <list of string> - list of events to emit
- * rate <double> - (approximate) event rate
- * 
- */
- 
 #ifndef EVENTSOURCE_HPP
 #define EVENTSOURCE_HPP
 

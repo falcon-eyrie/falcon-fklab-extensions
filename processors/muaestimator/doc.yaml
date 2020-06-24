@@ -20,7 +20,6 @@ Options:
     default: 20 ms
     description:
 
-
 State:
   static :
     - name: bin size
@@ -29,6 +28,7 @@ State:
       shared: true
       external access: write
       description:
+
   broadcaster:
     - name: MUA
       type: double

@@ -17,36 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* SpikeDetector: detects spikes on any of the incoming MultiChannelData stream;
- * sends SpikeData on the output port spikes and an event "spike"/"spikes"
- *  on the output port events if one or more spikes have been detected in the received buffer
- * 
- * input ports:
- * data <MultiChannelType> (1 slot)
- *
- * output ports:
- * spikes <SpikeType> (1 slot)
- * events <EventType> (1 slot)
- *
- * exposed states:
- * threshold <double> - threshold that a single channel must cross
- * peak_lifetime <unsigned int> - number of samples that will be used to look for a peak;
- *
- *
- * exposed methods:
- * none
- *
- * options:
- * buffer_size <double> - amount of data that will be used to look for spikes [ms]
- * strict_time_bin_check <bool> - whether the buffer size will be strictly or loosely checked
- * for compatibility with the upstream processor
- * threshold <double> - initial threshold state
- * invert_signal <bool> - whether the signal does (true) or does not (false) need
- * to be inverted when detecting spikes
- * peak_lifetime <unsigned int> - initial peak_lifetime value
- * 
- */
-
 #ifndef SPIKEDETECTOR_H
 #define SPIKEDETECTOR_H
 

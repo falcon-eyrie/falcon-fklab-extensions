@@ -16,42 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
-
-/* RippleDetector: detects ripples in a MultiChannelData stream and
- * emits an ripple event in response
- * 
- * input ports:
- * data <MultiChannelType> (1 slot)
- *
- * output ports:
- * events <EventType> (1 slot)
- *
- * exposed states:
- * threshold_dev <double> - threshold that needs to be crossed (read-only)
- * mean <double> - signal mean (read-only)
- * deviation <double> - signal deviation (read-only)
- * threshold_deviation <double> - multiplier for threshold (# of deviations)
- * detection_lockout_time_ms <unsigned int> - refractory period after threshold
- *   crossing detection that is not considered for updating of statistics
- *   and for detecting events
- * stream_events <bool> - enable/disable ripple event output
- * stream_statistics <bool> - enable/disable streaming of ripple detection statistics
- *
- * exposed methods:
- * none
- *
- * options:
- * threshold_dev <double> - default threshold multiplier
- * smooth_time <double> - integration time for signal statistics
- * detection_lockout_time_ms <double> - default lockout time ( no 
- * stream_events <bool> - default enable state for streaming events
- * stream_statistics <bool> - enable streaming of statistics
- * statistics_buffer_size <double> - Buffer size (in seconds) for
- *   statistics output buffers
- * statistics_downsample_factor <unsigned int> - downsample factor of streamed
- *   statistics signal
- * 
- */
  
 #ifndef RIPPLEDETECTOR_HPP
 #define RIPPLEDETECTOR_HPP

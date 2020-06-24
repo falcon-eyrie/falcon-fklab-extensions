@@ -17,28 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* ZMQSerializer: serializes data streams to cloud
- * 
- * input ports:
- * data <IData> (1-256 slots)
- *
- * output ports:
- * none
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * port <unsigned int> - port
- * encoding <string> - binary/yaml
- * format <string> - full/nodata/compact
- * interleaved <bool>
- * 
- */
-
 #ifndef ZMQSERIALIZER_HPP
 #define ZMQSERIALIZER_HPP
 

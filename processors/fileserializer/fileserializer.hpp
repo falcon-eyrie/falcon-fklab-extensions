@@ -17,31 +17,6 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/* FileSerializer: serializes data streams to file
- * 
- * input ports:
- * data <AnyType> (1-256 slots)
- *
- * output ports:
- * none
- *
- * exposed states:
- * none
- *
- * exposed methods:
- * none
- *
- * options:
- * path <string> - server-side path
- * encoding <string> - binary/yaml
- * format <string> - full/nodata/compact
- * overwrite <bool> - overwrite existing file
- * throttle <bool> - throttle saving if we can't keep up
- * throttle_threshold <double> - upstream ringbuffer fill fraction (0-1)
- *   at which throttling takes effect
- * throttle_smooth <double> - smooth level of throttle level (0-1)
- * 
- */
 
 #ifndef FILESERIALIZER_HPP
 #define FILESERIALIZER_HPP
