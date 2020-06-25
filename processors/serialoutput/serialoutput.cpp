@@ -40,12 +40,11 @@ SerialOutput::SerialOutput(){
 void SerialOutput::CreatePorts() {
     
     data_in_port_ = create_input_port<EventType>(
-        EVENTDATA,
         EventType::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
     enabled_ = create_static_state(
-        ENABLED_S ,
+        ENABLED_S,
         default_enabled_(),
         true,
         Permission::WRITE);
@@ -72,10 +71,6 @@ void SerialOutput::Preprocess( ProcessingContext& context ) {
     n_locked_out_events_ = 0;
     previous_TS_nostim_ = std::numeric_limits<uint64_t>::min();
     
-    if ( context.test() ) {
-        prepare_latency_test( context );
-    }
-    
     fd_ = serialport_init( port_address_().c_str(), baudrate_() );
     LOG(INFO) << "Serial port " << port_address_() << " opened.";
 }
@@ -96,15 +91,10 @@ void SerialOutput::Process( ProcessingContext& context ) {
         ++ nreceived_events_;
 
         // select and execute protocol based on event name
-        if (enabled_->get() && if (target_event_() == *data_in ) {
+        if (enabled_->get() && target_event_() == *data_in ) {
             ++ntarget_events_;
 
             if ( not to_lock_out( data_in->hardware_timestamp() ) ) {
-                    
-                if ( context.test() ) {
-                    test_source_timestamps_[nprotocol_executions_] = Clock::now();
-                }
-
 
                 message = message_->get();
                 if ( (serialport_write( fd_, &message)) != 0 ) {
@@ -147,10 +137,6 @@ void SerialOutput::Postprocess( ProcessingContext& context ) {
         " were targets. Successfully executed stimulation protocol " <<
         nprotocol_executions_ << " times out of " << ntarget_events_ << ". " <<
         n_locked_out_events_ << " executions of the stimulation protocol were locked out.";
-    
-    if ( context.test() ) {
-        save_source_timestamps_to_disk( nprotocol_executions_ );
-    } 
     
     serialport_close( fd_ );
 }

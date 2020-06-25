@@ -17,24 +17,8 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-/*
- * EventConverter: convert incoming EventData into another event
- * 
- * input ports:
- * events <EventData> (1 slot1)
- * 
- * output ports:
- * events <IData> (1 slot)
- *
- * 
- * options:
- * event_name <string> - name for generating the delayed event
- * replace <bool> - if True output events will be replaced by "event_name" events,
- * if False output events will have "event_name" appended to their original name
- */
-
 #ifndef EVENT_CONVERTER_HPP
-#define	EVENT_CONVERTER_HPP
+#define EVENT_CONVERTER_HPP
 
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"

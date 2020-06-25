@@ -17,7 +17,7 @@ Options:
   - name: lockout period
     type: double
     default:
-    description: name for generating the delayed event
+    description: Lock out time after the processing of an event.
   - name: enabled
     type: bool
     default: true
@@ -48,19 +48,22 @@ State:
   static:
     - name: enabled
       data type: bool
-      initial value: see option enabled
+      initial value:
+         option: enabled
       external access: write
       shared: true
       description:
     - name: lockout period
       data type: double
-      initial value: see option lockout period
+      initial value:
+        option: lockout period
       external access: write
       shared: true
       description:
     - name: message
       data type: char
-      initial value: see option message
+      initial value:
+        option: message
       external access: write
       shared: true
       description:
