@@ -54,7 +54,6 @@
 #include "neuralynx/nlx.hpp"
 #include "npyreader/npyreader.h"
 #include "options/options.hpp"
-
 #include "options/units.hpp"
 #include <limits>
 
@@ -73,23 +72,22 @@ public:
 protected:
     PortOut<SpikeType>* output_port_;
     
-    options::String path_to_spikes_{};
-    options::String path_to_spike_times_{};
-    options::String path_to_initial_times_{};
-    options::String path_to_nchannels_{};
-    options::Value<unsigned int, false> n_channels_{};
+    options::String path_to_spikes_{"resources://datatest"};
+    options::String path_to_spike_times_{"resources://datatest"};
+    options::String path_to_initial_times_{"resources://datatest"};
+    options::String path_to_nchannels_{"empty"};
+    options::Value<unsigned int, false> n_channels_{0};
     options::Measurement<double,false>  buffer_size_{
         DEFAULT_BUFFERSIZE,
         "ms",
-        options::positive<double>(true)
+        options::positive<double>(false)
     };
     options::Double sample_rate_{
         nlx::NLX_SIGNAL_SAMPLING_FREQUENCY,
-        options::positive<double>(true)
+        options::positive<double>(false)
     };
     options::Double streaming_rate_{
-        nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / (1000 * DEFAULT_BUFFERSIZE),
-        options::inrange<double>(0, HIGH_DATA_STREAM_RATE*(buffer_size_()*1e3)/sample_rate_())
+        nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / (1000 * DEFAULT_BUFFERSIZE)
     };
     
     double* loaded_spike_amplitudes_;
@@ -110,8 +108,7 @@ public:
 protected:
     // DEBUG update every time  UPDATE_PERC% of n_packets_to_stream_ have been streamed
     const unsigned int UPDATE_PERC = 10;
-    const unsigned int NO_CHANNEL_NUMBER =
-        std::numeric_limits<unsigned int>::max();
+    const unsigned int NO_CHANNEL_NUMBER = std::numeric_limits<unsigned int>::max();
     
 protected:
     const int RINGBUFFER_SIZE = 1e4;

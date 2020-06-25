@@ -1,0 +1,21 @@
+processors:
+    source:
+        class: SpikeStreamer
+        options:
+            path to spikes: resources://datatest/test_spike_amplitudes.npy
+            path to spike times: resources://datatest/test_spike_times.npy
+            path to initial times: resources://datatest/test_starting_times.npy
+            nchannels: 4
+            buffer size: 5.0
+            sample rate: 32000
+            streaming rate: 1000
+
+    sink:
+        class: FileSerializer
+        options:
+            encoding: yaml           # either yaml or binary
+            format: compact          # one of none, full, streamheader, headeronly, compact
+            throttle/enabled: false           # whether or not packets should be dropped if we cannot keep up
+
+connections:
+    - source.spikes=sink.data

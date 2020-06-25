@@ -1,0 +1,22 @@
+processors:
+    source:
+        class: LikelihoodDataFileStreamer
+        options:
+            path to likelihood: resources://datatest/likelihood_test_data.npy
+            path to n spikes: resources://datatest/likelihood_test_data_n_spikes.npy
+            time bin: 10.0
+            sample rate: 32000
+            streaming rate: 100
+            initial timestamp: 0
+    
+    sink:
+        class: FileSerializer
+        options:
+            encoding: binary           # either yaml or binary
+            format: compact          # one of none, full, streamheader, headeronly, compact
+            throttle/enabled: false           # whether or not packets should be dropped if we cannot keep up
+
+connections:
+    - source.estimates=sink.data
+
+

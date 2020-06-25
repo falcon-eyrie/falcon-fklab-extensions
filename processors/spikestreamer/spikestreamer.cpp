@@ -9,9 +9,9 @@
 
 
 SpikeStreamer::SpikeStreamer(){
-    add_option("path to spike", path_to_spikes_,"");
+    add_option("path to spikes", path_to_spikes_,"");
     add_option("path to spike times", path_to_spike_times_, "");
-    add_option("path to initial time", path_to_initial_times_, "");
+    add_option("path to initial times", path_to_initial_times_, "");
     add_option("buffer size", buffer_size_, "");
     add_option("sample rate", sample_rate_, "");
     add_option("streaming rate", streaming_rate_, "");
@@ -27,10 +27,9 @@ void SpikeStreamer::Configure(const YAML::Node& node, const GlobalContext& conte
     path_to_spikes_.set_value( context.resolve_path(path_to_spikes_()) );
     path_to_spike_times_.set_value( context.resolve_path(path_to_spike_times_()) );
     path_to_initial_times_.set_value( context.resolve_path(path_to_initial_times_()) );
-    path_to_nchannels_.set_value( context.resolve_path(path_to_nchannels_()) );
 
     if ( n_channels_() == NO_CHANNEL_NUMBER ) {
-
+        path_to_nchannels_.set_value( context.resolve_path(path_to_nchannels_()) );
         int32_t* n_channels = nullptr;
         FILE* fp_nchannels = nullptr;
         path_to_nchannels_.set_value(complete_path( path_to_nchannels_(), name(), "npy" ));
@@ -43,9 +42,6 @@ void SpikeStreamer::Configure(const YAML::Node& node, const GlobalContext& conte
                 "Number of channels was not read correctly.", name());
         }
         n_channels_.set_value( *n_channels );
-        if ( n_channels_() < 0 ) {
-            throw ProcessingConfigureError("Number of channels must be a positive number");
-        } 
 
     LOG_IF( WARNING, ( path_to_nchannels_() != "empty" )) << name() <<
             ". Path to n_channels will be ignored because it was explicitly defined.";
@@ -53,10 +49,10 @@ void SpikeStreamer::Configure(const YAML::Node& node, const GlobalContext& conte
     LOG(INFO) << name() << ". Number of spike amplitudes of the stream = " << n_channels_() << ".";
     
 
- //   if ( streaming_rate_() * sample_rate_() / (buffer_size_()*1e3) > HIGH_DATA_STREAM_RATE ) {
- //       LOG(WARNING) << name() << ". SpikeData stream rate is very high." <<
- //           " Downstream processor might not be able to keep up.";
- //   }
+   if ( streaming_rate_() * sample_rate_() / (buffer_size_()*1e3) > HIGH_DATA_STREAM_RATE ) {
+      LOG(WARNING) << name() << ". SpikeData stream rate is very high." <<
+           " Downstream processor might not be able to keep up.";
+   }
 }
 
 void SpikeStreamer::CreatePorts() {
