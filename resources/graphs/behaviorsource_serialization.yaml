@@ -1,0 +1,22 @@
+processors:     
+    source:
+        class: BehaviorSource
+        options:
+            path to linear position:  resources://datatest/decoded_positions.npy
+            path to speed: ""
+            linear position range: [0, 200]
+            speed range: [0, 30]
+            unit: "cm" # cm or pixel
+            sample rate: 10
+            streaming rate: 25
+            initial timestamp: 5000
+
+    sink:
+        class: FileSerializer
+        options:
+            encoding: yaml          # either yaml or binary
+            format: full            # one of none, full, streamheader, headeronly, compact
+            throttle/enabled: false         # whether or not packets should be dropped if we cannot keep up
+
+connections:
+    - source.behavior=sink.data
