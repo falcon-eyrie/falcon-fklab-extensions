@@ -16,9 +16,10 @@ Output ports :
 Options:
   - name: event name
     type: string
-    default:
+    default: "stimulation"
     description: name for generating the delayed event
   - name: replace
     type: bool
     default: true
-    description: replace or append the name of the delayed event
+    description: Either replace incoming events with new event name, or generate output events
+                 by appending incoming event and new event name.

@@ -16,16 +16,16 @@ Output ports :
 Options:
   - name: lockout period
     type: double
-    default:
+    default: 50 ms
     description: Lock out time after the processing of an event.
   - name: enabled
     type: bool
     default: true
-    description: Enabled the processing of incoming events.
+    description: Enable the processing of incoming events.
   - name: enabled saving
     type: bool
     default: true
-    description: Enabled the saving in a local file
+    description: Enable saving of target events to disk.
   - name: port address
     type: string
     default: "/dev/ttyACM0"

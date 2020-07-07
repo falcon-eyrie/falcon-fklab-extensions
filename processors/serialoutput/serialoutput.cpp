@@ -25,9 +25,9 @@
 #include <fstream>
 
 SerialOutput::SerialOutput(){
-    add_option(ENABLED_S , default_enabled_, "Enabled the processing of incoming events.");
+    add_option(ENABLED_S , default_enabled_, "Enable the processing of incoming events.");
     add_option(LOCKOUT_PERIOD_S, initial_lockout_period_, "Lock out time after the processing of an event.");
-    add_option("enable saving", save_stim_events_, "Enabled the saving in a local file");
+    add_option("enable saving", save_stim_events_, "Enable saving of target events to disk.");
     add_option("port address", port_address_, "Address of serial port");
     add_option(MESSAGE_S, default_message_, "");
     add_option("target event", target_event_, "Event to be processed");

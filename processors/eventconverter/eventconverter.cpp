@@ -24,8 +24,8 @@
 
 EventConverter::EventConverter(){
 
-    add_option("event name", event_name_, "name for generating the delayed event");
-    add_option("replace", replace_ , "replace or append the name of the delayed event");
+    add_option("event name", event_name_, "New event name after conversion");
+    add_option("replace", replace_ , "Either replace incoming events with new event name, or generate output events by appending incoming event and new event name.");
 
 }
 
