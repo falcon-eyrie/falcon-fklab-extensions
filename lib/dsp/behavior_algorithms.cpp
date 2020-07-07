@@ -26,7 +26,7 @@ std::uint64_t invalid_ts_value, double init_position_value, double init_speed_va
     batch_size_ = batch_size;
     smoothed_position_.assign( batch_size, init_position_value );
     last_smoothed_position_ = init_position_value;
-    unsmooothed_speed_.assign( batch_size, init_speed_value );
+    unsmoothed_speed_.assign( batch_size, init_speed_value );
     speed_sign_.assign( batch_size, SpeedSign::NO_SIGN );
     speed_sign_register_.assign( filter_speed_->group_delay(), SpeedSign::NO_SIGN );
     
@@ -86,10 +86,10 @@ bool SpeedCalculator::compute_speed(    std::vector<std::uint64_t> ts_in,
         filter_position_->process_by_channel( batch_size_, x_in, smoothed_position_ );
 
         // compute speed as derivative with fixed dt
-        unsmooothed_speed_[0] = (smoothed_position_[0] - last_smoothed_position_) / dt_;     
+        unsmoothed_speed_[0] = (smoothed_position_[0] - last_smoothed_position_) / dt_;
         for ( i=1; i<batch_size_; ++i ) {
             linear_velocity = (smoothed_position_[i] - smoothed_position_[i-1]) / dt_;
-            unsmooothed_speed_[i] = std::abs( linear_velocity );
+            unsmoothed_speed_[i] = std::abs( linear_velocity );
             speed_sign_[i] = SpeedSign::NO_SIGN;
             if ( linear_velocity > 0 ) {
                 speed_sign_[i] = SpeedSign::POSITIVE;
@@ -101,7 +101,7 @@ bool SpeedCalculator::compute_speed(    std::vector<std::uint64_t> ts_in,
         
         // compute smoothed speed
         speed_out.resize( batch_size_ );
-        filter_speed_->process_by_channel( batch_size_, unsmooothed_speed_, speed_out );
+        filter_speed_->process_by_channel( batch_size_, unsmoothed_speed_, speed_out );
         
         // add delay to speed sign ...
         auto it = speed_sign_.rbegin();
@@ -127,9 +127,9 @@ std::vector<double> SpeedCalculator::smoothed_position() const {
     return smoothed_position_;
 }
 
-std::vector<double> SpeedCalculator::unsmooothed_speed() const {
+std::vector<double> SpeedCalculator::unsmoothed_speed() const {
     
-    return unsmooothed_speed_;
+    return unsmoothed_speed_;
 }
 
 std::vector<SpeedSign> SpeedCalculator::speed_sign() const {
