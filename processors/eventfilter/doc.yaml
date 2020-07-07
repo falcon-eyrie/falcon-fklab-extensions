@@ -1,16 +1,48 @@
-Description: Detect population bursts using a threshold crossing algorithm.
+Description: processes neural data by synchronizing, filtering and combining events coming from multiple inputs in one output.
 
-Long description:
+Long description: This processor derive from the EventSync processor.
 
 Input port :
   - name: events
     type: EventData
     slots: 1-256
     description:
+  - name: blocking events
+    type: EventData
+    slots: 1-256
+    description:
 
+Output port :
+  - name: events
+    type: EventData
+    slots: 1
+    description:
 
 Options:
   - name: target event
     type: string
-    default: none (default  value set in EventData )
-    description:
+    default: none
+    description: The event to synchronize on.
+  - name: block duration
+    type: double
+    default: 10.0 ms
+    description: The duration over which events will be filtered out following the arrival of a blocking event.
+  - name: block wait time
+    type: double
+    default: 10.0 ms
+    description: The waiting time after a target event has been received to check if any blocking event also occurred.
+  - name: sync time
+    type: double
+    default: 1.5 ms
+    description: Time interval over which incoming events are considered to be synchronuous.
+  - name: discard warnings
+    type: bool
+    default: false
+    description: Do not emit warnings for discarded events.
+  - name: detection criterion
+    type: string or unsigned int
+    default: "any"
+    description: The criterion for triggering a detection, which is the number of
+                 input slots with a target event. Acceptable values range from 1 to
+                 the total number of input slots. A value of 0 or 'all' is equivalent
+                 to the total number of input slots. A value of 'any' is equivalent to 1.

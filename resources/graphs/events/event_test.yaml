@@ -1,0 +1,64 @@
+# Example for events processors :
+# A filter is receiving
+#   - event inputs from three processors (2x foo events + dummytarget)
+#   - blocking event from two processors (dummytarget + bang)
+# It returns in output only the dummy target event given in input.
+# There is no block wait time after receiving a blocking event.
+# foo events and filtered events are logged in a file
+processors:
+    source foo(1-2):
+        class: EventSource
+        options:
+            events: foo
+            rate: 1
+
+    source slowdummy:
+        class: EventSource
+        options:
+            events: dummytarget
+            rate: 3
+
+    source dummy:
+        class: EventSource
+        options:
+            events: dummytarget
+            rate: 200
+
+    source bang:
+        class: EventSource
+        options:
+            events: bang
+            rate: 1
+
+    event filter:
+        class: EventFilter
+        options:
+            target event: dummytarget
+            block wait time: 0
+            sync time: 6.5
+            time_in: 7 # below 3.5, asynch can occur
+            detection criterion: any # 'any', 'all' or number
+            discard warnings: false
+
+    sink(1-3):
+        class: FileSerializer
+        options:
+            encoding: yaml           # either yaml or binary
+            format: full          # one of none, full, streamheader, headeronly, compact
+            throttle/enabled: false           # whether or not packets should be dropped if we cannot keep up
+
+    event sink:
+        class: EventLogger
+        options:
+            target event: dummytarget
+
+connections:
+    - source foo1.events=p:events.f:event filter
+    - source slowdummy.events=p:events.f:event filter
+    - source dummy.events=p:blocking events.f:event filter
+    - source bang.events=p:blocking events.f:event filter
+    - source foo(1-2).events=sink(1-2).data
+    - event filter.events=event sink.events
+    - event filter.events=sink3.data
+
+
