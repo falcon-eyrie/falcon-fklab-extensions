@@ -48,5 +48,5 @@ If your issue concerned processors, datatypes or libs included in this repositor
 describing the problem / or the feature to develop. Add the graph (+ eventually the config file) used to run Falcon
 is highly recommended. 
  
-To develop a new extension, an issue can be open here for guidance but most probably the maintainer will advise you to 
+To develop a new extension, an issue can be open in here for guidance but most probably the maintainer will advise you to 
 create your own repository and then open an PR in Falcon to link your extension doc in the Falcon doc. 
