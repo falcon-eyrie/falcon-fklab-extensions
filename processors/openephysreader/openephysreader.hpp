@@ -44,7 +44,6 @@
 #define OPENEPHYSREADER_HPP
 
 #include "iprocessor.hpp"
-#include "nlxreader.hpp" //ChannelMap
 #include "multichanneldata/multichanneldata.hpp"
 
 #include "openephys/openephys.hpp"
@@ -59,11 +58,15 @@
 #include <fstream>
 #include <memory>
 
+#include "options/options.hpp"
+
+typedef std::map<std::string,std::vector<unsigned int>> ChannelMap;
+
 
 class OpenEphysReader : public IProcessor  {
     
 public:
-    OpenEphysReader() : IProcessor( PRIORITY_MAX ) {};
+    OpenEphysReader();
     
     virtual void Configure( const YAML::Node  & node, const GlobalContext& context ) override;
     virtual void CreatePorts() override;
@@ -81,7 +84,7 @@ protected:
     void scan_port();
     void updateRegisters( Rhd2000Registers* chipRegisters );
     void write_records( Rhd2000DataBlock origin,
-        std::vector<MultiChannelData<double>*>& data_vector );
+        std::vector<MultiChannelType<double>::Data*> & data_vector );
     void send_updates( bool usbDataRead );
     
 public:
@@ -89,10 +92,7 @@ public:
     
 protected:
     options::Value<ChannelMap,false> channelmap_;
-    std::string address_;
-    unsigned int port_;
     options::Value<unsigned int,false> batch_size_{SAMPLES_PER_DATA_BLOCK};
-    unsigned int nchannels_;
 
 protected:
     std::unique_ptr<Rhd2000EvalBoard> eval_board_;
@@ -109,10 +109,10 @@ protected:
         options::zeroismax<std::uint64_t>()
     };
     
-    std::map<std::string, PortOut<MultiChannelDataType<double>>*> data_ports_;
+    std::map<std::string, PortOut<MultiChannelType<double>>*> data_ports_;
     
 public:
-    const decltype(nchannels_) DEFAULT_NCHANNELS = OpenEphys::NCHANNELS_PER_PORT;
+    const unsigned int DEFAULT_NCHANNELS = OpenEphys::NCHANNELS_PER_PORT;
   
 };
 

@@ -1,19 +1,44 @@
+// ---------------------------------------------------------------------
+// This file is part of falcon-core.
+//
+// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+//
+// Falcon-server is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Falcon-server is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
+// ---------------------------------------------------------------------
+
 #include "openephysreader.hpp"
 
 #include "g3log/src/g2log.hpp"
 
-OpenEphysReader::OpenEphysReader(){
+OpenEphysReader::OpenEphysReader(): IProcessor( PRIORITY_HIGH ){
 
+    add_option("channelmap", channelmap_,
+        "Mapping of channels to processor output ports.");
     add_option("batch size", batch_size_,
         "The number of data packets to concatenate into "
         "single multi-channel data bucket.");
-    add_option("nchannels",nchannels_, "The number of channels of the OpenEphys acquisition system");
     add_option("update interval", update_interval_,
         "The time interval for updates on the received data from "
-        "the Digilynx acquisition system.");
+        "the Openephys acquisition system.");
 }
 void OpenEphysReader::Configure( const YAML::Node & node, const GlobalContext& context ) {
 
+    if ( batch_size_() < SAMPLES_PER_DATA_BLOCK ) {
+        auto msg = "Batch size should be of at least " + std::to_string(
+            SAMPLES_PER_DATA_BLOCK ) + " samples.";
+        throw ProcessingConfigureError( msg, name() );
+    }
 
     // how often updates about data stream will be sent out
 
@@ -25,29 +50,23 @@ void OpenEphysReader::CreatePorts() {
 
         data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
             it.first,
-            MultiChannelType<double>( ChannelRange(it.second.size()) ),
+            MultiChannelType<double>::Capabilities( ChannelRange(it.second.size()) ),
             MultiChannelType<double>::Parameters(),
             PortOutPolicy( SlotRange(1), 500, WaitStrategy::kBlockingStrategy ) );
     }
-
-    output_port_signal_ = create_output_port<MultiChannelType<double>>(
-        "data",
-        MultiChannelType<double>::Capabilities( ChannelRange(1,nlx::NLX_MAX_NCHANNELS) ),
-        MultiChannelType<double>::Parameters(),
-        PortOutPolicy(SlotRange(1),500));
 }
 
 void OpenEphysReader::CompleteStreamInfo() {
-    
+
     for (auto & it : data_ports_ ) {
-        
-        it.second->streaminfo(0).datatype().Finalize(
-            batch_size_,
-            channelmap_[it.first].size(),
-            OpenEphys::SIGNAL_SAMPLING_FREQUENCY );
-        it.second->streaminfo(0).Finalize(
-            OpenEphys::SIGNAL_SAMPLING_FREQUENCY / batch_size_ );
+        // finalize data type with nsamples == batch_size and nchannels taken from channel map
+        it.second->streaminfo(0).set_parameters(
+            MultiChannelType<double>::Parameters( channelmap_().at(it.first).size(),
+                                                  batch_size_(),
+                                                  OpenEphys::SIGNAL_SAMPLING_FREQUENCY  ) );
+        it.second->streaminfo(0).set_stream_rate( OpenEphys::SIGNAL_SAMPLING_FREQUENCY  / batch_size_() );
     }
+
 }
 
 void OpenEphysReader::Prepare( GlobalContext& context ) {
@@ -63,7 +82,7 @@ void OpenEphysReader::Prepare( GlobalContext& context ) {
     }
     
     
-    initialize_board( context.resolve_path( "repo://lib/openephys/main.bit" ) );
+    initialize_board( context.resolve_path( "resources://openephys/main.bit" ) );
     LOG(UPDATE) << name() << ". Board initialized.";
     
     // Select per-channel amplifier sampling rate.
@@ -97,7 +116,7 @@ void OpenEphysReader::Preprocess( ProcessingContext& context ) {
 
 void OpenEphysReader::Process( ProcessingContext& context ) {
       
-    std::vector<MultiChannelData<double>*> data_vector(data_ports_.size());
+    std::vector<MultiChannelType<double>::Data*> data_vector(data_ports_.size());
     
     bool acquisition_finished = false;
     bool usbDataRead;
@@ -122,7 +141,7 @@ void OpenEphysReader::Process( ProcessingContext& context ) {
             LOG_IF( UPDATE, (sample_counter_==0) ) << name() <<
                 ". First USB data block was read.";
             sample_counter_ = sample_counter_ + SAMPLES_PER_DATA_BLOCK;
-            if ( sample_counter_%batch_size_==0 ) {
+            if ( sample_counter_%batch_size_()==0 ) {
                 write_records( data_queue_.front(), data_vector );
                 data_queue_.pop();
             }
@@ -289,10 +308,12 @@ void OpenEphysReader::updateRegisters( Rhd2000Registers* chipRegisters ) {
 }
 
 void OpenEphysReader::write_records( Rhd2000DataBlock origin,
-    std::vector<MultiChannelData<double>*>& data_vector ) {
+    std::vector<MultiChannelType<double>::Data*>& data_vector ) {
 
     // claim new data buckets and set data bucket metadata
     int port_index = 0;
+    int data_index = 0;
+
     for (auto & it : data_ports_ ) {
         data_vector[port_index] = it.second->slot(0)->ClaimData(true);
         data_vector[port_index]->set_hardware_timestamp(
@@ -303,24 +324,23 @@ void OpenEphysReader::write_records( Rhd2000DataBlock origin,
     
     // actual write
     size_t ch;
-    for (unsigned int t=0; t < batch_size_; ++t) {
+    for (unsigned int t=0; t < batch_size_(); ++t) {
+        data_index = 0;
+        for (auto & it : channelmap_() ) {
 
-        auto it = channelmap_.begin();
-        for ( unsigned int pi=0; pi<channelmap_.size(); pi++ ) {
-
-            data_vector[pi]->set_sample_timestamp(
+            data_vector[data_index]->set_sample_timestamp(
                 t,
                 origin.timeStamp[t]);
             ch = 0;
-            for (auto& channel : it->second) {
-                data_vector[pi]->set_data_sample(
+            for (auto& channel : it.second) {
+                data_vector[data_index]->set_data_sample(
                     t,
                     ch,
                     OpenEphys::ADbits_to_microvolts( origin.amplifierData[
                         OpenEphys::DEFAULT_DATASTREAM][channel][t]));
                 ++ ch;
             }
-            ++ it;
+            data_index++;
         }
     }
     
@@ -332,7 +352,7 @@ void OpenEphysReader::write_records( Rhd2000DataBlock origin,
 
 void OpenEphysReader::send_updates( bool usbDataRead ) { 
     
-    bool update_time = (sample_counter_%update_interval_== 0 and
+    bool update_time = (sample_counter_%update_interval_()== 0 and
         sample_counter_>0 and usbDataRead);
     LOG_IF(UPDATE, update_time ) << name() << ": " <<
         sample_counter_ << " packets (" <<
