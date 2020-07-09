@@ -15,8 +15,8 @@ Method :
 State :
   static:
     - name: tickled
-        type: bool
-        initial value: false
-        shared: true
-        external access: write
-        description:
+      type: bool
+      initial value: false
+      shared: true
+      external access: write
+      description:

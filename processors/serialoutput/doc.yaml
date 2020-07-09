@@ -1,0 +1,69 @@
+Description: Take an EventData stream and sends data over serial port when a target event is received
+
+Input ports :
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Output ports :
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+
+Options:
+  - name: lockout period
+    type: double
+    default: 50 ms
+    description: Lock out time after the processing of an event.
+  - name: enabled
+    type: bool
+    default: true
+    description: Enable the processing of incoming events.
+  - name: enabled saving
+    type: bool
+    default: true
+    description: Enable saving of target events to disk.
+  - name: port address
+    type: string
+    default: "/dev/ttyACM0"
+    description: Address of serial port
+  - name: target event
+    type: string
+    default: "None"
+    description: Event to be processed
+  - name: baud rate
+    type: double
+    default: 9600
+    description: Serial rate exchange
+  - name: print protocol execution updates
+    type: bool
+    default: true
+    description: Log message (UPDATE level) if true
+
+
+State:
+  static:
+    - name: enabled
+      data type: bool
+      initial value:
+         option: enabled
+      external access: write
+      shared: true
+      description:
+    - name: lockout period
+      data type: double
+      initial value:
+        option: lockout period
+      external access: write
+      shared: true
+      description:
+    - name: message
+      data type: char
+      initial value:
+        option: message
+      external access: write
+      shared: true
+      description:
