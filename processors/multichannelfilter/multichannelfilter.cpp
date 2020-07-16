@@ -28,11 +28,10 @@ MultiChannelFilter::MultiChannelFilter() : IProcessor() {
 }
 
 void MultiChannelFilter::Configure( const YAML::Node & node, const GlobalContext& context ) {
-    
-    if (filter_def_().IsMap()) {
+    if (!filter_def_()["file"]) {
         filter_template_.reset( dsp::filter::construct_from_yaml( filter_def_() ) );
     } else {
-        std::string f = context.resolve_path( filter_def_().as<std::string>(), "filters" );
+        std::string f = context.resolve_path( filter_def_()["file"].as<std::string>(), "filters" );
         filter_template_.reset( dsp::filter::construct_from_file(f) );
     }
 }
