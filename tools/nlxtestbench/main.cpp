@@ -64,79 +64,75 @@ void print_prompt(char n) {
             << std::endl;
 }
 
-int main(int argc, char **argv) {
-  // create a parser
-  cmdline::parser parser;
 
-  // add specified type of variable.
-  // 1st argument is long name
-  // 2nd argument is short name (no short name if '\0' specified)
-  // 3rd argument is description
-  // 4th argument is mandatory (optional. default is false)
-  // 5th argument is default value  (optional. it used when mandatory is false)
-  parser.add<std::string>("config", 'c', "configuration file", false,
-                          "$HOME/.config/falcon/nlxtestbench.yaml");
-  parser.add<int>("autostart", 'a', "source to auto start streaming", false,
-                  -1);
-  parser.add<double>("rate", 'r', "data stream rate (Hz)", false, -1);
-  parser.add<int64_t>(
-      "npackets", 'n',
-      "maximum number of packets to stream (0 means all packets)", false, -1);
-
-  // Run parser
-  // It returns only if command line arguments are valid.
-  // If arguments are invalid, a parser output error msgs then exit program.
-  // If help flag ('--help' or '-?') is specified, a parser output usage message
-  // then exit program.
-  parser.parse_check(argc, argv);
-
-  // create default configuration
-  TestBenchConfiguration config;
-
-  // load configuration file
-  try {
-    config.load(parser.get<std::string>("config"));
-  } catch (std::runtime_error &e) {
-    std::cout << e.what() << std::endl;
-    std::cout << "Neuralynx test bench terminated." << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  auto sources = datasources_from_yaml(config.sources());
-  std::cout << "sources loaded" << std::endl;
-  if (sources.size() == 0) {
-    std::cout << "Please define signal sources." << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  // override config with command line options
-  if (parser.get<double>("rate") > 0) {
-    config.stream_rate = parser.get<double>("rate");
-  }
-
-  if (parser.get<int64_t>("npackets") >= 0) {
-    config.npackets = parser.get<int64_t>("npackets");
-  }
-
-  // auto start
-  // find source with specified name
-  unsigned int idx = 0;
-  bool autostart = false;
-
-  if (parser.get<int>("autostart") >= 0) {
-    config.autostart = parser.get<int>("autostart");
-  }
-
-  if (config.autostart() >= 0) {
-    if (idx >= sources.size()) {
-      std::cout << "Warning: cannot auto start non-existing stream " << idx
-                << std::endl
-                << std::endl;
-      idx = 0;
-    } else {
-      autostart = true;
+int main(int argc, char** argv) {
+    
+    // create a parser
+    cmdline::parser parser;
+    
+    // add specified type of variable.
+    // 1st argument is long name
+    // 2nd argument is short name (no short name if '\0' specified)
+    // 3rd argument is description
+    // 4th argument is mandatory (optional. default is false)
+    // 5th argument is default value  (optional. it used when mandatory is false)
+    parser.add<std::string>("config", 'c', "configuration file", false, "$HOME/.config/falcon/nlxtestbench.yaml" );
+    parser.add<int>("autostart", 'a', "source to auto start streaming", false, -1);
+    parser.add<double>("rate", 'r', "data stream rate (Hz)", false, -1);
+    parser.add<int64_t>("npackets", 'n', "maximum number of packets to stream (0 means all packets)", false, -1);
+    
+    // Run parser
+    // It returns only if command line arguments are valid.
+    // If arguments are invalid, a parser output error msgs then exit program.
+    // If help flag ('--help' or '-?') is specified, a parser output usage message then exit program.
+    parser.parse_check(argc, argv);
+    
+    // create default configuration
+    TestBenchConfiguration config;
+    
+    // load configuration file
+    try {
+        config.load(parser.get<std::string>("config"));
+    } catch ( std::runtime_error & e ) {
+        std::cout << e.what() << std::endl;
+        std::cout << "Neuralynx test bench terminated." << std::endl;
+        return EXIT_FAILURE;
     }
-  }
+
+    auto sources = datasources_from_yaml(config.sources());
+    std::cout << "sources loaded" << std::endl;
+    if (sources.size()==0) {
+        std::cout << "Please define signal sources." << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    // override config with command line options
+    if (parser.get<double>("rate")>0) {
+        config.stream_rate = parser.get<double>("rate");
+    }
+    
+    if (parser.get<int64_t>("npackets")>=0) {
+        config.npackets = parser.get<int64_t>("npackets");
+    }
+    
+    // auto start
+    // find source with specified name
+    unsigned int idx = 0;
+    bool autostart = false;
+    
+    if (parser.get<int>("autostart")>=0) {
+        config.autostart = parser.get<int>("autostart");
+    }
+
+    if (config.autostart()>=0) {
+        if (idx>=sources.size()) {
+            std::cout << "Warning: cannot auto start non-existing stream " << idx << std::endl << std::endl;
+            idx = 0;
+        } else {
+            autostart = true;
+        }
+    }
+
 
   std::cout << "NlxTestBench configuration:" << std::endl;
   std::cout << "stream rate = " << to_string_n(config.stream_rate()) << " Hz "
