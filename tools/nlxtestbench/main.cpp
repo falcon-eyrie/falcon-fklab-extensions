@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
     // 3rd argument is description
     // 4th argument is mandatory (optional. default is false)
     // 5th argument is default value  (optional. it used when mandatory is false)
-    parser.add<std::string>("config", 'c', "configuration file", false, "$HOME/.nlxtestbench/config.yaml" );
+    parser.add<std::string>("config", 'c', "configuration file", false, "$HOME/.config/falcon/nlxtestbench.yaml" );
     parser.add<int>("autostart", 'a', "source to auto start streaming", false, -1);
     parser.add<double>("rate", 'r', "data stream rate (Hz)", false, -1);
     parser.add<int64_t>("npackets", 'n', "maximum number of packets to stream (0 means all packets)", false, -1);
@@ -93,9 +93,9 @@ int main(int argc, char** argv) {
         std::cout << "Falcon terminated." << std::endl;
         return EXIT_FAILURE;
     }
-    
-    auto sources = datasources_from_yaml(config.sources());
 
+    auto sources = datasources_from_yaml(config.sources());
+    std::cout << "sources loaded" << std::endl;
     if (sources.size()==0) {
         std::cout << "Please define signal sources." << std::endl;
         return EXIT_FAILURE;

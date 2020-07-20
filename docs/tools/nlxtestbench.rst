@@ -16,7 +16,7 @@ Configuration
 
 The testbench tool needs to be configured before use to set the IP address and
 network port for streaming data packets. By default, the program will look for
-a configuration file in the $HOME/.nlxtestbench folder and if this file does
+a configuration file in the $HOME/.config/falcon/nlxtestbench.yaml folder and if this file does
 not exist, a new one will be created with default values. A configuration file
 can also be specified on the command line (see below).
 
@@ -35,25 +35,29 @@ configuration file is shown below:
       autostart: ""
     sources:
       - class: nlx
-        file: /path/to/raw/data/file
-        cycle: false
+        options:
+           file: /path/to/raw/data/file
+           cycle: false
       - class: sine
-        offset: 0.
-        amplitude: 1.
-        frequency: 1.
-        sampling_rate: 32000
-        noise_stdev: 0
+        options:
+           offset: 0.
+           amplitude: 1.
+           frequency: 1.
+           sampling_rate: 32000
+           noise_stdev: 0
       - class: square
-        offset: 0.
-        amplitude: 1.
-        frequency: 1.
-        duty_cycle: 0.5
-        sampling_rate: 32000
-        noise_stdev: 0
+        options:
+           offset: 0.
+           amplitude: 1.
+           frequency: 1.
+           duty_cycle: 0.5
+           sampling_rate: 32000
+           noise_stdev: 0
       - class: noise
-        mean: 0.
-        stdev: 1.
-        sampling_rate: 32000
+        options:
+           mean: 0.
+           stdev: 1.
+           sampling_rate: 32000
 
 network options
 ...............
