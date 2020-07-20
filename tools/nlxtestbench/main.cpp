@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
         config.load(parser.get<std::string>("config"));
     } catch ( std::runtime_error & e ) {
         std::cout << e.what() << std::endl;
-        std::cout << "Falcon terminated." << std::endl;
+        std::cout << "Neuralynx test bench terminated." << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -116,7 +116,10 @@ int main(int argc, char** argv) {
     bool autostart = false;
     
     if (parser.get<int>("autostart")>=0) {
-        idx = parser.get<int>("autostart");
+        config.autostart = parser.get<int>("autostart");
+    }
+
+    if (config.autostart()>=0) {
         if (idx>=sources.size()) {
             std::cout << "Warning: cannot auto start non-existing stream " << idx << std::endl << std::endl;
             idx = 0;
