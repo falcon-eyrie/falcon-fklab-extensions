@@ -118,10 +118,5 @@ void MultiChannelFilter::Process( ProcessingContext& context ) {
     }
 }
 
-void MultiChannelFilter::Unprepare( GlobalContext& context ) {
-    
-    // destroy realized filters
-    filters_.clear();
-}
 
 REGISTERPROCESSOR( MultiChannelFilter )

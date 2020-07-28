@@ -38,7 +38,6 @@ public:
     virtual void CompleteStreamInfo( ) override;
     virtual void Prepare( GlobalContext& context ) override;
     virtual void Process( ProcessingContext& context ) override;
-    virtual void Unprepare( GlobalContext& context ) override;
 
 // variables
 protected:
