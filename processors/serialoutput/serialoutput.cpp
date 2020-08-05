@@ -19,7 +19,6 @@
 
 #include "serialoutput.hpp"
 
-#include "g3log/src/g2log.hpp"
 #include "arduinoserial/arduino-serial-lib.h"
 #include <iostream>
 #include <fstream>

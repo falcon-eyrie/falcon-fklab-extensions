@@ -20,8 +20,6 @@
 
 #include "nlxparser.hpp"
 
-#include "g3log/src/g2log.hpp"
-
 #include <limits>
 #include <memory>
 

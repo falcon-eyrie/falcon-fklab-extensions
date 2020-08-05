@@ -20,8 +20,6 @@
 
 #include "distributor.hpp"
 
-#include "g3log/src/g2log.hpp"
-
 #include "utilities/general.hpp"
 
 
