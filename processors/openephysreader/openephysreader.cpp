@@ -359,3 +359,5 @@ void OpenEphysReader::send_updates( bool usbDataRead ) {
         sample_counter_/OpenEphys::SIGNAL_SAMPLING_FREQUENCY <<
             " s) received.";
 }
+
+REGISTERPROCESSOR(OpenEphysReader)

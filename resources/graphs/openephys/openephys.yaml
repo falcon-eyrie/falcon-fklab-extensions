@@ -1,0 +1,17 @@
+processors:
+    source:
+        class: OpenEphysReader
+        options:
+            batch_size: 60
+            update_interval: 5
+            npackets: 0
+            channelmap:
+                tt: [0,1,2,3]
+    sink:
+        class: FileSerializer
+        options:
+            encoding: yaml
+            format: compact
+
+connections:
+    - source.tt=p:data.f:sink
