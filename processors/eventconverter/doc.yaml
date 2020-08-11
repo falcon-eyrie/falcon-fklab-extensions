@@ -1,4 +1,4 @@
-Description: Convert incoming EventData into another event
+Description: Convert incoming target event into another event with possibility to set a lock-out period and save in a file
 
 Input ports:
   - name: events
@@ -16,10 +16,47 @@ Output ports:
 Options:
   - name: event name
     type: string
-    default: "stimulation"
-    description: name for generating the delayed event
+    default: "o"
+    description: name for generating the event
   - name: replace
     type: bool
     default: true
     description: Either replace incoming events with new event name, or generate output events
       by appending incoming event and new event name.
+  - name: lockout period
+    type: double
+    default: 50 ms
+    description: Lock out time after the processing of an event.
+  - name: enabled
+    type: bool
+    default: true
+    description: Enable the processing of incoming events.
+  - name: target event
+    type: string
+    default: "None"
+    description: Event to be processed
+  - name: enabled saving
+    type: bool
+    default: true
+    description: Enable saving of target events to disk.
+  - name: prefix
+    type: string
+    default: "stim_"
+    description: add a prefix in the filename (prefix+eventname) where target event are saved
+
+State:
+  static:
+    - name: enabled
+      data type: bool
+      initial value:
+        option: enabled
+      external access: write
+      shared: true
+      description:
+    - name: lockout period
+      data type: double
+      initial value:
+        option: lockout period
+      external access: write
+      shared: true
+      description:
