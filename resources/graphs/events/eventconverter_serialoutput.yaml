@@ -3,22 +3,22 @@ processors:
     class: DummySink
 
   logger:
-    class : SerialOutput
+    class: SerialOutput
     options:
       target event: test
-      enabled : True
+      enabled: True
 
   event source (1-2):
-    class : EventSource
+    class: EventSource
     options:
-      events : ["events", "data"]
-      rate : 30
+      events: ["events", "data"]
+      rate: 30
 
-  event converter :
-    class : EventConverter
-    options :
-      event name : test
-      replace : 0
+  event converter:
+    class: EventConverter
+    options:
+      event name: test
+      replace: 0
 
 
 

@@ -1,11 +1,11 @@
-Description: Synchronizes on the occurrence of a target event on all its input slots, before emitting the same target event
+Description: Generate target events following an uniform distribution with a certain rate
 
 Long description:
 
-Input port :
+Output port:
   - name: events
     type: EventData
-    slots: 1-256
+    slots: 1
     description:
 
 Options:

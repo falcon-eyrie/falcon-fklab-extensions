@@ -2,32 +2,30 @@ Description: Compute the Multi-Unit Activity from the spike counts provided by t
 
 Long description:
 
-Input port :
+Input port:
   - name: spikes
     type: EventData
     slots: 1-64
     description:
 
-Output port :
+Output port:
   - name: mua
     type: MUAData
     slots: 1
     description:
 
 Options:
-  - name: bin size
+  - &binsize
+    name: bin size
     type: unsigned int
-    default: 20 ms
+    default: 10 ms
     description:
 
 State:
-  static :
-    - name: bin size
-      type: unsigned int
-      initial value: see option bin size
+  static:
+    - options: *binsize
       shared: true
       external access: write
-      description:
 
   broadcaster:
     - name: MUA

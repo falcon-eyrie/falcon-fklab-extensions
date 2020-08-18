@@ -1,2 +1,2 @@
 
-ADD_LIBRARY( levelcrossingdetector "levelcrossingdetector.cpp" )
+ADD_LIBRARY(levelcrossingdetector "levelcrossingdetector.cpp")

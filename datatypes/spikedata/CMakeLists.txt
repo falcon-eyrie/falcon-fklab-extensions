@@ -1,3 +1,3 @@
 
-ADD_LIBRARY( spikedata "spikedata.cpp" "channelvalidity.cpp" )
+ADD_LIBRARY(spikedata "spikedata.cpp" "channelvalidity.cpp")
 

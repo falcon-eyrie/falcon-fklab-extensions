@@ -1,3 +1,3 @@
 
-ADD_LIBRARY( eventdata "eventdata.cpp" )
+ADD_LIBRARY(eventdata "eventdata.cpp")
 

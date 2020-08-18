@@ -1,3 +1,3 @@
 
-ADD_LIBRARY( eventlogger "eventlogger.cpp" )
-TARGET_LINK_LIBRARIES( eventlogger utilities )
+ADD_LIBRARY(eventlogger "eventlogger.cpp")
+TARGET_LINK_LIBRARIES(eventlogger utilities)

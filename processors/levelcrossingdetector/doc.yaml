@@ -1,51 +1,46 @@
-Description: Detect a threshold crossing on any of the channels in the incoming MultiChannelData stream and emits an event in response.
+Description: Detect a threshold crossing on any of the channels in the incoming multi-channel datastream and emits an event in response.
 
-Input port :
-  - port name: data
-    data type: MultiChannelData <double>
+Input port:
+  - name: data
+    type: MultiChannelData <double>
     slots: 1
     description:
 
-Output port :
-  - port name: events
-    data type: EventData
+Output port:
+  - name: events
+    type: EventData
     slots: 1
     description: A stream of events.
 
 Options:
-  - port name: threshold
-    data type: double
+  - &threshold
+    name: threshold
+    type: double
     default: 0.0
-    description: threshold that needs to be crossed
-  - port name: event
-    data type: string
+    description: Threshold (in data units) that needs to be crossed.
+  - name: event
+    type: string
     default: "threshold_crossing"
-    description: event to emit upon detection of threshold crossing
-  - port name: post detect block
-    data type: unsigned int
+    description: The event to emit when the input signal crosses the threshold.
+  - &postdetectblock
+    name: post detect block
+    type: unsigned int
     default: 2
     description: refractory period after threshold crossing detection (in number of samples )
-  - port name: upslope
-    data type: boo;
+  - &upslope
+    name: upslope
+    type: bool;
     default: True
-    description: whether to look for upward (true) or downward (false) threshold crossings
+    description: Either detect upward (true) or downward (false) threshold crossings.
 
-Static States:
-   - name: threshold
-     data type: double
-     initial value: see option threshold
-     peers access : read-only
-     external access: read/write
-     description: Current threshold that needs to be crossed
-   - name: post detect block
-     data type: unsigned int
-     initial value: see option post detect block
-     peers access : read-only
-     external access: read/write
-     description:
-   - name: upslope
-     data type: bool
-     initial value: see option upslope
-     peers access : read-only
-     external access: read/write
-     description:
+States:
+  Static:
+    - options: *threshold
+      shared: true
+      external access: write
+    - options: *postdetectblock
+      shared: true
+      external access: write
+    - options: *upslope
+      shared: true
+      external access: write

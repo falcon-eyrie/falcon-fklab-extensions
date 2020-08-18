@@ -1,12 +1,12 @@
 Description: Convert incoming EventData into another event
 
-Input ports :
+Input ports:
   - name: events
     type: EventData
     slots: 1
     description:
 
-Output ports :
+Output ports:
   - name: events
     type: EventData
     slots: 1
@@ -22,4 +22,4 @@ Options:
     type: bool
     default: true
     description: Either replace incoming events with new event name, or generate output events
-                 by appending incoming event and new event name.
+      by appending incoming event and new event name.

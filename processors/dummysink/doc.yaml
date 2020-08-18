@@ -1,22 +1,25 @@
-Description: Take an EventData stream and sets digital outputs according to an event-specific.
+Description: Take input data, count the received packets received and log it (Example sink processor).
 
-Input ports :
+Long description: There is an additional feature demonstrate here with the exposed method kick which depending of the static state
+  tickled will log an output which can be modified in run-time.
+
+Input ports:
   - name: data
     type: AnyType
     slots: 1
     description:
 
 
-Method :
-  - name : kick
-    description : log message
+Method:
+  - name: kick
+    description: log message
 
 
-State :
+State:
   static:
     - name: tickled
       type: bool
-      initial value: false
+      default: false
       shared: true
       external access: write
       description:

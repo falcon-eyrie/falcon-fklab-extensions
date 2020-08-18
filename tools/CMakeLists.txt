@@ -1,2 +1,2 @@
-add_subdirectory( nlxtestbench )
-add_subdirectory( filtertest )
+add_subdirectory(nlxtestbench)
+add_subdirectory(filtertest)

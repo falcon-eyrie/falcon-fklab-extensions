@@ -1,8 +1,8 @@
-Description: processes neural data by synchronizing, filtering and combining events coming from multiple inputs in one output.
+Description: Process neural data by synchronizing, filtering and combining events coming from multiple inputs in one output.
 
 Long description: This processor derive from the EventSync processor.
 
-Input port :
+Input port:
   - name: events
     type: EventData
     slots: 1-256
@@ -12,7 +12,7 @@ Input port :
     slots: 1-256
     description:
 
-Output port :
+Output port:
   - name: events
     type: EventData
     slots: 1
@@ -29,11 +29,11 @@ Options:
     description: The duration over which events will be filtered out following the arrival of a blocking event.
   - name: block wait time
     type: double
-    default: 10.0 ms
+    default: 1.5 ms
     description: The waiting time after a target event has been received to check if any blocking event also occurred.
   - name: sync time
     type: double
-    default: 1.5 ms
+    default: 3.5 ms
     description: Time interval over which incoming events are considered to be synchronuous.
   - name: discard warnings
     type: bool
@@ -43,6 +43,6 @@ Options:
     type: string or unsigned int
     default: "any"
     description: The criterion for triggering a detection, which is the number of
-                 input slots with a target event. Acceptable values range from 1 to
-                 the total number of input slots. A value of 0 or 'all' is equivalent
-                 to the total number of input slots. A value of 'any' is equivalent to 1.
+      input slots with a target event. Acceptable values range from 1 to
+      the total number of input slots. A value of 0 or 'all' is equivalent
+      to the total number of input slots. A value of 'any' is equivalent to 1.

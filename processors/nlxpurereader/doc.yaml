@@ -1,8 +1,8 @@
 Description: Read raw data of a Neuralynx Digilynx data acquisition on a UDP buffer
 
-Long description :
+Long description:
 
-Output port :
+Output port:
   - name: udp
     type: VectorType <char>
     slots: 1
@@ -29,9 +29,9 @@ Options:
 
 States:
 
-  broadcaster :
-     - name: n_invalid
-       type: uint64_t
-       initial value: O
-       external access: read
-       description: The number of invalid packets that were received.
+  broadcaster:
+    - name: n_invalid
+      type: uint64_t
+      default: O
+      external access: read
+      description: The number of invalid packets that were received.

@@ -1,3 +1,3 @@
 
 add_library(arduinoserial arduino-serial-lib.cpp)
-target_link_libraries( arduinoserial )
+target_link_libraries(arduinoserial)

@@ -17,37 +17,28 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#ifndef EVENT_CONVERTER_HPP
-#define EVENT_CONVERTER_HPP
+#pragma once
+
+#include <string>
 
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
 
 class EventConverter : public IProcessor {
+  // CONSTRUCTOR and OVERLOADED METHODS
+ public:
+  EventConverter();
+  void CreatePorts() override;
+  void Process(ProcessingContext &context) override;
+  void Postprocess(ProcessingContext &context) override;
 
-// CONSTRUCTOR and OVERLOADED METHODS
+  // DATA PORTS
+ protected:
+  PortIn<EventType> *data_in_port_;
+  PortOut<EventType> *data_out_port_;
 
-public:
-    EventConverter();
-    virtual void CreatePorts() override;
-    virtual void Process( ProcessingContext& context ) override;
-    virtual void Postprocess( ProcessingContext& context ) override;
-
-// DATA PORTS
-protected:
-    PortIn<EventType>* data_in_port_;
-    PortOut<EventType>* data_out_port_;
-
-
-// OPTIONS
-protected:
-    options::String event_name_{
-        "stimulation",
-        options::notempty<std::string>()};
-
-    options::Bool replace_{true};
-
+  // OPTIONS
+ protected:
+  options::String event_name_{"stimulation", options::notempty<std::string>()};
+  options::Bool replace_{true};
 };
-
-#endif	// eventconverter.hpp
-

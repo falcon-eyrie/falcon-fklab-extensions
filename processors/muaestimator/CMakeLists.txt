@@ -1,3 +1,3 @@
 
-ADD_LIBRARY( muaestimator "muaestimator.cpp" )
+ADD_LIBRARY(muaestimator "muaestimator.cpp")
 

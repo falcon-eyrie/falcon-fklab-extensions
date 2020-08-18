@@ -2,13 +2,13 @@ Description: Detect population bursts using a threshold crossing algorithm.
 
 Long description:
 
-Input port :
+Input port:
   - name: mua
     type: MUAData
     slots: 1
     description: Binned multi-unit activity in Hz (e.g. from MUAEstimator).
 
-Output port :
+Output port:
   - name: events
     type: EventData
     slots: 1
@@ -17,28 +17,33 @@ Output port :
     type: MultiChannelData <double>
     slots: 1
     description: A stream of nsamples-by-2 arrays with the signal test value (first column)
-                 and the threshold (second column). The number of samples in each statistics
-                 data packet is set by the statistics_buffer_size option.
+      and the threshold (second column). The number of samples in each statistics
+      data packet is set by the statistics_buffer_size option.
 
 Options:
-  - name: threshold dev
+  - &threshold
+    name: threshold dev
     type: double
     default: 6.0
     description: for threshold multiplier. Same unit as signal standard deviations.
-  - name: smooth time
+  - &smoothtime
+    name: smooth time
     type: double
     default: 10.0 seconds
     description: Integration time for estimating signal statistics. Must be a positive number (sec).
-  - name: detection lockout time
+  - &detectlookouttime
+    name: detection lockout time
     type: double
     default: 30 ms
     description: refractory period after threshold crossing detection that is not considered for updating of statistics
-                and for detecting events. Must greater than 0 ms.
-  - name: stream events
+      and for detecting events. Must greater than 0 ms.
+  - &streamevents
+    name: stream events
     type: bool
     default: True
     description: enable/disable burst event output
-  - name: stream statistics
+  - &streamstats
+    name: stream statistics
     type: bool
     default: True
     description: enable/disable burst event output
@@ -46,63 +51,52 @@ Options:
     type: double
     default: 0.5 sec
     description: Buffer size (in seconds) for statistics output stream. This value determines
-                 the number of samples that will be collected for each data packet streamed
-                 out on the statistics output port. must be either equals or greater than 0.
+      the number of samples that will be collected for each data packet streamed
+      out on the statistics output port. must be either equals or greater than 0.
 
 States:
-  Broadcaster :
-     - name: threshold
-       type: double
-       initial value: 0.0
-       external access: read
-       description: Current threshold that needs to be crossed
-     - name: mean
-       type: double
-       initial value: 0.0
-       external access: read
-       description: Current signal mean. Same unit as input signal.
-     - name: deviation
-       type: double
-       initial value: 0.0
-       external access: read
-       description: Current signal deviation. Same unit as input signal.
-     - name: burst
-       type: bool
-       initial value: false
-       external access: read
-       description:
+  Broadcaster:
+    - name: threshold
+      type: double
+      default: 0.0
+      external access: read
+      description: Current threshold that needs to be crossed
+    - name: mean
+      type: double
+      default: 0.0
+      external access: read
+      description: Current signal mean. Same unit as input signal.
+    - name: deviation
+      type: double
+      default: 0.0
+      external access: read
+      description: Current signal deviation. Same unit as input signal.
+    - name: burst
+      type: bool
+      default: false
+      external access: read
+      description:
 
-  Static :
-     - name: threshold deviation
-       type: double
-       initial value: see option threshold deviation
-       external access: write
-       shared: true
-       description:
-     - name: detection lockout time
-       type: double
-       initial value: see option detection lockout time
-       external access: write
-       shared: true
-       description: Current refractory period following threshold crossing that is not
-                    considered for  updating signal statistics and for event detection.
-     - name: stream events
-       type: bool
-       initial value: see option stream events
-       external access: write
-       shared: true
-       description:
-     - name: stream statistics
-       type: bool
-       initial value: see option stream statistics
-       external access: write
-       shared: true
-       description:
+  Static:
+    - options: *threshold
+      external access: write
+      shared: true
+    - options: *detectlookouttime
+      external access: write
+      shared: true
+    - options: *streamevents
+      external access: write
+      shared: true
+    - options: *streamstats
+      external access: write
+      shared: true
+    - options: *smoothtime
+      external access: write
+      shared: true
 
-
-  Follower :
-     - name: bin size
-       data type: double
-       initial value: 1.0
-       external access: read
-       description:
+  Follower:
+    - name: bin size
+      data type: double
+      default: 1.0
+      external access: read
+      description:

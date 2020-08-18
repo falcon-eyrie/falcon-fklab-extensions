@@ -1,18 +1,8 @@
-Description: Detect population bursts using a threshold crossing algorithm.
+Description: Log target events
 
 Long description:
 
-Input port :
-  - name: events
-    type: EventData
-    slots: 1-256
-    description:
-  - name: blocking events
-    type: EventData
-    slots: 1-256
-    description:
-
-Output port :
+Input port:
   - name: events
     type: EventData
     slots: 1
@@ -22,26 +12,4 @@ Options:
   - name: target event
     type: string
     default: None
-    description: target event to be filtered out
-  - name: block duration
-    type: double
-    default: 10.0 ms
-    description: time during which target events are filtered out
-  - name: sync time
-    type: double
-    default: 1.5 ms
-    description: time used to check if any blocking target event is present
-                  after a target event has been received
-  - name: discard warnings
-    type: bool
-    default: false
-    description: if true, warnings about discarded events will not be generated
-  - name: stream statistics
-    type: bool
-    default: True
-    description: enable/disable burst event output
-  - name: detection criterion
-    type: string or unsigned int
-    default: "any"
-    description: string or number to determine the criterion for a triggering detection; acceptable string values ('any', 'all'),
-                 acceptable integer values (any value between 1 (equivalent to 'any') and the number of input slots)
+    description: target event to be log

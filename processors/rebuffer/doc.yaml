@@ -1,14 +1,14 @@
 Description: Rebuffer and downsample multiple MultiChannelData streams. No anti-aliasing filter is applied before downsampling.
 
-Long description :
+Long description:
 
-Input port :
+Input port:
   - name: data
     type: MultiChannelData <double>
     slots: 1-256
     description:
 
-Output port :
+Output port:
   - name: data
     type: MultiChannelData <double>
     slots: 1-256

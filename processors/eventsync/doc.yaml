@@ -1,14 +1,14 @@
-Description: Detect population bursts using a threshold crossing algorithm.
+Description: Synchronize on the occurrence of a target event on all its input slots, before emitting the same target event
 
 Long description:
 
-Input port :
+Input port:
   - name: events
     type: EventData
     slots: 1-256
     description:
 
-Output port :
+Output port:
   - name: events
     type: EventData
     slots: 1-256

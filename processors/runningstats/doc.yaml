@@ -1,29 +1,34 @@
 Description: Compute running statistics
 
-Long description :
+Long description:
 
-Input port :
+Input port:
   - name: data
     type: MultiChannelData <double>
-    slots: 1-256
+    slots: 1
     description:
 
-Output port :
+Output port:
   - name: data
-    type: MultiChannelData <double>
-    slots: 1-256
+    type: SpikeData
+    slots: 1
     description:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
 
 Options:
   - name: integration time
     type: double
-    default: 1.0
+    default: 1.0 seconds
     description: time window for exponential smoothing
   - name: outlier/protection
     type: bool
     default: false
     description: Enable outlier protection. Outliers are values larger than a predefined z-score.
-                 The contribution of an outlier is reduced by an amount that depends on the magnitude of the outlier
+      The contribution of an outlier is reduced by an amount that depends on the magnitude of the outlier
   - name: outlier/zscore
     type: double
     default: 6.0

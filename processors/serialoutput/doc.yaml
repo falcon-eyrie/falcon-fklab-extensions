@@ -1,12 +1,12 @@
 Description: Take an EventData stream and sends data over serial port when a target event is received
 
-Input ports :
+Input ports:
   - name: events
     type: EventData
     slots: 1
     description:
 
-Output ports :
+Output ports:
   - name: events
     type: EventData
     slots: 1
@@ -49,7 +49,7 @@ State:
     - name: enabled
       data type: bool
       initial value:
-         option: enabled
+        option: enabled
       external access: write
       shared: true
       description:

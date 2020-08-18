@@ -1,12 +1,12 @@
-Description: reads multi-channel data stream and splits the data across multiple output streams based on a channel mapping
+Description: Read multi-channel data stream and splits the data across multiple output streams based on a channel mapping
 
-Long description : The channelmap defines the output port names and for each port lists the channels that will be copied to the data buckets on that port.
+Long description: The channelmap defines the output port names and for each port lists the channels that will be copied to the data buckets on that port.
 
-Example :
+Example:
   channelmap option:
-         portnameA: [0,1,2,3,4]
-         portnameB: [5,6]
-         portnameC: [0,5]
+    portnameA: [0,1,2,3,4]
+    portnameB: [5,6]
+    portnameC: [0,5]
 
 Input port:
   - name: data
@@ -24,5 +24,5 @@ Output port:
 Options:
   - name: channelmap
     type: ChannelMap
-    default:
+    default: not - required option
     description: Mapping of channels to processor output ports.

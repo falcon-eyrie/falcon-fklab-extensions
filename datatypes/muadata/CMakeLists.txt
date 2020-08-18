@@ -1,2 +1,2 @@
 
-ADD_LIBRARY( muadata "muadata.cpp" )
+ADD_LIBRARY(muadata "muadata.cpp")

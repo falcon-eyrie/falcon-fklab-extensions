@@ -1,14 +1,14 @@
-Description: Detect ripples in a MultiChannelData stream and emits a ripple event in response
+Description: Detect spikes in a MultiChannelData stream and emits a spike event and spike data in response
 
-Long description :
+Long description:
 
-Input ports :
+Input ports:
   - name: data
     type: MultiChannelData <double>
     slots: 1
     description:
 
-Output port :
+Output port:
   - name: events
     type: EventData
     slots: 1
@@ -19,38 +19,34 @@ Output port :
     description: A stream of detected spikes
 
 Options:
-  - name: threshold
+  - &threshold
+    name: threshold
     type: double
     default: 60.0
-    description: threshold that a single channel must cross.
+    description: Spike detection threshold in data units.
   - name: invert signal
     type: bool
     default: True
-    description: whether the signal does (true) or does not (false) need to be inverted when detecting spikes
+    description: Invert signal before spike detection.
   - name: strict time bin check
     type: bool
     default: True
-    description:
+    description: Strict check of compatibility of spike detection buffer size with the upstream processor
   - name: buffer size
     type: double
     default: 0.5 ms
-    description: amount of data that will be used to look for spikes [ms]
-  - name: peak lifetime
+    description: Size (in seconds) of data buffer used for spike detection
+  - &peaklifetime
+    name: peak lifetime
     type: unsigned int
     default: 8 samples
-    description: number of samples that will be used to look for a peak
+    description: Peak life time in samples
 
 States:
   static:
-     - name: threshold
-       type: double
-       initial value: see option threshold
-       shared: true
-       external access: write
-       description:
-     - name: peak lifetime
-       type: unsigned int
-       initial value: see option peak lifetime
-       shared: true
-       external access: write
-       description:
+    - options: *threshold
+      shared: true
+      external access: write
+    - options: *peaklifetime
+      shared: true
+      external access: write
