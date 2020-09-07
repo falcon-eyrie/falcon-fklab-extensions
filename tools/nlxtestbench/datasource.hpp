@@ -19,23 +19,25 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <string>
-
+#include "neuralynx/nlx.hpp"
 #include "yaml-cpp/yaml.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 class DataSource {
- public:
-  virtual ~DataSource() {}
+public:
+  virtual ~DataSource() = default;
 
   virtual int64_t Produce(char **data) = 0;
 
   virtual std::string string() = 0;
 
   virtual YAML::Node to_yaml() const = 0;
+
+protected:
+  nlx::NlxSignalRecord record_;
 };
 
 std::vector<std::unique_ptr<DataSource>>
 datasources_from_yaml(const YAML::Node &node);
-
