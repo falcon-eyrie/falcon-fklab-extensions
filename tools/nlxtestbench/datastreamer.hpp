@@ -22,18 +22,17 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include <chrono>
 #include <string>
 #include <thread>
-#include <chrono>
 
-#include "common.hpp"
 #include "datasource.hpp"
 
 void busysleep_until(
     std::chrono::time_point<std::chrono::high_resolution_clock> t);
 
 class DataStreamer {
- public:
+public:
   DataStreamer(DataSource *source, double rate, std::string ip, int port,
                uint64_t npackets);
   ~DataStreamer();
@@ -48,7 +47,7 @@ class DataStreamer {
 
   void set_source(DataSource *source);
 
- protected:
+protected:
   std::thread thread_;
   bool running_ = false;
   bool terminate_ = false;

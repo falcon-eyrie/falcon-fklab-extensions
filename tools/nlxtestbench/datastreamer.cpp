@@ -18,10 +18,9 @@
 // ---------------------------------------------------------------------
 #include "datastreamer.hpp"
 
-#include <unistd.h>
 #include <cstring>
 #include <iostream>
-#include <limits>
+#include <unistd.h>
 
 #include "utilities/time.hpp"
 
@@ -61,55 +60,63 @@ bool DataStreamer::terminated() const { return terminate_; }
 void DataStreamer::Terminate() { terminate_ = true; }
 
 void DataStreamer::Run() {
-    
-    uint64_t npackets = 0;
-    unsigned int buffer_size = 0;
-    ssize_t sent;
 
-    TimePoint start;
-    std::chrono::microseconds period( (uint64_t) (1000000./rate_) );
-            
-    char* buffer;
-    
-    std::cout << "Started streaming at " << std::to_string(rate_)
-                  << " Hz: " << source_->string() << std::endl;
-    
-    auto begin_time = std::chrono::high_resolution_clock::now();
-    
-    while ( !terminated() && npackets<max_packets_ ) {
-        
-        start = Clock::now();
+  uint64_t npackets = 0;
+  unsigned int buffer_size;
+  ssize_t sent;
 
-        if ((buffer_size=source_->Produce( &buffer ))==0) { break; }
-        
-        busysleep_until( start + period );
+  TimePoint start;
+  std::chrono::microseconds period((uint64_t)(1000000. / rate_));
 
-        if ( (sent=sendto( udp_socket_, (void*)buffer, buffer_size, 0,
-                     (struct sockaddr*) &server_address_, sizeof(server_address_))) != buffer_size ) {
-            if (sent<0) {
-                std::cout << "Error sending data packet: " << std::strerror(errno) << std::endl;
-            } else {
-                std::cout << "Error sending data packet: did not send all data." << std::endl;
-            }
-            break;
-        }
-        
-        npackets++;
-        
+  char *buffer;
+
+  std::cout << "Started streaming at " << std::to_string(rate_)
+            << " Hz: " << source_->string() << std::endl;
+
+  auto begin_time = std::chrono::high_resolution_clock::now();
+
+  while (!terminated() && npackets < max_packets_) {
+
+    start = Clock::now();
+
+    if ((buffer_size = source_->Produce(&buffer)) == 0) {
+      break;
     }
-    
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( end_time - begin_time ).count();
-        
-    std::cout << "Finished streaming: " << source_->string() << std::endl;
-    
-    std::cout << "Number of packets sent = " << npackets << " in "
-              << static_cast<double>(duration/1000.) << " seconds ( average rate = " 
-              << static_cast<double>(npackets*1000./duration) << " Hz )" << std::endl << std::endl;
-    
-    Terminate();
-    
-} 
+
+    busysleep_until(start + period);
+
+    if ((sent = sendto(udp_socket_, (void *)buffer, buffer_size, 0,
+                       (struct sockaddr *)&server_address_,
+                       sizeof(server_address_))) != buffer_size) {
+      if (sent < 0) {
+        std::cout << "Error sending data packet: " << std::strerror(errno)
+                  << std::endl;
+      } else {
+        std::cout << "Error sending data packet: did not send all data."
+                  << std::endl;
+      }
+      break;
+    }
+
+    npackets++;
+  }
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      end_time - begin_time)
+                      .count();
+
+  std::cout << "Finished streaming: " << source_->string() << std::endl;
+
+  std::cout << "Number of packets sent = " << npackets << " in "
+            << duration / 1000. << " seconds ( average rate = "
+            << npackets * 1000. / duration
+            << " Hz )"
+            << std::endl
+            << std::endl;
+
+  Terminate();
+}
 
 void DataStreamer::Start() {
   if (!running()) {

@@ -19,17 +19,12 @@
 
 #include "sinesource.hpp"
 
-#include <cmath>
-#include <stdexcept>
-
 #include "utilities/string.hpp"
-
 
 SineSource::SineSource(double offset, double amplitude, double frequency,
                        double sampling_rate, double noise_stdev,
                        unsigned int nchannels, bool convert_byte_order)
-    :
-      offset_(offset), amplitude_(amplitude), frequency_(frequency),
+    : offset_(offset), amplitude_(amplitude), frequency_(frequency),
       sampling_rate_(sampling_rate), noise_stdev_(noise_stdev),
       delta_(1000000 / sampling_rate), distribution_(0.0, noise_stdev),
       nchannels_(nchannels), convert_byte_order_(convert_byte_order) {

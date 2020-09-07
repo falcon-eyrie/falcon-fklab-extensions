@@ -18,17 +18,13 @@
 // ---------------------------------------------------------------------
 
 #include "datasource.hpp"
-
-#include <memory>
-#include <vector>
+#include <iostream>
 
 #include "filesource.hpp"
 #include "ripplesource.hpp"
 #include "sinesource.hpp"
 #include "squaresource.hpp"
 #include "whitenoisesource.hpp"
-
-#include "yaml-cpp/yaml.h"
 
 std::vector<std::unique_ptr<DataSource>>
 datasources_from_yaml(const YAML::Node &node) {
@@ -37,7 +33,7 @@ datasources_from_yaml(const YAML::Node &node) {
   std::string source_class;
 
   // node["sources"]
-  if (!node || node.IsNull()) {
+  if (!node || node.IsNull() || node["class"].as<std::string>() == "default") {
     // create default data sources
     sources.push_back(
         std::unique_ptr<DataSource>(new WhiteNoiseSource(0.0, 1.0, 32000.0)));
@@ -69,5 +65,5 @@ datasources_from_yaml(const YAML::Node &node) {
       }
     }
   }
-return sources;
+  return sources;
 }

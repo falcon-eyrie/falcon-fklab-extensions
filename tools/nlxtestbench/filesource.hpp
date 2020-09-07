@@ -23,22 +23,21 @@
 #include <string>
 #include <vector>
 
-#include "common.hpp"
 #include "datasource.hpp"
 
 class FileSource : public DataSource {
- public:
+public:
   FileSource(std::string file, bool cycle);
-  ~FileSource();
+  ~FileSource() override;
 
-  virtual std::string string();
-  virtual int64_t Produce(char **data);
-  virtual YAML::Node to_yaml() const;
+  std::string string() override;
+  int64_t Produce(char **data) override;
+  YAML::Node to_yaml() const override;
 
-  static FileSource *from_yaml(const YAML::Node node);
+  static FileSource *from_yaml(YAML::Node node);
   std::string file() const;
 
- protected:
+protected:
   std::string file_;
   bool cycle_;
   std::ifstream raw_data_file;
@@ -47,4 +46,3 @@ class FileSource : public DataSource {
   uint16_t buffer_size_;
   bool convert_byte_order_;
 };
-

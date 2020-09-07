@@ -20,12 +20,8 @@
 #include "filesource.hpp"
 
 #include <iostream>
-#include <stdexcept>
 
 #include "utilities/string.hpp"
-
-
-
 FileSource::FileSource(std::string file, bool cycle)
     : file_(file), cycle_(cycle) {
   try {
@@ -52,7 +48,7 @@ FileSource::FileSource(std::string file, bool cycle)
   } else if (local_buffer[0] == 8) {
     // OK, conversion needed (in-place)
     convert_byte_order_ = true;
-    uint16_t *p = (uint16_t *)local_buffer.data();
+    auto *p = (uint16_t *)local_buffer.data();
     for (unsigned int k = 0; k < 3 * sizeof(uint32_t) / sizeof(uint16_t); k++) {
       *(p + k) = ntohs(*(p + k));
     }

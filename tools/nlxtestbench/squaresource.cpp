@@ -19,17 +19,13 @@
 
 #include "squaresource.hpp"
 
-#include <stdexcept>
-
 #include "utilities/string.hpp"
-
 
 SquareSource::SquareSource(double offset, double amplitude, double frequency,
                            double duty_cycle, double sampling_rate,
                            double noise_stdev, unsigned int nchannels,
                            bool convert_byte_order)
-    :
-      offset_(offset), amplitude_(amplitude), frequency_(frequency),
+    : offset_(offset), amplitude_(amplitude), frequency_(frequency),
       duty_cycle_(duty_cycle), sampling_rate_(sampling_rate),
       noise_stdev_(noise_stdev), delta_(1000000 / sampling_rate),
       distribution_(0.0, noise_stdev), nchannels_(nchannels),

@@ -19,34 +19,29 @@
 
 #pragma once
 
-#include <random>
-#include <vector>
-#include <string>
-
-
-#include "common.hpp"
 #include "datasource.hpp"
+#include <random>
+#include <string>
+#include <vector>
 
 class WhiteNoiseSource : public DataSource {
- public:
+public:
   WhiteNoiseSource(double mean = 0.0, double stdev = 1.0,
                    double sampling_rate = 1.0, unsigned int nchannels = 128,
                    bool convert_byte_order = true);
 
-  virtual std::string string();
-  virtual int64_t Produce(char **data);
-  virtual YAML::Node to_yaml() const;
+  std::string string() override;
+  int64_t Produce(char **data) override;
+  YAML::Node to_yaml() const override;
 
-  static WhiteNoiseSource *from_yaml(const YAML::Node node);
+  static WhiteNoiseSource *from_yaml(YAML::Node node);
 
- protected:
+protected:
   double mean_;
   double stdev_;
   double sampling_rate_;
   uint64_t timestamp_ = 0;
   uint64_t delta_;
-
-  nlx::NlxSignalRecord record_;
 
   std::vector<char> buffer_;
   std::default_random_engine generator_;

@@ -19,28 +19,25 @@
 
 #pragma once
 #include <random>
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "common.hpp"
 #include "datasource.hpp"
 
 class SquareSource : public DataSource {
- public:
+public:
   SquareSource(double offset = 0.0, double amplitude = 1.0,
                double frequency = 1.0, double duty_cycle = 0.5,
                double sampling_rate = 1.0, double noise_stdev = 0,
                unsigned int nchannels = 128, bool convert_byte_order = true);
 
-  virtual std::string string();
+  std::string string() override;
+  int64_t Produce(char **data) override;
+  YAML::Node to_yaml() const override;
 
-  virtual int64_t Produce(char **data);
+  static SquareSource *from_yaml(YAML::Node node);
 
-  virtual YAML::Node to_yaml() const;
-
-  static SquareSource *from_yaml(const YAML::Node node);
-
- protected:
+protected:
   double offset_;
   double amplitude_;
   double frequency_;
@@ -54,8 +51,6 @@ class SquareSource : public DataSource {
   uint64_t counter_;
   double current_amplitude_;
 
-  nlx::NlxSignalRecord record_;
-
   std::vector<char> buffer_;
 
   std::default_random_engine generator_;
@@ -64,4 +59,3 @@ class SquareSource : public DataSource {
   unsigned int nchannels_;
   bool convert_byte_order_;
 };
-
