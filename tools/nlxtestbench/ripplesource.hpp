@@ -21,73 +21,70 @@
 #define RIPPLESOURCE_H
 
 #include <random>
-
-#include "common.hpp"
 #include "datasource.hpp"
 
 
 class RippleSource : public DataSource {
 public:
+  /**
+   * Create the source and set the user options
+   *
+   * @param offset purely value added to the sample generated
+   * @param amplitude mean of the amplitude of the ripple
+   * @param frequency frequency of the ripple should be contain between 150 and
+   * 250
+   * @param duration duration of the ripple segment in secs
+   * @param interval duration of the zero amplitude segment in secs
+   * @param sampling_rate rate of generating and sending samples
+   * @param noise_stdev standard deviation of the noise added to the signal
+   * @param nchannels number of channels simulated
+   * @params convert_byter_order
+   */
+  RippleSource(double offset = 0.0, double amplitude = 1.0,
+               double frequency = 200, double duration = 10,
+               double interval = 10, double sampling_rate = 32000,
+               double noise_stdev = 0, unsigned int nchannels = 128,
+               bool convert_byte_order = true);
 
-    /**
-     * Create the source and set the user options
-     *
-     * @param offset purely value added to the sample generated
-     * @param amplitude mean of the amplitude of the ripple
-     * @param frequency frequency of the ripple should be contain between 150 and 250
-     * @param duration duration of the ripple segment in secs
-     * @param interval duration of the zero amplitude segment in secs
-     * @param sampling_rate rate of generating and sending samples
-     * @param noise_stdev standard deviation of the noise added to the signal
-     * @param nchannels number of channels simulated
-     * @params convert_byter_order
-     */
-    RippleSource( double offset = 0.0, double amplitude = 1.0, double frequency = 200,
-        double duration=10, double interval = 10, double sampling_rate = 32000, double noise_stdev = 0,
-        unsigned int nchannels=128, bool convert_byte_order=true );
+  std::string string() override;
 
-    virtual std::string string();
+  /**
+   * Produce sample and timestamps to package and send in the network.
+   *
+   * Signal produced = ripple signal separated by segment of zero amplitude
+   * signal
+   *
+   */
+  int64_t Produce(char **data) override;
 
-    /**
-     * Produce sample and timestamps to package and send in the network.
-     *
-     * Signal produced = ripple signal separated by segment of zero amplitude signal
-     *
-     */
-    virtual int64_t Produce( char** data );
+  YAML::Node to_yaml() const override;
 
-    virtual YAML::Node to_yaml() const;
-
-    static RippleSource* from_yaml( const YAML::Node node );
+  static RippleSource *from_yaml(YAML::Node node);
 
 protected:
-    double offset_;
-    double amplitude_;
-    double duration_;
-    double interval_;
-    double frequency_;
-    double probability_;
-    double sampling_rate_;
-    double noise_stdev_;
+  double offset_;
+  double frequency_;
+  double duration_;
+  double interval_;
+  double sampling_rate_;
+  double noise_stdev_;
+  uint64_t delta_;
+  std::normal_distribution<double> distribution_;
+  bool ripple_;
+  std::poisson_distribution<int> poisson_distribution_;
+  unsigned int nchannels_;
+  bool convert_byte_order_;
 
-    uint64_t timestamp_ = 0;
-    uint64_t delta_;
+  uint64_t timestamp_ = 0;
 
-    uint64_t counter_;
-    double current_amplitude_;
-    double dist_amplitude_;
-    double omega_;
-    bool ripple_;
-    nlx::NlxSignalRecord record_;
+  int amplitude_;
+  double counter_;
+  double current_amplitude_;
+  double omega_;
 
-    std::vector<char> buffer_;
+  std::vector<char> buffer_;
 
-    std::default_random_engine generator_;
-    std::normal_distribution<double> distribution_;
-
-    std::poisson_distribution<int> poisson_distribution_;
-    unsigned int nchannels_;
-    bool convert_byte_order_;
+  std::default_random_engine generator_;
 };
 
 #endif // RIPPLESOURCE_H
