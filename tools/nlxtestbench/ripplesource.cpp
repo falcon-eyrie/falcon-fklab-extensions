@@ -20,17 +20,17 @@
 #include "ripplesource.hpp"
 #include "utilities/string.hpp"
 
-RippleSource::RippleSource(double offset, double amplitude, double frequency,
-                           double duration, double interval,
+RippleSource::RippleSource(double offset, double mean_amplitude, double frequency,
+                           float duration, float interval,
                            double sampling_rate, double noise_stdev,
                            unsigned int nchannels, bool convert_byte_order)
     :
 
-      offset_(offset), frequency_(frequency), duration_(duration),
-      interval_(interval), sampling_rate_(sampling_rate),
+      offset_(offset), frequency_(frequency), sampling_rate_(sampling_rate),
+      duration_(duration * sampling_rate / 1000), interval_(interval * sampling_rate / 1000),
       noise_stdev_(noise_stdev), delta_(1000000 / sampling_rate),
       distribution_(0.0, noise_stdev), ripple_(false),
-      poisson_distribution_(amplitude), nchannels_(nchannels),
+      poisson_distribution_(mean_amplitude), mean_amplitude_(mean_amplitude), nchannels_(nchannels),
       convert_byte_order_(convert_byte_order) {
 
   if (frequency_ < 150 || frequency_ > 250) {
@@ -38,8 +38,6 @@ RippleSource::RippleSource(double offset, double amplitude, double frequency,
         "Invalid frequency for a SWRs - should be between 150 and 250 Hz");
   }
 
-  duration_ = duration_ * sampling_rate_;
-  interval_ = interval_ * sampling_rate_;
   amplitude_ = poisson_distribution_(generator_);
   counter_ = 0;
   omega_ = 2 * 3.14159265358979 * frequency_ / sampling_rate_;
@@ -52,21 +50,20 @@ std::string RippleSource::string() {
 
   return "ripple wave (fs = " + to_string_n(sampling_rate_) + " Hz, " +
          "offset = " + to_string_n(offset_) + " uV, " +
-         "amplitude = " + to_string_n(amplitude_) + " uV, " +
+         "mean ripple amplitude = " + to_string_n(mean_amplitude_) + " uV, " +
          "ripple frequency = " + to_string_n(frequency_) + " Hz, " +
-         "ripple duration = " + to_string_n(duration_ / sampling_rate_) +
-         " secs, " +
-         "zero signal duration = " + to_string_n(interval_ / sampling_rate_) +
-         " secs, " + "noise stdev = " + to_string_n(noise_stdev_) + " uV, " +
+         "ripple duration = " + to_string_n((float)(duration_ *1000 / sampling_rate_)) +
+         " ms, " +
+         "zero signal interval = " + to_string_n((float)(interval_*1000 / sampling_rate_)) +
+         " ms, " + "noise stdev = " + to_string_n(noise_stdev_) + " uV, " +
          "number of channels = " + std::to_string(nchannels_) + ", " +
          "convert byte order = " + std::to_string(convert_byte_order_) + ")";
 }
 
 int64_t RippleSource::Produce(char **data) {
 
-  if (!ripple_ and
-      counter_ >
-          interval_) { // starting a ripple at the end of the interval segment
+  if (!ripple_ and counter_ > interval_) {
+    // starting a ripple at the end of the interval segment
     amplitude_ = poisson_distribution_(generator_);
     counter_ = -duration_ / 2;
     ripple_ = true;
@@ -104,9 +101,9 @@ YAML::Node RippleSource::to_yaml() const {
   YAML::Node node;
 
   node["offset"] = offset_;
-  node["amplitude"] = amplitude_;
+  node["mean ripple amplitude"] = amplitude_;
   node["frequency"] = frequency_;
-  node["duration"] = duration_;
+  node["ripple duration"] = duration_;
   node["interval"] = interval_;
   node["sampling_rate"] = sampling_rate_;
   node["noise_stdev"] = noise_stdev_;
@@ -119,9 +116,9 @@ YAML::Node RippleSource::to_yaml() const {
 RippleSource *RippleSource::from_yaml(const YAML::Node node) {
 
   return new RippleSource(
-      node["offset"].as<double>(0.0), node["amplitude"].as<double>(100),
-      node["frequency"].as<double>(200), node["duration"].as<double>(0.1),
-      node["interval"].as<double>(0.5), node["sampling_rate"].as<double>(32000),
+      node["offset"].as<double>(0.0),node["mean ripple amplitude"].as<double>(100),
+      node["ripple frequency"].as<double>(200), node["ripple duration"].as<double>(0.1),
+      node["interval"].as<double>(0.1), node["sampling_rate"].as<double>(32000),
       node["noise_stdev"].as<double>(0),
       node["nchannels"].as<unsigned int>(128),
       node["convert_byte_order"].as<bool>(true));

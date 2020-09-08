@@ -40,9 +40,9 @@ public:
    * @param nchannels number of channels simulated
    * @params convert_byter_order
    */
-  RippleSource(double offset = 0.0, double amplitude = 1.0,
-               double frequency = 200, double duration = 10,
-               double interval = 10, double sampling_rate = 32000,
+  RippleSource(double offset = 0.0, double mean_amplitude = 1.0,
+               double frequency = 200, float duration = 0.1,
+               float interval = 0.1, double sampling_rate = 32000,
                double noise_stdev = 0, unsigned int nchannels = 128,
                bool convert_byte_order = true);
 
@@ -64,14 +64,15 @@ public:
 protected:
   double offset_;
   double frequency_;
+  double sampling_rate_;
   double duration_;
   double interval_;
-  double sampling_rate_;
   double noise_stdev_;
   uint64_t delta_;
   std::normal_distribution<double> distribution_;
   bool ripple_;
   std::poisson_distribution<int> poisson_distribution_;
+  double mean_amplitude_;
   unsigned int nchannels_;
   bool convert_byte_order_;
 
