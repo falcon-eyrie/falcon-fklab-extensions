@@ -58,6 +58,24 @@ configuration file is shown below:
            mean: 0.
            stdev: 1.
            sampling_rate: 32000
+      - class: ripple
+        options:
+             ripple params:
+                *:
+                   duration: 100
+                   interval: 50
+                9:
+                   duration: 50
+                   interval: 80
+                15:
+                   duration: 20
+                   interval: 40
+             ripple frequency: 200
+             mean ripple amplitude: 100
+             sampling_rate: 3200
+             noise_stdev: 0
+             nchannels: 128
+             offset: 0
 
 network options
 ...............
@@ -91,24 +109,48 @@ sources
 .......
 
 The final section of the configuration file lists predefined signal sources.
-If no sources are specified, then by default a single sine wave is added.
 
-At present, four different signal sources are available: Neuralynx raw data
-file (*nlx*), sine wave (*sine*), square wave (*square*) and white noise
+At present, five different signal sources are available: Neuralynx raw data
+file (*nlx*) or generation of a ripple signal (*ripple*), sine wave (*sine*), square wave (*square*) and white noise
 (*noise*). To configure a signal source, you need to specify the class of the
 source (i.e. nlx, sine, square or noise) and any additional options.
+If no sources are specified, then by default a white noise source is added.
+
+Neuralynx raw data (nlx)
+************************
 
 To define a signal source that reads raw data packets from a previously
 recorded Neuralynx raw data file, you would use the *nlx* source class and set
 the *file* option to the path where the raw data file can be found.
 Importantly, the raw data file should contain recorded signals from exactly
-128 channels. This is a limitation of the nlxtestbench tool that will
+128 channels.
+This is a limitation of the nlxtestbench tool that will
 hopefully be removed in the future. All data packets in the file will be
 streamed, unless a maximum number of data packets has been specified that is
 less than the number of available data in the file (see stream options).
 If the *cycle* options is set to true, then streaming of the data in the file
 will restart automatically once the end of the file was reached.
 
+Ripple signal (ripple)
+**********************
+
+The ripple signal is used to work with the ripple detection graph.
+A ripple is characterize by its frequency, its mean amplitude, its duration, its zero interval between two ripples.
+
+This configuration create a
+
+.. code-block::
+
+    ripple wave (fs = 32000.0 Hz, offset = 0.0 uV, noise stdev = 0.0 uV, number of channels = 128, convert byte order = 1,
+    For all channels : mean ripple amplitude = 100.0 uV, ripple frequency = 200.0 Hz, ripple duration = 100 ms, zero signal interval = 50 ms
+    Except for channel 9 : ripple duration = 50 ms, zero signal interval = 80 ms
+    Except for channel 15 : ripple duration = 20 ms, zero signal interval = 40 ms )
+
+.. image:: ../images/ripples_non_synchro.gif
+
+
+Periodic signal (sine / square)
+*******************************
 To define a source that generates a periodic signal, you would use the
 *sine* and *square* source class. You then specify the *offset*
 (in microVolt), *amplitude* (in microVolt) and *frequency* (in Hz) of the
@@ -117,14 +159,31 @@ sine/square wave. In addition, you can specify a sampling rate other than
 the signal by setting the *noise_stdev* option to the standard deviation of
 a Gaussian noise distribution (in microVolt).
 
+.. image:: ../images/sinus.gif
+   :width: 59%
+
+.. image:: ../images/square.png
+   :width: 40%
+
+White noise (noise)
+*******************
+
 To define a source that generates white noise, you would use the *noise*
 class. You can specify both the *mean* and standard deviation (*stdev*) of the
 Gaussian noise distribution (in microVolt). You can specify a sampling rate
 other than 32 kHz using the *sampling_rate* option.
 
 
+Launch the test bench
+---------------------
+
+::
+
+    nlxtestbench -c /path/to/config/file -a 1
+
+
 Command-line options
---------------------
+********************
 
 ::
 
@@ -135,6 +194,7 @@ Command-line options
       -r, --rate         data stream rate (Hz) (double [=-1])
       -n, --npackets     maximum number of packets to stream (0 means all packets) (long [=-1])
       -?, --help         print this message
+
 
 Keyboard commands
 -----------------
@@ -148,11 +208,3 @@ key     action
 a-z     select signal to stream
 <ESC>   quit
 ======= ===============================
-
-Examples
---------
-
-::
-
-    nlxtestbench -c /path/to/config/file -a 1
-

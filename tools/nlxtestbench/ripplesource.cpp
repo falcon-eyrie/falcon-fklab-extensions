@@ -21,56 +21,56 @@
 #include "utilities/string.hpp"
 #include <iostream>
 
-RippleSource::RippleSource(double offset, double mean_amplitude, double frequency,
-                           YAML::Node ripple_duration,
-                           double sampling_rate, double noise_stdev,
-                           unsigned int nchannels, bool convert_byte_order)
-    :
-      offset_(offset), frequency_(frequency), sampling_rate_(sampling_rate), ripple_params_(ripple_duration),
-      noise_stdev_(noise_stdev), delta_(1000000 / sampling_rate),
-      distribution_(0.0, noise_stdev),
-      poisson_distribution_(mean_amplitude), mean_amplitude_(mean_amplitude), nchannels_(nchannels),
-      convert_byte_order_(convert_byte_order) {
+RippleSource::RippleSource(double offset, double frequency,double sampling_rate,
+                           YAML::Node ripple_duration, double mean_amplitude,
+                           double noise_stdev, bool convert_byte_order,
+                           unsigned int nchannels)
+    : offset_(offset), frequency_(frequency), sampling_rate_(sampling_rate),
+      delta_(1000000 / sampling_rate), ripple_params_(ripple_duration),
+      mean_amplitude_(mean_amplitude), poisson_distribution_(mean_amplitude),
+      noise_stdev_(noise_stdev), distribution_(0.0, noise_stdev),
+      convert_byte_order_(convert_byte_order), nchannels_(nchannels) {
 
   if (frequency_ < 150 || frequency_ > 250) {
     throw std::runtime_error(
         "Invalid frequency for a SWRs - should be between 150 and 250 Hz");
   }
 
-  if (!ripple_params_ || !ripple_params_["*"]){
-    if (ripple_params_["duration"]){
+  if (!ripple_params_ || !ripple_params_["*"]) {
+    if (ripple_params_["duration"]) {
       ripple_params_["*"]["duration"] = ripple_params_["duration"];
       ripple_params_.remove("duration");
-    }else{
+    } else {
       ripple_params_["*"]["duration"] = 100;
     }
-    if (ripple_params_["interval"]){
+    if (ripple_params_["interval"]) {
       ripple_params_["*"]["interval"] = ripple_params_["interval"];
       ripple_params_.remove("interval");
-    }else{
+    } else {
       ripple_params_["*"]["interval"] = 50;
     }
   }
 
-
-
-  for ( unsigned int i = 0; i < nchannels; i++){
-    params_by_channel_t param;
+  for (unsigned int i = 0; i < nchannels; i++) {
+    params_by_channel_t param{};
     param.counter = 0;
 
-    if (ripple_duration[i]){
-      param.interval = ripple_duration[i]["interval"].as<double>()*sampling_rate_/1000;
-      param.duration = ripple_duration[i]["duration"].as<double>()*sampling_rate_/1000;
-    }
-    else{
-      param.interval = ripple_duration["*"]["interval"].as<double>()*sampling_rate_/1000;
-      param.duration = ripple_duration["*"]["duration"].as<double>()*sampling_rate_/1000;
+    if (ripple_duration[i]) {
+      param.interval =
+          ripple_duration[i]["interval"].as<double>() * sampling_rate_ / 1000;
+      param.duration =
+          ripple_duration[i]["duration"].as<double>() * sampling_rate_ / 1000;
+    } else {
+      param.interval =
+          ripple_duration["*"]["interval"].as<double>() * sampling_rate_ / 1000;
+      param.duration =
+          ripple_duration["*"]["duration"].as<double>() * sampling_rate_ / 1000;
     }
 
     param.amplitude = poisson_distribution_(generator_);
-    if(param.counter >= param.interval){
+    if (param.counter >= param.interval) {
       param.ripple = true;
-    }else{
+    } else {
       param.ripple = false;
     }
 
@@ -92,19 +92,21 @@ std::string RippleSource::string() {
     auto key = it->first;
     auto value = it->second;
 
-    if(key.as<std::string>() == "*") {
+    if (key.as<std::string>() == "*") {
       general_ripples += "\nFor all channels : ";
-      general_ripples += "mean ripple amplitude = " + to_string_n(mean_amplitude_) + " uV, " +
-                         "ripple frequency = " + to_string_n(frequency_) + " Hz, " +
-                         "ripple duration = " + value["duration"].as<std::string>()+" ms, "
-                         + "zero signal interval = " +value["interval"].as<std::string>() + " ms ";
-    } else{
-      ripples += "\nExcept for channel " +  key.as<std::string>() + " : ";
-      ripples += "ripple duration = " + value["duration"].as<std::string>()+" ms, "
-                 + "zero signal interval = " +value["interval"].as<std::string>() + " ms ";
+      general_ripples +=
+          "mean ripple amplitude = " + to_string_n(mean_amplitude_) + " uV, " +
+          "ripple frequency = " + to_string_n(frequency_) + " Hz, " +
+          "ripple duration = " + value["duration"].as<std::string>() + " ms, " +
+          "zero signal interval = " + value["interval"].as<std::string>() +
+          " ms ";
+    } else {
+      ripples += "\nExcept for channel " + key.as<std::string>() + " : ";
+      ripples +=
+          "ripple duration = " + value["duration"].as<std::string>() + " ms, " +
+          "zero signal interval = " + value["interval"].as<std::string>() +
+          " ms ";
     }
-
-
   }
 
   return "ripple wave (fs = " + to_string_n(sampling_rate_) + " Hz, " +
@@ -119,11 +121,10 @@ std::string RippleSource::string() {
 int64_t RippleSource::Produce(char **data) {
 
   std::vector<double> generate_data;
-  for(auto it = begin (params); it != end (params); ++it){
+  for (auto it = begin(params); it != end(params); ++it) {
     double dt = generate_one_signal(&*it);
-    generate_data.push_back(dt) ;
+    generate_data.push_back(dt);
   }
-
 
   // set ripple data + noise + offset
   record_.set_data(generate_data);
@@ -136,9 +137,7 @@ int64_t RippleSource::Produce(char **data) {
   return n;
 }
 
-
-
-double RippleSource::generate_one_signal(params_by_channel_t* pparams){
+double RippleSource::generate_one_signal(params_by_channel_t *pparams) {
   double current_amplitude;
 
   if (!pparams->ripple and pparams->counter > pparams->interval) {
@@ -149,22 +148,24 @@ double RippleSource::generate_one_signal(params_by_channel_t* pparams){
   }
 
   ++pparams->counter;
-  if (pparams->ripple and pparams->counter < pparams->duration / 2) { // generating ripple values
+  if (pparams->ripple and
+      pparams->counter < pparams->duration / 2) { // generating ripple values
     current_amplitude =
-        pparams->amplitude * std::exp(-0.5 * std::pow(4.0 * pparams->counter / pparams->duration, 2)) *
+        pparams->amplitude *
+        std::exp(-0.5 *
+                 std::pow(4.0 * pparams->counter / pparams->duration, 2)) *
         std::cos(pparams->counter * omega_);
   } else { // interval segment = amplitude of the signal = 0
     current_amplitude = 0;
 
-    if (pparams->ripple) { // starting an interval segment at the end of the ripple
-      // signal
+    if (pparams->ripple) {
+      // starting an interval segment at the end of the ripple signal
       pparams->counter = 0;
       pparams->ripple = false;
     }
   }
 
   return (distribution_(generator_) + offset_ + current_amplitude);
-
 }
 
 YAML::Node RippleSource::to_yaml() const {
@@ -190,10 +191,13 @@ RippleSource *RippleSource::from_yaml(const YAML::Node node) {
   default_ripple_params['*']["duration"] = 100;
 
   return new RippleSource(
-      node["offset"].as<double>(0.0),node["mean ripple amplitude"].as<double>(100),
-      node["ripple frequency"].as<double>(200), node["ripple param"].as<YAML::Node>(default_ripple_params),
+      node["offset"].as<double>(0.0),
+      node["ripple frequency"].as<double>(200),
       node["sampling_rate"].as<double>(32000),
+      node["ripple param"].as<YAML::Node>(default_ripple_params),
+      node["mean ripple amplitude"].as<double>(100),
       node["noise_stdev"].as<double>(0),
-      node["nchannels"].as<unsigned int>(128),
-      node["convert_byte_order"].as<bool>(true));
+      node["convert_byte_order"].as<bool>(true),
+      node["nchannels"].as<unsigned int>(128));
+
 }

@@ -17,14 +17,50 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#ifndef RIPPLESOURCE_H
-#define RIPPLESOURCE_H
+#pragma once
 
 #include <random>
+
 #include "datasource.hpp"
 
-
 class RippleSource : public DataSource {
+
+public:
+  /**
+   * Create the source and set the user options
+   *
+   * @param offset purely value added to the sample generated
+   * @param mean_amplitude mean of the amplitude of the ripple
+   * @param frequency frequency of the ripple should be contain between 150 and
+   * 250
+   * @param ripple_duration Yaml Node containing duration of a ripple
+   *        and zero interval value in msecs. The key specify for which channel
+   * apply this set of parameters. If the key is *, apply it for all channel.
+   * @param sampling_rate rate of generating and sending samples
+   * @param noise_stdev standard deviation of the noise added to the signal
+   * @param nchannels number of channels simulated
+   * @params convert_byter_order
+   */
+  RippleSource(double offset, double frequency,double sampling_rate,
+               YAML::Node ripple_duration, double mean_amplitude,
+               double noise_stdev, bool convert_byte_order,
+               unsigned int nchannels);
+
+public:
+  std::string string() override;
+
+  /**
+   * Produce sample and timestamps for each channel to package and send in the
+   * network.
+   *
+   * Signal produced = ripple signal separated by segment of zero amplitude
+   * signal
+   *
+   */
+  int64_t Produce(char **data) override;
+  YAML::Node to_yaml() const override;
+  static RippleSource *from_yaml(YAML::Node node);
+
 private:
   struct params_by_channel_t {
     double counter;
@@ -33,67 +69,32 @@ private:
     bool ripple;
     double amplitude;
     unsigned int channel_number;
-  } paramsByChannel;
+  };
 
-public:
-  /**
-   * Create the source and set the user options
-   *
-   * @param offset purely value added to the sample generated
-   * @param amplitude mean of the amplitude of the ripple
-   * @param frequency frequency of the ripple should be contain between 150 and
-   * 250
-   * @param duration duration of the ripple segment in secs
-   * @param interval duration of the zero amplitude segment in secs
-   * @param sampling_rate rate of generating and sending samples
-   * @param noise_stdev standard deviation of the noise added to the signal
-   * @param nchannels number of channels simulated
-   * @params convert_byter_order
-   */
-  RippleSource(double offset, double mean_amplitude, double frequency,
-               YAML::Node ripple_duration,
-               double sampling_rate, double noise_stdev,
-               unsigned int nchannels, bool convert_byte_order);
-
-  std::string string() override;
-
-  /**
-   * Produce sample and timestamps to package and send in the network.
-   *
-   * Signal produced = ripple signal separated by segment of zero amplitude
-   * signal
-   *
-   */
-  int64_t Produce(char **data) override;
-
-  YAML::Node to_yaml() const override;
-
-  static RippleSource *from_yaml(YAML::Node node);
-  double generate_one_signal(params_by_channel_t* params);
-
-
-
+  double generate_one_signal(params_by_channel_t *params);
 
 protected:
   double offset_;
   double frequency_;
   double sampling_rate_;
-  YAML::Node ripple_params_;
-  double noise_stdev_;
   uint64_t delta_;
-  std::normal_distribution<double> distribution_;
-  std::poisson_distribution<int> poisson_distribution_;
-  double mean_amplitude_;
-  unsigned int nchannels_;
-  bool convert_byte_order_;
-
   uint64_t timestamp_ = 0;
+
+  YAML::Node ripple_params_;
+
+  double mean_amplitude_;
+  std::poisson_distribution<int> poisson_distribution_;
+  std::default_random_engine generator_;
+
+  double noise_stdev_;
+  std::normal_distribution<double> distribution_;
+
+  bool convert_byte_order_;
+  std::vector<char> buffer_;
+
+  unsigned int nchannels_;
   std::vector<params_by_channel_t> params;
   double omega_;
 
-  std::vector<char> buffer_;
 
-  std::default_random_engine generator_;
 };
-
-#endif // RIPPLESOURCE_H
