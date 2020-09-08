@@ -25,6 +25,16 @@
 
 
 class RippleSource : public DataSource {
+private:
+  struct params_by_channel_t {
+    double counter;
+    double interval;
+    double duration;
+    bool ripple;
+    double amplitude;
+    unsigned int channel_number;
+  } paramsByChannel;
+
 public:
   /**
    * Create the source and set the user options
@@ -40,11 +50,10 @@ public:
    * @param nchannels number of channels simulated
    * @params convert_byter_order
    */
-  RippleSource(double offset = 0.0, double mean_amplitude = 1.0,
-               double frequency = 200, float duration = 0.1,
-               float interval = 0.1, double sampling_rate = 32000,
-               double noise_stdev = 0, unsigned int nchannels = 128,
-               bool convert_byte_order = true);
+  RippleSource(double offset, double mean_amplitude, double frequency,
+               YAML::Node ripple_duration,
+               double sampling_rate, double noise_stdev,
+               unsigned int nchannels, bool convert_byte_order);
 
   std::string string() override;
 
@@ -60,27 +69,26 @@ public:
   YAML::Node to_yaml() const override;
 
   static RippleSource *from_yaml(YAML::Node node);
+  double generate_one_signal(params_by_channel_t* params);
+
+
+
 
 protected:
   double offset_;
   double frequency_;
   double sampling_rate_;
-  double duration_;
-  double interval_;
+  YAML::Node ripple_params_;
   double noise_stdev_;
   uint64_t delta_;
   std::normal_distribution<double> distribution_;
-  bool ripple_;
   std::poisson_distribution<int> poisson_distribution_;
   double mean_amplitude_;
   unsigned int nchannels_;
   bool convert_byte_order_;
 
   uint64_t timestamp_ = 0;
-
-  int amplitude_;
-  double counter_;
-  double current_amplitude_;
+  std::vector<params_by_channel_t> params;
   double omega_;
 
   std::vector<char> buffer_;
