@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "filesource.hpp"
+#include "ripplesource.hpp"
 #include "sinesource.hpp"
 #include "squaresource.hpp"
 #include "whitenoisesource.hpp"
@@ -61,9 +62,12 @@ datasources_from_yaml(const YAML::Node &node) {
         } else if (source_class == "square") {
           sources.push_back(std::unique_ptr<DataSource>(
               SquareSource::from_yaml((*it)["options"])));
+        } else if (source_class == "ripple") {
+          sources.push_back(std::unique_ptr<DataSource>(
+              RippleSource::from_yaml((*it)["options"])));
         }
       }
     }
   }
-  return sources;
+return sources;
 }
