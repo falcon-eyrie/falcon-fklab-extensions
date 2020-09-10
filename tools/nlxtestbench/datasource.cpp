@@ -33,7 +33,7 @@ datasources_from_yaml(const YAML::Node &node) {
   std::string source_class;
 
   // node["sources"]
-  if (!node || node.IsNull() || node["class"].as<std::string>() == "default") {
+  if (!node || node.IsNull() ||(node["class"] and node["class"].as<std::string>() == "default")) {
     // create default data sources
     sources.push_back(
         std::unique_ptr<DataSource>(new WhiteNoiseSource(0.0, 1.0, 32000.0)));
