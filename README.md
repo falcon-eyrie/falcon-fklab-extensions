@@ -1,10 +1,10 @@
 ![Falcon version](https://img.shields.io/badge/Falcon-v1.0.0-blue)
 
-#Falcon extensions
+# Falcon extensions
 
-The extension does not work as standalone and needs to be integrated with Falcon [add readthedoc falcon link]
+The extension does not work as standalone and needs to be integrated with Falcon https://falcon-core.readthedocs.io
 
-The full documentation can be found here - [add readthedoc extension link] but below, you can found a quick overview :
+The full documentation can be found here - https://falcon-fklab-extensions.readthedocs.io but below, you can found a quick overview :
 
 **Processor** : 
 
@@ -42,7 +42,7 @@ The full documentation can be found here - [add readthedoc extension link] but b
 - vector operation
 
 
-##Contribution 
+## Contribution 
 
 If your issue concerned processors, datatypes or libs included in this repository, don't hesitate to add an issue 
 describing the problem / or the feature to develop. Add the graph (+ eventually the config file) used to run Falcon
