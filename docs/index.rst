@@ -20,7 +20,7 @@ This extension does not work as standalone and needs to be integrated with Falco
    hardware
    libs
    tools
-   example
+   examples
    resource
 
 

@@ -3,7 +3,7 @@
 Processors
 ==========
 
-Built-in processors can be found in the `falcon-fklab-extensions <https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions/src/master/>`_
+Built-in processors can be found in the `falcon-fklab-extensions <https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions.git>`_
 
 For each processor, a description is given of:
 
@@ -11,6 +11,9 @@ For each processor, a description is given of:
 - what data streams are generated on the output ports
 - the configuration options (used to initialize the processor)
 - the shared states that are exposed
+
+
+.. images:: images/processor_lib.png
 
 
 .. toctree::
