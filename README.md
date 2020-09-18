@@ -2,9 +2,9 @@
 
 # Falcon extensions
 
-The extension does not work as standalone and needs to be integrated with Falcon https://falcon-core.readthedocs.io
+The extension does not work as standalone and needs to be integrated with [Falcon](https://falcon-core.readthedocs.io)
 
-The full documentation can be found here - https://falcon-fklab-extensions.readthedocs.io but below, you can found a quick overview :
+The full documentation can be found [here](https://falcon-fklab-extensions.readthedocs.io) but below, you can found a quick overview :
 
 **Processor** : 
 
