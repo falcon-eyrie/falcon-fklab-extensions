@@ -21,9 +21,18 @@
 #include <memory>
 #include <vector>
 
+#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#include "options/options.hpp"
+#include "idata.hpp"
 #include "serializer.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#include "test/fakeidata.hpp"
+#include "test/fakeserializer.hpp"
+#endif
+
+#include "options/options.hpp"
+
 
 class FileSerializer : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS

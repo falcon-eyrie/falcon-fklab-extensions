@@ -24,9 +24,16 @@
 
 #include "dsp/algorithms.hpp"
 #include "eventdata/eventdata.hpp"
-#include "iprocessor.hpp"
 #include "muadata/muadata.hpp"
 #include "multichanneldata/multichanneldata.hpp"
+
+#if BUILD_EXTENSIONS_TEST==0
+#include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
+
+
 
 class BurstDetector : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS

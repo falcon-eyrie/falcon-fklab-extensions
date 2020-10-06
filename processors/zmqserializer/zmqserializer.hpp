@@ -23,7 +23,14 @@
 #include <vector>
 #include <zmq.hpp>
 
+#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
+#include "idata.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#include "test/fakeidata.hpp"
+#endif
+
 #include "options/options.hpp"
 #include "serializer.hpp"
 #include "yaml-cpp/yaml.h"

@@ -59,8 +59,8 @@ void EventConverter::Process(ProcessingContext &context) {
 }
 
 void EventConverter::Postprocess(ProcessingContext &context) {
-  LOG(INFO) << name() << ". Streamed " << data_in_port_->slot(0)->status_read()
-            << " events";
+ // LOG(INFO) << name() << ". Streamed " << data_in_port_->slot(0)->status_read()
+ //           << " events";
 }
 
 REGISTERPROCESSOR(EventConverter)

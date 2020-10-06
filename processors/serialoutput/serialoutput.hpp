@@ -19,7 +19,13 @@
 
 #pragma once
 #include "eventdata/eventdata.hpp"
+
+#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
+
 #include "options/options.hpp"
 #include "options/units.hpp"
 #include "serialib/lib/serialib.h"

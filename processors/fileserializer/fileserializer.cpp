@@ -23,7 +23,7 @@
 #include <string>
 #include <utility>
 
-#include "idata.hpp"
+
 #include "utilities/time.hpp"
 
 FileSerializer::FileSerializer() : IProcessor() {

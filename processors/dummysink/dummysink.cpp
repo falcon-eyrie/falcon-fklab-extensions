@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "dummysink.hpp"
-#include "idata.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 #include "utilities/time.hpp"
 
@@ -45,7 +44,7 @@ void DummySink::Process(ProcessingContext &context) {
   std::vector<AnyType::Data *> data;
   auto address = data_port_->slot(0)->upstream_address();
 
-  LOG(DEBUG) << "slot is connected to " << address.string();
+//  LOG(DEBUG) << "slot is connected to " << address.string();
 
   bool eos = false;
   auto start = Clock::now();

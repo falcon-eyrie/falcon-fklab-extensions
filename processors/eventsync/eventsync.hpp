@@ -22,10 +22,14 @@
 #include <string>
 
 #include "eventdata/eventdata.hpp"
-#include "iprocessor.hpp"
 #include "utilities/general.hpp"
 #include "utilities/time.hpp"
 
+#if BUILD_EXTENSIONS_TEST==0
+#include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
 class EventSync : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:

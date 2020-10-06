@@ -23,9 +23,14 @@
 #include <string>
 #include <vector>
 
-#include "iprocessor.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 #include "options/options.hpp"
+
+#if BUILD_EXTENSIONS_TEST==0
+#include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
 
 typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
 

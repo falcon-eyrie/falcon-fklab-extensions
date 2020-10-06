@@ -21,7 +21,12 @@
 
 #include <vector>
 
+#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
+
 #include "multichanneldata/multichanneldata.hpp"
 
 #include "options/options.hpp"

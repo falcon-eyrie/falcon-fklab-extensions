@@ -23,9 +23,12 @@
 #include <vector>
 
 #include "eventdata/eventdata.hpp"
-#include "iprocessor.hpp"
 #include "options/options.hpp"
-
+#if BUILD_EXTENSIONS_TEST==0
+#include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
 class EventSource : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:

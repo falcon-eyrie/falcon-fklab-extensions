@@ -23,10 +23,14 @@
 #include <vector>
 
 #include "eventdata/eventdata.hpp"
-#include "iprocessor.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 
 #include "options/units.hpp"
+#if BUILD_EXTENSIONS_TEST==0
+#include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
 
 class LevelCrossingDetector : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS

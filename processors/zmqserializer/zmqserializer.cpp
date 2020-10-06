@@ -22,7 +22,6 @@
 #include <string>
 #include <utility>
 
-#include "idata.hpp"
 #include "utilities/zmqutil.hpp"
 
 ZMQSerializer::ZMQSerializer() : IProcessor() {

@@ -21,7 +21,13 @@
 
 #include <string>
 
+#if BUILD_EXTENSIONS_TEST==0
 #include "idata.hpp"
+#else
+#include "test/fakeidata.hpp"
+#endif
+
+
 #include "yaml-cpp/yaml.h"
 
 typedef unsigned int EventIDType;

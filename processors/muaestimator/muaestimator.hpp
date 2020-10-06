@@ -20,7 +20,12 @@
 #pragma once
 #include <string>
 
+#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
+
 #include "muadata/muadata.hpp"
 #include "options/units.hpp"
 #include "spikedata/spikedata.hpp"

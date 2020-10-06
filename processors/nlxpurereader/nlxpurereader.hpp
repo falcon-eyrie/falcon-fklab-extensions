@@ -25,7 +25,12 @@
 #include <sys/time.h>
 #include <limits>
 
+#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
+#else
+#include "test/fakeiprocessor.hpp"
+#endif
+
 #include "neuralynx/nlx.hpp"
 #include "options/options.hpp"
 #include "utilities/time.hpp"

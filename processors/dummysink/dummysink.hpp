@@ -19,7 +19,13 @@
 
 #pragma once
 
-#include "iprocessor.hpp"
+#if BUILD_EXTENSIONS_TEST==0
+    #include "iprocessor.hpp"
+    #include "idata.hpp"
+#else
+    #include "test/fakeiprocessor.hpp"
+    #include "test/fakeidata.hpp"
+#endif
 
 class DummySink : public IProcessor {
  public:
