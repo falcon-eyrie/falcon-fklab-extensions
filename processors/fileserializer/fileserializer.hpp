@@ -23,14 +23,11 @@
 
 #if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#include "idata.hpp"
-#include "serializer.hpp"
 #else
-#include "test/fakeiprocessor.hpp"
-#include "test/fakeidata.hpp"
-#include "test/fakeserializer.hpp"
+#include "testing/f_iprocessor.hpp"
 #endif
 
+#include "serializer.hpp"
 #include "options/options.hpp"
 
 

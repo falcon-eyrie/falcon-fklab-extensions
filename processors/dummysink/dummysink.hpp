@@ -23,8 +23,8 @@
     #include "iprocessor.hpp"
     #include "idata.hpp"
 #else
-    #include "test/fakeiprocessor.hpp"
-    #include "test/fakeidata.hpp"
+    #include "testing/f_iprocessor.hpp"
+    #include "testing/f_idata.hpp"
 #endif
 
 class DummySink : public IProcessor {

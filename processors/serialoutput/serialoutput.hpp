@@ -23,7 +23,7 @@
 #if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
 #else
-#include "test/fakeiprocessor.hpp"
+#include "testing/f_iprocessor.hpp"
 #endif
 
 #include "options/options.hpp"

@@ -28,7 +28,7 @@
 #if BUILD_EXTENSIONS_TEST==0
 #include "idata.hpp"
 #else
-#include "test/fakeidata.hpp"
+#include "testing/f_idata.hpp"
 #endif
 
 #include "utilities/general.hpp"
@@ -178,7 +178,7 @@ template <typename T> class Data : public Base::Data {
 
   void set_data_sample(size_t sample, size_t channel, T data) {
     if (sample >= nsamples_) {
-      throw std::out_of_range(". Sample index " + std::to_string(sample) +
+      throw std::out_of_range(". Sample index !!" + std::to_string(sample) +
                               " out of range. Max index is " +
                               std::to_string(nsamples_ - 1));
     }

@@ -167,10 +167,10 @@ void BurstDetector::Process(ProcessingContext &context) {
     running_statistics_->set_alpha(1.0 / (smooth_time_->get() * sample_rate_));
     value = data_in->mua();
     test_value = std::abs(value - running_statistics_->center());
-
     if (stats_out_->get()) {
       if (stats_nsamples_counter == stats_nsamples_) {
         stats_out_port_->slot(0)->PublishData();
+
         stats_out = stats_out_port_->slot(0)->ClaimData(false);
         stats_out->set_source_timestamp();
         stats_out->set_hardware_timestamp(data_in->hardware_timestamp());
@@ -185,7 +185,6 @@ void BurstDetector::Process(ProcessingContext &context) {
 
       ++stats_nsamples_counter;
     }
-
     if (block_ > 0) {
       --block_;
       continue;

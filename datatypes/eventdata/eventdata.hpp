@@ -24,7 +24,7 @@
 #if BUILD_EXTENSIONS_TEST==0
 #include "idata.hpp"
 #else
-#include "test/fakeidata.hpp"
+#include "testing/f_idata.hpp"
 #endif
 
 

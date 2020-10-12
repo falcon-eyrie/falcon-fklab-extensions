@@ -16,7 +16,7 @@ Output port:
   - name: statistics
     type: MultiChannelData <double>
     slots: 1
-    description: A stream of nsamples-by-2 arrays with the signal fake value (first column)
+    description: A stream of nsamples-by-2 arrays with the signal "testing value (first column)
       and the threshold (second column). The number of samples in each statistics
       data packet is set by the statistics_buffer_size option.
 

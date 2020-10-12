@@ -28,7 +28,7 @@
 #if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
 #else
-#include "test/fakeiprocessor.hpp"
+#include "testing/f_iprocessor.hpp"
 #endif
 class EventSync : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS

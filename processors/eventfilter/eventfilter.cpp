@@ -83,7 +83,7 @@ void EventFilter::Prepare(GlobalContext &context) {
 
   // complete Configure
   if (detections_to_criterion_() == 0) {
-    detections_to_criterion_ = nslots;
+    detections_to_criterion_.set_value(nslots);
   }
 
   // check detections_to_criterion value
@@ -246,8 +246,7 @@ EventFilter::is_there_target(PortIn<EventType> *input_port,
   std::size_t slot_index = std::numeric_limits<std::size_t>::max();
   bool target_received = false;
 
-  for (decltype(input_port->number_of_slots()) s = 0;
-       s < input_port->number_of_slots(); ++s) {
+  for (SlotType s = 0; s < input_port->number_of_slots(); ++s) {
     // check if processor is still alive
     if (!input_port->slot(s)->RetrieveDataAll(data_in)) {
       return std::make_tuple(false, false, NULL_TIMESTAMP);
@@ -270,6 +269,8 @@ EventFilter::is_there_target(PortIn<EventType> *input_port,
                    << input_port->name() << "(" << events_list
                    << ") were discarded.";
     }
+
+    std::cout << "test" <<std::endl;
     ++event_counter.all_received;
 
     // if there's data, check if it is a target event
