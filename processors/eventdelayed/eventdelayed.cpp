@@ -20,14 +20,21 @@
 #include "eventdelayed.hpp"
 
 EventDelayed::EventDelayed() {
+  add_option("enabled", default_enabled_,
+             "Enable the processing of incoming events.");
 
   // Flexible processing event feature
   add_option(LOCKOUT_PERIOD_S, initial_lockout_period_,
              "Lock out time after the processing of an event.");
 
   add_option("delayed event", initial_delayed_event_,
-             "Enable the delay of the event for 1 lockout time period");
-  //add_option("target event", target_event_, "Event to be processed");
+             "Enable the delay of the event for a time randomly chosen between the delay range");
+  add_option("lower delay range", delayed_lower_range_,
+             "if delayed event is true, the delayed time will be pseudo-randomly "
+             "chosen in this range.");
+  add_option("upper delay range", delayed_upper_range_,
+             "if delayed event is true, the delayed time will be pseudo-randomly "
+             "chosen in this range.");
 
   // saving feature
   add_option("enable saving", save_events_,
@@ -36,16 +43,11 @@ EventDelayed::EventDelayed() {
       "filename prefix", prefix_,
       "if enable saving is true, the saving file is name 'prefix + event'");
 
-  add_option(
-      "lower delay range", delayed_lower_range_,
-      "if delayed is true, the delayed time will be pseudo-randomly chosen in this range.");
-  add_option(
-      "upper delay range", delayed_upper_range_,
-      "if delayed is true, the delayed time will be pseudo-randomly chosen in this range.");
+
 }
 
 void EventDelayed::Configure(const YAML::Node &node,
-                               const GlobalContext &context) {
+                             const GlobalContext &context) {
 
   if (initial_lockout_period_() <= 0) {
     LOG(INFO) << name() << ". No lockout period set.";
@@ -54,7 +56,8 @@ void EventDelayed::Configure(const YAML::Node &node,
               << 1e3 / static_cast<double>(initial_lockout_period_()) << " Hz.";
   }
 
-  if ((initial_delayed_event_() and initial_lockout_period_() <= 0) or !initial_delayed_event_()){
+  if ((initial_delayed_event_() and initial_lockout_period_() <= 0) or
+      !initial_delayed_event_()) {
     LOG(INFO) << name() << ". Event are sent on-time.";
   } else {
     LOG(INFO) << name() << ". Events are delayed of "
@@ -85,7 +88,9 @@ void EventDelayed::Preprocess(ProcessingContext &context) {
   ontime_received_event_ = 0;
   delayed_received_event_ = 0;
   event_lockout_ = 0;
-  previous_TS_nostim_ = Clock::now() - std::chrono::milliseconds((long int)lockout_period_->get() + 10) ;
+  previous_TS_nostim_ =
+      Clock::now() -
+      std::chrono::milliseconds((long int)lockout_period_->get() + 10);
 }
 
 void EventDelayed::Process(ProcessingContext &context) {
@@ -97,8 +102,10 @@ void EventDelayed::Process(ProcessingContext &context) {
   std::string filepath = path + name();
 
   std::random_device rd;
-  std::mt19937 generator_(rd()); //Standard mersenne_twister_engine (Higher complexity / randomness)
-  std::uniform_int_distribution<> distrib(delayed_lower_range_(), delayed_upper_range_());
+  std::mt19937 generator_(rd()); // Standard mersenne_twister_engine (Higher
+                                 // complexity / randomness)
+  std::uniform_int_distribution<> distrib(delayed_lower_range_(),
+                                          delayed_upper_range_());
 
   while (!context.terminated()) {
 
@@ -139,10 +146,10 @@ void EventDelayed::Process(ProcessingContext &context) {
   }
 }
 
-void EventDelayed::send_event(EventType::Data *data_in,EventType::Data *data_out,
-                              std::string filepath){
+void EventDelayed::send_event(EventType::Data *data_in,
+                              EventType::Data *data_out, std::string filepath) {
   if (not to_lock_out()) {
-    LOG(DEBUG)  << name() << "Sent one event: " << data_in->event() ;
+    LOG(DEBUG) << name() << "Sent one event: " << data_in->event();
     data_out = data_out_port_->slot(0)->ClaimData(true);
     data_out->set_hardware_timestamp(data_in->hardware_timestamp());
 
@@ -154,16 +161,16 @@ void EventDelayed::send_event(EventType::Data *data_in,EventType::Data *data_out
                          data_in->serial_number());
     }
   } else {
-    LOG(DEBUG)  << name()  << data_in->event() << " has been locked-out";
+    LOG(DEBUG) << name() << data_in->event() << " has been locked-out";
     ++event_lockout_;
   }
 }
 void EventDelayed::Postprocess(ProcessingContext &context) {
 
-  auto msg =  "Successfully executed conversion protocol: "
-            + std::to_string(ontime_received_event_)  + "ontime and "
-            + std::to_string(delayed_received_event_) + " delayed with "
-             + std::to_string(event_lockout_) + " events locked out.";
+  auto msg = "Successfully executed conversion protocol: " +
+             std::to_string(ontime_received_event_) + "ontime and " +
+             std::to_string(delayed_received_event_) + " delayed with " +
+             std::to_string(event_lockout_) + " events locked out.";
 
   ontime_received_event_ = 0;
   delayed_received_event_ = 0;
@@ -172,7 +179,8 @@ void EventDelayed::Postprocess(ProcessingContext &context) {
 
 bool EventDelayed::to_lock_out() {
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    Clock ::now() - previous_TS_nostim_ ).count();
+                    Clock ::now() - previous_TS_nostim_)
+                    .count();
   if (millis <= lockout_period_->get()) {
 
     return true;
@@ -182,7 +190,7 @@ bool EventDelayed::to_lock_out() {
 }
 
 void EventDelayed::write_data_logfile(std::string file_path,
-                                        std::string filename, uint64_t data) {
+                                      std::string filename, uint64_t data) {
   if (save_events_()) { // save stim events to disk
     // filename will also be the key to the container of files
     // check if this type of event has been saved before

@@ -21,24 +21,20 @@
 
 #include "eventconverter/eventconverter.hpp"
 #include "eventdata/eventdata.hpp"
+#include "iprocessor.hpp"
 #include "utilities/general.hpp"
+#include "utilities/math_numeric.hpp"
 #include "utilities/time.hpp"
 #include <queue>
 #include <string>
-#include "utilities/math_numeric.hpp"
-#include "iprocessor.hpp"
 
-struct Delayed{
+struct Delayed {
   TimePoint ts;
   EventType::Data *data_in;
 
-  Delayed(TimePoint ts, EventType::Data *data_in) : ts(ts), data_in(data_in){}
-  bool operator > (const Delayed& test) const
-  {
-    return (ts > test.ts);
-  }
+  Delayed(TimePoint ts, EventType::Data *data_in) : ts(ts), data_in(data_in) {}
+  bool operator>(const Delayed &test) const { return (ts > test.ts); }
 };
-
 
 class EventDelayed : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
@@ -89,9 +85,10 @@ protected:
   options::Bool save_events_{true};
   options::String prefix_{"stim_"};
 
-  options::Measurement<long int, false> delayed_lower_range_{150, "ms",options::positive<double>(true)};
-  options::Measurement<long int, false> delayed_upper_range_{200, "ms",options::positive<double>(true)};
-
+  options::Measurement<long int, false> delayed_lower_range_{
+      150, "ms", options::positive<double>(true)};
+  options::Measurement<long int, false> delayed_upper_range_{
+      200, "ms", options::positive<double>(true)};
 
 private:
   void send_event(EventType::Data *data_in, EventType::Data *data_out,

@@ -25,8 +25,8 @@ class TestEventDelayed : EventDelayed {
 
 public:
   using EventDelayed::CreatePorts;
-  using EventDelayed::Process;
   using EventDelayed::Preprocess;
+  using EventDelayed::Process;
   using IProcessor::load_fake_options;
 
   bool get_default_enabled() { return default_enabled_(); };
@@ -76,9 +76,9 @@ TEST(EventDelayedTest, OnTimeProcess) {
 
     data->Initialize();
     data->set_hardware_timestamp(i);
-    std::string name= "target" + std::to_string(i);
+    std::string name = "target" + std::to_string(i);
     data->set_event(name);
-    fake_delay.push_back(i*10);
+    fake_delay.push_back(i * 10);
     fake_data.push_back(data);
   }
 
@@ -86,17 +86,17 @@ TEST(EventDelayedTest, OnTimeProcess) {
   p.getDataInPort()->slot(0)->SetFakeDelay(fake_delay);
   p.Process(context);
   auto event_data = p.getDataOutPort()->slot(0)->getData();
-  sleep(2); //Give time to the log to be displayed
+  sleep(2); // Give time to the log to be displayed
 }
 
 TEST(EventDelayedTest, DelayedProcess) {
 
   TestEventDelayed p;
   p.load_fake_options(YAML::Load("{options: { "
-                                              "enable saving: false, "
-                                              "delayed event: true, "
-                                              "lower delay range: 2,"
-                                              "upper delay range: 20}}"));
+                                 "enable saving: false, "
+                                 "delayed event: true, "
+                                 "lower delay range: 2,"
+                                 "upper delay range: 20}}"));
 
   p.CreatePorts();
 
@@ -114,12 +114,11 @@ TEST(EventDelayedTest, DelayedProcess) {
 
     data->Initialize();
     data->set_hardware_timestamp(i);
-    std::string name= "target" + std::to_string(i);
+    std::string name = "target" + std::to_string(i);
     data->set_event(name);
-    if((i+1)%5==0){
+    if ((i + 1) % 5 == 0) {
       fake_delay.push_back(10);
-    }
-    else{
+    } else {
       fake_delay.push_back(0);
     }
 
@@ -131,7 +130,7 @@ TEST(EventDelayedTest, DelayedProcess) {
   p.Process(context);
   auto event_data = p.getDataOutPort()->slot(0)->getData();
 
-  sleep(2); //Give time to the log to be displayed
+  sleep(2); // Give time to the log to be displayed
 }
 
 } // namespace
