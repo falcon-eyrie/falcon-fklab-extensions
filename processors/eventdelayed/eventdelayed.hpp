@@ -19,12 +19,25 @@
 
 #pragma once
 
-#include <string>
-#include <queue>
 #include "eventconverter/eventconverter.hpp"
 #include "eventdata/eventdata.hpp"
 #include "utilities/general.hpp"
 #include "utilities/time.hpp"
+#include <queue>
+#include <string>
+#include "utilities/math_numeric.hpp"
+#include "iprocessor.hpp"
+
+struct Delayed{
+  TimePoint ts;
+  EventType::Data *data_in;
+
+  Delayed(TimePoint ts, EventType::Data *data_in) : ts(ts), data_in(data_in){}
+  bool operator > (const Delayed& test) const
+  {
+    return (ts > test.ts);
+  }
+};
 
 
 class EventDelayed : public IProcessor {
@@ -37,9 +50,8 @@ public:
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;
 
-  /* check if timestamp events are sequential and return true if the look out
-   * period after the last event is indeed finished. if still in the look out
-   * period, the event is ignored.
+  /* check if enough time has passed since the last triggered event. if still
+   * in the look out period, the event is ignored.
    *
    * @return true if still in the look out period
    */
@@ -62,34 +74,38 @@ protected:
   PortIn<EventType> *data_in_port_;
   PortOut<EventType> *data_out_port_;
 
-// STATES
+  // STATES
 protected:
   StaticState<bool> *enabled_;
   StaticState<bool> *delayed_event_;
-  StaticState<int> *lockout_period_;
+  StaticState<double> *lockout_period_;
 
   // OPTIONS
 protected:
   options::Bool default_enabled_{true};
-  options::Measurement<int, false> initial_lockout_period_{
+  options::Measurement<double, false> initial_lockout_period_{
       50, "ms", options::positive<double>(true)};
   options::Bool initial_delayed_event_{false};
   options::Bool save_events_{true};
   options::String prefix_{"stim_"};
-  options::Value<EventType::Data, false> target_event_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
+
+  options::Measurement<long int, false> delayed_lower_range_{150, "ms",options::positive<double>(true)};
+  options::Measurement<long int, false> delayed_upper_range_{200, "ms",options::positive<double>(true)};
+
 
 private:
-  void send_event(EventType::Data *data_in,EventType::Data *data_out, std::string filepath);
+  void send_event(EventType::Data *data_in, EventType::Data *data_out,
+                  std::string filepath);
   // variables
 protected:
-  EventCounter event_counter_;
-  uint64_t execution_;
-  uint64_t delayed_execution_;
+  uint64_t ontime_received_event_;
+  uint64_t delayed_received_event_;
+  uint64_t event_lockout_;
 
   TimePoint previous_TS_nostim_;
 
-  std::priority_queue<TimePoint , std::vector<TimePoint>, std::less<TimePoint> > event_queue_;
+  std::priority_queue<Delayed, std::vector<Delayed>, std::greater<Delayed>>
+      event_queue_;
 
   // CONSTANT
 protected:

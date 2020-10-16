@@ -19,7 +19,6 @@
 
 #include "eventdelayed.hpp"
 
-
 EventDelayed::EventDelayed() {
 
   // Flexible processing event feature
@@ -28,7 +27,7 @@ EventDelayed::EventDelayed() {
 
   add_option("delayed event", initial_delayed_event_,
              "Enable the delay of the event for 1 lockout time period");
-  add_option("target event", target_event_, "Event to be processed");
+  //add_option("target event", target_event_, "Event to be processed");
 
   // saving feature
   add_option("enable saving", save_events_,
@@ -36,6 +35,13 @@ EventDelayed::EventDelayed() {
   add_option(
       "filename prefix", prefix_,
       "if enable saving is true, the saving file is name 'prefix + event'");
+
+  add_option(
+      "lower delay range", delayed_lower_range_,
+      "if delayed is true, the delayed time will be pseudo-randomly chosen in this range.");
+  add_option(
+      "upper delay range", delayed_upper_range_,
+      "if delayed is true, the delayed time will be pseudo-randomly chosen in this range.");
 }
 
 void EventDelayed::Configure(const YAML::Node &node,
@@ -74,15 +80,12 @@ void EventDelayed::CreatePorts() {
       "delayed event", initial_delayed_event_(), true, Permission::WRITE);
 }
 
-// TODO: delay uniform between a min/max bound -> option boundaries
-
 void EventDelayed::Preprocess(ProcessingContext &context) {
 
-  // reset counters and logs
-  event_counter_.reset();
-  execution_ = 0;
-  delayed_execution_ = 0;
-  previous_TS_nostim_ = Clock::now();
+  ontime_received_event_ = 0;
+  delayed_received_event_ = 0;
+  event_lockout_ = 0;
+  previous_TS_nostim_ = Clock::now() - std::chrono::milliseconds((long int)lockout_period_->get() + 10) ;
 }
 
 void EventDelayed::Process(ProcessingContext &context) {
@@ -93,42 +96,53 @@ void EventDelayed::Process(ProcessingContext &context) {
   std::string path = context.resolve_path("run://", "run");
   std::string filepath = path + name();
 
+  std::random_device rd;
+  std::mt19937 generator_(rd()); //Standard mersenne_twister_engine (Higher complexity / randomness)
+  std::uniform_int_distribution<> distrib(delayed_lower_range_(), delayed_upper_range_());
+
   while (!context.terminated()) {
+
+    while (!event_queue_.empty() and event_queue_.top().ts < Clock::now()) {
+      auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        Clock ::now() - event_queue_.top().ts)
+                        .count();
+
+      LOG(DEBUG) << name() << "Time to sent a delayed event ("
+                 << event_queue_.top().data_in->event() << ") with " << millis
+                 << "ms late.";
+
+      send_event(event_queue_.top().data_in, data_out, filepath);
+      event_queue_.pop();
+    }
 
     if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
       break;
     }
-    ++event_counter_.all_received;
 
-    if (enabled_->get() && target_event_() == *data_in) {
-      ++event_counter_.target;
-
-      int wait_time = 0;
+    if (enabled_->get()) {
+      int wait_time = distrib(generator_);
       if (delayed_event_->get()) {
-        ++delayed_execution_;
-        event_queue_.push(data_in->source_timestamp() +
-                          std::chrono::milliseconds(wait_time));
+        ++delayed_received_event_;
+        LOG(DEBUG) << name() << "Save an event (" << data_in->event()
+                   << ") to send later with " << wait_time << "ms delayed.";
+        auto delay =
+            data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
+        Delayed event(delay, data_in);
+        event_queue_.push(event);
       } else {
+        ++ontime_received_event_;
         send_event(data_in, data_out, filepath);
       }
-    } else {
-      ++event_counter_.non_target;
-    }
 
-    while (event_queue_.top() > Clock::now()) {
-      ++delayed_execution_;
-      send_event(data_in, data_out, filepath);
-      event_queue_.pop();
+      data_in_port_->slot(0)->ReleaseData();
     }
-
-    data_in_port_->slot(0)->ReleaseData();
   }
 }
 
 void EventDelayed::send_event(EventType::Data *data_in,EventType::Data *data_out,
                               std::string filepath){
   if (not to_lock_out()) {
-    ++execution_;
+    LOG(DEBUG)  << name() << "Sent one event: " << data_in->event() ;
     data_out = data_out_port_->slot(0)->ClaimData(true);
     data_out->set_hardware_timestamp(data_in->hardware_timestamp());
 
@@ -140,36 +154,29 @@ void EventDelayed::send_event(EventType::Data *data_in,EventType::Data *data_out
                          data_in->serial_number());
     }
   } else {
-    ++event_counter_.lockout_target;
+    LOG(DEBUG)  << name()  << data_in->event() << " has been locked-out";
+    ++event_lockout_;
   }
 }
 void EventDelayed::Postprocess(ProcessingContext &context) {
 
-  auto msg =  ". Received " + std::to_string(event_counter_.all_received)
-            + " events, of which " + std::to_string(event_counter_.target)
-            + " were targets. Successfully executed conversion protocol (ontime) "
-            + std::to_string(execution_ - delayed_execution_)  + "- (delayed)"
-            + std::to_string(delayed_execution_) + " times out of "
-            + std::to_string(event_counter_.target)
-            + ". " + std::to_string(event_counter_.lockout_target) + " events were locked out.";
+  auto msg =  "Successfully executed conversion protocol: "
+            + std::to_string(ontime_received_event_)  + "ontime and "
+            + std::to_string(delayed_received_event_) + " delayed with "
+             + std::to_string(event_lockout_) + " events locked out.";
 
-  if (event_counter_.consistent_counters()
-      and event_counter_.target == execution_ ) {
-    LOG(INFO) << name() << msg << " Counters are consistent.";
-  } else {
-    LOG(WARNING) << name() << " Counters are inconsistent.";
-  }
-
-  event_counter_.reset();
-  execution_ = 0;
-  delayed_execution_ = 0;
+  ontime_received_event_ = 0;
+  delayed_received_event_ = 0;
+  event_lockout_ = 0;
 }
 
 bool EventDelayed::to_lock_out() {
-  if (previous_TS_nostim_.time_since_epoch() <= std::chrono::milliseconds(lockout_period_->get())) {
+  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    Clock ::now() - previous_TS_nostim_ ).count();
+  if (millis <= lockout_period_->get()) {
+
     return true;
   }
-
   previous_TS_nostim_ = Clock::now();
   return false;
 }
