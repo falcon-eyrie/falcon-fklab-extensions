@@ -22,11 +22,7 @@
 #include <string>
 
 #include "eventdata/eventdata.hpp"
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 
 class EventConverter : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS

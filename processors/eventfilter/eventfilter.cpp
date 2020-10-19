@@ -270,7 +270,6 @@ EventFilter::is_there_target(PortIn<EventType> *input_port,
                    << ") were discarded.";
     }
 
-    std::cout << "test" <<std::endl;
     ++event_counter.all_received;
 
     // if there's data, check if it is a target event

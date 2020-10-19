@@ -22,11 +22,9 @@
 #include <string>
 #include <algorithm>
 #include <limits>
-#if BUILD_EXTENSIONS_TEST==0
+
 #include "idata.hpp"
-#else
-#include ""extension_test/"fakeidata.hpp"
-#endif
+
 #include "utilities/string.hpp"
 
 #define DEFAULT_SCALAR_VALUE 0  // can be used in a template

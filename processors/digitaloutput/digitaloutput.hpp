@@ -22,11 +22,7 @@
 #include "eventdata/eventdata.hpp"
 #include "utilities/time.hpp"
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 
 typedef std::map<std::string, std::map<std::string, std::vector<uint32_t>>>
     ProtocolYAMLMap;

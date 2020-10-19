@@ -17,30 +17,36 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#pragma once
 
-#include "eventdata/eventdata.hpp"
-#include "options/options.hpp"
-#include "options/units.hpp"
-#include "utilities/general.hpp"
+#include "eventsync/eventsync.hpp"
+#include "gtest/gtest.h"
 
-#include "iprocessor.hpp"
+class TestEventSync : EventSync{
+public:
+  using EventSync::CreatePorts;
+  using EventSync::Process;
+  using IProcessor::load_fake_options;
 
-class EventLogger : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  EventLogger();
-  void CreatePorts() override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+public:
 
-  // DATA PORTS
- protected:
-  PortIn<EventType> *event_port_;
-  EventCounter event_counter_;
 
-  // OPTIONS
- protected:
-  options::Value<EventType::Data, false> target_event_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
+  PortIn<EventType> *getDataInPort() { return data_in_port_; };
+  PortOut<EventType> *getDataOutPort() { return data_out_port_; };
+
 };
+
+namespace {
+TEST(EventConverterTest, DefaultOptions) {
+
+  TestEventSync p;
+  EXPECT_EQ(p.getEventName(), "stimulation");
+  EXPECT_TRUE(p.getReplace());
+}
+
+TEST(EventConverterTest, WrongOptions) {
+
+  TestEventSync p;
+  ASSERT_THROW(p.load_fake_options(YAML::Load("{options:{event name: null}}")),
+               std::runtime_error);
+}
+}

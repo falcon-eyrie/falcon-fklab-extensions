@@ -23,13 +23,10 @@
 #include <vector>
 #include <zmq.hpp>
 
-#if BUILD_EXTENSIONS_TEST==0
+
 #include "iprocessor.hpp"
 #include "idata.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#include "testing/f_idata.hpp"
-#endif
+
 
 #include "serializer.hpp"
 #include "options/options.hpp"

@@ -20,11 +20,7 @@
 #pragma once
 #include <string>
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 
 #include "muadata/muadata.hpp"
 #include "options/units.hpp"

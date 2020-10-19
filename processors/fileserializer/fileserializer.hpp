@@ -21,11 +21,7 @@
 #include <memory>
 #include <vector>
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 
 #include "serializer.hpp"
 #include "options/options.hpp"

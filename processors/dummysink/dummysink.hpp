@@ -18,14 +18,9 @@
 // ---------------------------------------------------------------------
 
 #pragma once
+#include "iprocessor.hpp"
+#include "idata.hpp"
 
-#if BUILD_EXTENSIONS_TEST==0
-    #include "iprocessor.hpp"
-    #include "idata.hpp"
-#else
-    #include "testing/f_iprocessor.hpp"
-    #include "testing/f_idata.hpp"
-#endif
 
 class DummySink : public IProcessor {
  public:

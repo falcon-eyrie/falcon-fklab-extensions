@@ -22,11 +22,7 @@
 #include <memory>
 
 #include "dsp/algorithms.hpp"
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 #include "multichanneldata/multichanneldata.hpp"
 #include "options/options.hpp"
 #include "options/units.hpp"

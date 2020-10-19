@@ -23,11 +23,7 @@
 #include <string>
 #include <algorithm>
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "idata.hpp"
-#else
-#include "testing/f_idata.hpp"
-#endif
 
 namespace nsVectorType {
 using Base = AnyType;

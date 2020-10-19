@@ -23,11 +23,7 @@
 #include <vector>
 
 #include "channelvalidity.hpp"
-#if BUILD_EXTENSIONS_TEST==0
 #include "idata.hpp"
-#else
-#include "testing/f_idata.hpp"
-#endif
 #include "spikedata_common.hpp"
 #include "utilities/general.hpp"
 

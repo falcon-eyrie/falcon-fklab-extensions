@@ -25,11 +25,7 @@
 #include <algorithm>
 #include <limits>
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "idata.hpp"
-#else
-#include "testing/f_idata.hpp"
-#endif
 
 #include "utilities/general.hpp"
 #include "utilities/iterators.hpp"

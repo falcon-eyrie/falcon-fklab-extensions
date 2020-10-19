@@ -2,5 +2,6 @@
 ADD_LIBRARY(burstdetector "burstdetector.cpp")
 TARGET_LINK_LIBRARIES(burstdetector dsp)
 
-
+if(${TESTING})
 ADD_EXECUTABLE(burstdetector_test "burstdetectortest.cpp")
+endif()

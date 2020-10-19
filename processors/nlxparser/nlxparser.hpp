@@ -27,11 +27,7 @@
 #include <string>
 #include <limits>
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 
 #include "multichanneldata/multichanneldata.hpp"
 #include "neuralynx/nlx.hpp"

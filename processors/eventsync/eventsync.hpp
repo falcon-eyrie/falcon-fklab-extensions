@@ -25,11 +25,7 @@
 #include "utilities/general.hpp"
 #include "utilities/time.hpp"
 
-#if BUILD_EXTENSIONS_TEST==0
 #include "iprocessor.hpp"
-#else
-#include "testing/f_iprocessor.hpp"
-#endif
 class EventSync : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
