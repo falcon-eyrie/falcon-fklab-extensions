@@ -66,8 +66,9 @@ void EventDelayed::Configure(const YAML::Node &node,
 }
 
 void EventDelayed::CreatePorts() {
-  data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
-                                               PortInPolicy(SlotRange(1)));
+  data_in_port_ =
+      create_input_port<EventType>(EventType::Capabilities(),
+                                   PortInPolicy(SlotRange(1), false, 0));
 
   data_out_port_ = create_output_port<EventType>(
       EventType::Capabilities(), EventType::Parameters(DEFAULT_EVENT),
@@ -124,6 +125,13 @@ void EventDelayed::Process(ProcessingContext &context) {
 
     if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
       break;
+    }
+
+    auto nread = data_in_port_->slot(0)->status_read();
+
+    if (nread == 0) {
+      data_in_port_->slot(0)->ReleaseData();
+      continue;
     }
 
     if (enabled_->get()) {
