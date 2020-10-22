@@ -1,4 +1,4 @@
-Description: Convert incoming EventData into another event
+Description: Convert incoming target event into another event with possibility to set a lock-out period and save in a file
 
 Input ports:
   - name: events
@@ -16,8 +16,8 @@ Output ports:
 Options:
   - name: event name
     type: string
-    default: "stimulation"
-    description: name for generating the delayed event
+    default: "o"
+    description: name for generating the event
   - name: replace
     type: bool
     default: true

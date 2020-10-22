@@ -1,0 +1,55 @@
+Description: Transfer event with ontime or with a delay randomly chosen in a range. There is also a lockout period to remove
+too close events and an option file logging of these events.
+
+Input ports:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Output ports:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - &enabled
+    name: enabled
+    type: bool
+    default: true
+    description: Enable the processing of incoming events.
+  - &lockout
+    name: lockout period
+    type: double
+    default: 50 ms
+    description: Lock out time after the processing of an event.
+  - &delayed
+    name: delayed
+    type: bool
+    default: False
+    description: Enable the delay of the event for a time randomly chosen between the delay range
+  - name: delay range
+    type: long int
+    default: "[150, 250] ms"
+    description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
+  - name: enabled saving
+    type: bool
+    default: true
+    description: Enable saving of target events to disk.
+  - name: prefix
+    type: string
+    default: "stim_"
+    description: add a prefix in the filename (prefix+eventname) where target event are saved
+
+State:
+  Static:
+    - options: *enabled
+      external access: write
+      shared: true
+    - options: *lockout
+        external access: write
+        shared: true
+    - options: *delayed
+        external access: write
+        shared: true

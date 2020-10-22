@@ -18,12 +18,6 @@
 // ---------------------------------------------------------------------
 
 #pragma once
-
-#include <string>
-#include <memory>
-#include <map>
-#include <vector>
-
 #include "dio/dio.hpp"
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
@@ -35,52 +29,31 @@ typedef std::map<std::string, std::unique_ptr<DigitalOutputProtocol>>
     ProtocolMap;
 
 class DigitalOutput : public IProcessor {
- public:
+
+public:
+  DigitalOutput();
+  void CreatePorts() override;
   void Configure(const YAML::Node &node,
                          const GlobalContext &context) override;
-  void CreatePorts() override;
-  void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
 
- protected:
-  bool to_lock_out(const uint64_t current_timestamp);
-
- protected:
+  // DATA PORTS
+protected:
   PortIn<EventType> *data_in_port_;
 
-  bool default_enabled_;
-  StaticState<decltype(default_enabled_)> *enabled_state_;
+protected:
+  options::Measurement<double, false> initial_lockout_period_{
+      300, "ms", options::positive<double>(true)};
 
-  int default_lockout_period_;
-  StaticState<int> *lockout_period_;
+  options::Measurement<unsigned int, false> pulse_width_{
+      400, "ms", options::positive<double>(true)};
 
-  bool save_stim_events_;
-  std::wstring device_name_;
+  options::String device_type_{};
+  options::Value<std::uint32_t, false> nchannels_{16};
+  options::Value<ProtocolYAMLMap, false> protocols_yaml_{};
+
+  options::Bool event_log_{true};
 
   std::unique_ptr<DigitalDevice> device_;
   ProtocolMap protocols_;
-
-  bool print_protocol_execution_updates_;
-
-  std::uint64_t nreceived_events_;
-  std::uint64_t ntarget_events_;
-  std::uint64_t nprotocol_executions_;
-  std::uint64_t n_locked_out_events_;
-
-  uint64_t previous_TS_nostim_;
-  int delta_TS_;
-
- public:
-  const decltype(default_enabled_) DEFAULT_ENABLED = true;
-  const decltype(default_lockout_period_) DEFAULT_LOCKOUT_PERIOD = 300;
-  const decltype(save_stim_events_) DEFAULT_SAVE_STIM_EVENTS = true;
-  const unsigned int DEFAULT_PULSE_WIDTH = 400;
-  const unsigned int DEFAULT_DUMMY_NCHANNELS = 16;
-
-  const std::string ENABLED = "enabled";
-  const std::string LOCKOUT_PERIOD = "lockout period";
-
- protected:
-  const std::string STIM_EVENT = "stim_";
 };

@@ -18,65 +18,37 @@
 // ---------------------------------------------------------------------
 
 #pragma once
-#include <fstream>
-#include <string>
-
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
 #include "options/options.hpp"
 #include "options/units.hpp"
-#include "utilities/time.hpp"
+#include "serialib/lib/serialib.h"
+
+#include <fstream>
 
 class SerialOutput : public IProcessor {
+
   // CONSTRUCTOR and OVERLOADED METHODS
- public:
+public:
   SerialOutput();
   void CreatePorts() override;
   void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;
 
-  // METHODS
- protected:
-  bool to_lock_out(const uint64_t current_timestamp);
-
   // DATA PORTS AND STATES
- protected:
+protected:
   PortIn<EventType> *data_in_port_;
-  StaticState<bool> *enabled_;
-  StaticState<double> *lockout_period_;
-  StaticState<char> *message_;
+  PortOut<EventType> *data_out_port_;
 
   // OPTIONS
- protected:
-  options::Bool default_enabled_{true};
-  options::Measurement<double, false> initial_lockout_period_{
-      50, "ms", options::positive<double>(true)};
-
-  options::Value<char, false> default_message_{'1'};
-  options::Bool save_stim_events_{false};
+protected:
   options::String port_address_{"/dev/ttyACM0"};
   options::Int baudrate_{9600};
-  options::Value<EventType::Data, false> target_event_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
-  options::Bool print_transmission_updates_{true};
+  options::Bool event_log_{true};
 
   // variables
- protected:
-  int fd_;
-  uint64_t nreceived_events_;
-  uint64_t ntarget_events_;
-  uint64_t nprotocol_executions_;
-  uint64_t n_locked_out_events_;
-
-  uint64_t previous_TS_nostim_;
-  uint64_t delta_TS_;
-
-  // CONSTANT
- protected:
-  const std::string STIM_EVENT_S = "stim_";
-  const std::string ENABLED_S = "enabled";
-  const std::string LOCKOUT_PERIOD_S = "lockout period";
-  const std::string MESSAGE_S = "message";
+protected:
+  serialib fd_;
 };
 

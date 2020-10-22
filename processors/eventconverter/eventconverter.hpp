@@ -26,19 +26,19 @@
 
 class EventConverter : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
- public:
+public:
   EventConverter();
   void CreatePorts() override;
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;
 
   // DATA PORTS
- protected:
+protected:
   PortIn<EventType> *data_in_port_;
   PortOut<EventType> *data_out_port_;
 
   // OPTIONS
- protected:
+protected:
   options::String event_name_{"stimulation", options::notempty<std::string>()};
   options::Bool replace_{true};
 };
