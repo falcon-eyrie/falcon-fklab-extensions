@@ -47,8 +47,12 @@ The higher it is, the less the number of detections will be.
   also running on it. If the same event is detected in the hippocampus and in the cortex,
   it is considered as an artifact and it is directly rejected.
 
-To avoid over-stimulation, a post-processing technique consists of blocking any detection that
-occurs less than 150 ms after a stimulation. This is called the lock-out period.
+- **trigger stimulation**: To avoid over-stimulation, a post-processing technique consists of blocking any detection that
+  occurs less than 150 ms after a stimulation. This is called the lock-out period.
+  There is also two modes to deliver stimulation:
+    - ontime (directly after detection)
+    - delayed by a uniform-random time (ms) chose in a range (see option of EventDelayed).
+  This mode can be change in running time by modifying the delayed state.
 
 processors
 ----------
@@ -65,7 +69,8 @@ processors
 - event sink : :ref:`EventLogger`
 - datasink ev : :ref:`FileSerializer`
 - datasink ripple_stats : :ref:`FileSerializer`
-- ttl output: SerialOutput (not yet ported on the new falcon)
+- event delayed : :ref:`EventDelayed`
+- ttl output: SerialOutput
 
 
 States writable by the user
@@ -79,6 +84,7 @@ Processor :ref:`RippleDetector`:
        considered for  updating signal statistics and for event detection.
    - stream events (bool)
    - stream statistics (bool)
+   - delayed (bool) - decide if the stimulation after ripple detection should be delayed or ontime.
 
 
 .. note:: As their is two RippleDetectors, these states are available for each processor.

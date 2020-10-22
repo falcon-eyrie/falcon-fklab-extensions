@@ -67,16 +67,11 @@ processors:
         options:
             encoding: binary
             format: compact
-
     stimulation_trigger:
-        class: EventConverter
+        class: EventDelayed
         options:
-            enabled: true
-            target event: ripple
-            delayed mode: true
+            delayed mode: false # switch for true if you want delayed events
             lockout period: 250
-            filename prefix: "stim_"
-            event_name: "d" # 'o' for onset stimulation, 'd' for delayed
     ttl_output:
         class: SerialOutput
 
