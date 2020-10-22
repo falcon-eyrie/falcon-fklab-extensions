@@ -19,7 +19,7 @@
 
 #include "eventdelayed.hpp"
 
-EventDelayed::EventDelayed() {
+EventDelayed::EventDelayed(): delayed_range_(150, 200) {
   add_option("enabled", default_enabled_,
              "Enable the processing of incoming events.");
 
@@ -29,10 +29,7 @@ EventDelayed::EventDelayed() {
 
   add_option("delayed event", initial_delayed_event_,
              "Enable the delay of the event for a time randomly chosen between the delay range");
-  add_option("lower delay range", delayed_lower_range_,
-             "if delayed event is true, the delayed time will be pseudo-randomly "
-             "chosen in this range.");
-  add_option("upper delay range", delayed_upper_range_,
+  add_option("delay range", initial_delayed_range_,
              "if delayed event is true, the delayed time will be pseudo-randomly "
              "chosen in this range.");
 
@@ -56,19 +53,22 @@ void EventDelayed::Configure(const YAML::Node &node,
               << 1e3 / static_cast<double>(initial_lockout_period_()) << " Hz.";
   }
 
-  if ((initial_delayed_event_() and initial_lockout_period_() <= 0) or
-      !initial_delayed_event_()) {
+  delayed_range_= Range<long int>(initial_delayed_range_());
+
+  if (!initial_delayed_event_()) {
     LOG(INFO) << name() << ". Event are sent on-time.";
   } else {
-    LOG(INFO) << name() << ". Events are delayed of "
-              << static_cast<double>(initial_lockout_period_()) << " ms.";
+    LOG(INFO) << name() << ". Events are delayed of a range between"
+              << delayed_range_.lower() << " and " << delayed_range_.upper()<< " ms.";
   }
+
+
 }
 
 void EventDelayed::CreatePorts() {
   data_in_port_ =
       create_input_port<EventType>(EventType::Capabilities(),
-                                   PortInPolicy(SlotRange(1), false, 0));
+                                   PortInPolicy(SlotRange(1), false, 1));
 
   data_out_port_ = create_output_port<EventType>(
       EventType::Capabilities(), EventType::Parameters(DEFAULT_EVENT),
@@ -89,6 +89,8 @@ void EventDelayed::Preprocess(ProcessingContext &context) {
   ontime_received_event_ = 0;
   delayed_received_event_ = 0;
   event_lockout_ = 0;
+
+  //initialize enough if the past to be sure the first stimulation won't be lockout
   previous_TS_nostim_ =
       Clock::now() -
       std::chrono::milliseconds((long int)lockout_period_->get() + 10);
@@ -105,8 +107,8 @@ void EventDelayed::Process(ProcessingContext &context) {
   std::random_device rd;
   std::mt19937 generator_(rd()); // Standard mersenne_twister_engine (Higher
                                  // complexity / randomness)
-  std::uniform_int_distribution<> distrib(delayed_lower_range_(),
-                                          delayed_upper_range_());
+  std::uniform_int_distribution<> distrib(delayed_range_.lower(),
+                                          delayed_range_.upper());
 
   while (!context.terminated()) {
 

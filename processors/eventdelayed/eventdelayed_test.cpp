@@ -26,12 +26,15 @@ class TestEventDelayed : EventDelayed {
 public:
   using EventDelayed::CreatePorts;
   using EventDelayed::Preprocess;
+  using EventDelayed::Configure;
   using EventDelayed::Process;
+  using EventDelayed::delayed_range_;
   using IProcessor::load_fake_options;
 
   bool get_default_enabled() { return default_enabled_(); };
   int get_lockout_period() { return initial_lockout_period_(); }
   bool get_delayed_event() { return initial_delayed_event_(); }
+  std::vector<long int> get_delayed_range() { return initial_delayed_range_(); }
   bool get_save_event() { return save_events_(); }
   std::string get_prefix() { return prefix_(); }
   PortIn<EventType> *getDataInPort() { return data_in_port_; };
@@ -48,6 +51,9 @@ TEST(EventDelayedTest, DefaultOptions) {
   EXPECT_FALSE(p.get_delayed_event());
   EXPECT_EQ(p.get_lockout_period(), 50);
   EXPECT_EQ(p.get_prefix(), "stim_");
+
+  std::vector <long int> expect_result = {150, 200};
+  EXPECT_EQ(p.get_delayed_range(), expect_result);
 }
 
 TEST(EventDelayedTest, ChangeWrongOptions) {
@@ -57,16 +63,32 @@ TEST(EventDelayedTest, ChangeWrongOptions) {
       std::runtime_error);
 }
 
+TEST(EventDelayedTest, Configure) {
+  TestEventDelayed p;
+  YAML::Node node = YAML::Load("{options: {delay range: [2, 20]}}");
+  p.load_fake_options(node);
+  std::vector <long int> expect_result = {2, 20};
+  EXPECT_EQ(p.get_delayed_range(), expect_result);
+
+  GlobalContext globalContext;
+  p.Configure(node, globalContext);
+  EXPECT_EQ(p.delayed_range_.lower(), 2);
+  EXPECT_EQ(p.delayed_range_.upper(), 20);
+
+}
+
 TEST(EventDelayedTest, OnTimeProcess) {
 
   TestEventDelayed p;
-  p.load_fake_options(YAML::Load("{options: {enable saving: false}}"));
+  YAML::Node node = YAML::Load("{options: {enable saving: false}}");
+  p.load_fake_options(node);
 
   p.CreatePorts();
 
   GlobalContext globalContext;
   RunContext runContext(globalContext);
   ProcessingContext context(runContext, "tests", false);
+  p.Configure(node, globalContext);
   p.Preprocess(context);
   std::deque<EventType::Data *> fake_data;
   std::deque<long int> fake_delay;
@@ -92,18 +114,18 @@ TEST(EventDelayedTest, OnTimeProcess) {
 TEST(EventDelayedTest, DelayedProcess) {
 
   TestEventDelayed p;
-  p.load_fake_options(YAML::Load("{options: { "
-                                 "enable saving: false, "
-                                 "delayed event: true, "
-                                 "lower delay range: 2,"
-                                 "upper delay range: 20}}"));
+  YAML::Node node = YAML::Load("{options: { "
+                               "enable saving: false, "
+                               "delayed event: true, "
+                               "delay range: [2, 20]}}");
+  p.load_fake_options(node);
 
   p.CreatePorts();
 
   GlobalContext globalContext;
   RunContext runContext(globalContext);
   ProcessingContext context(runContext, "tests", false);
-
+  p.Configure(node, globalContext);
   p.Preprocess(context);
 
   std::deque<EventType::Data *> fake_data;

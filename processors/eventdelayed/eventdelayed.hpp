@@ -85,10 +85,9 @@ protected:
   options::Bool save_events_{true};
   options::String prefix_{"stim_"};
 
-  options::Measurement<long int, false> delayed_lower_range_{
-      150, "ms", options::positive<double>(true)};
-  options::Measurement<long int, false> delayed_upper_range_{
-      200, "ms", options::positive<double>(true)};
+
+  options::Value<std::vector<long int>, true> initial_delayed_range_{{150, 200}};
+
 
 private:
   void send_event(EventType::Data *data_in, EventType::Data *data_out,
@@ -99,6 +98,7 @@ protected:
   uint64_t delayed_received_event_;
   uint64_t event_lockout_;
 
+  Range<long int> delayed_range_;
   TimePoint previous_TS_nostim_;
 
   std::priority_queue<Delayed, std::vector<Delayed>, std::greater<Delayed>>

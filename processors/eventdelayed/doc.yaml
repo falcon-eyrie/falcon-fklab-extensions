@@ -29,13 +29,9 @@ Options:
     type: bool
     default: False
     description: Enable the delay of the event for a time randomly chosen between the delay range
-  - name: lower delay range
+  - name: delay range
     type: long int
-    default: 150 ms
-    description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
-  - name: upper delay range
-    type: long int
-    default: 200 ms
+    default: "[150, 250] ms"
     description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
   - name: enabled saving
     type: bool
