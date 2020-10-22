@@ -27,7 +27,7 @@ EventDelayed::EventDelayed(): delayed_range_(150, 200) {
   add_option(LOCKOUT_PERIOD_S, initial_lockout_period_,
              "Lock out time after the processing of an event.");
 
-  add_option("delayed event", initial_delayed_event_,
+  add_option("delayed", initial_delayed_event_,
              "Enable the delay of the event for a time randomly chosen between the delay range");
   add_option("delay range", initial_delayed_range_,
              "if delayed event is true, the delayed time will be pseudo-randomly "

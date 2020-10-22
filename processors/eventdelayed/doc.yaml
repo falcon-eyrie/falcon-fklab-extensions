@@ -25,7 +25,7 @@ Options:
     default: 50 ms
     description: Lock out time after the processing of an event.
   - &delayed
-    name: delayed event
+    name: delayed
     type: bool
     default: False
     description: Enable the delay of the event for a time randomly chosen between the delay range

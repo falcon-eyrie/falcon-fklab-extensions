@@ -116,7 +116,7 @@ TEST(EventDelayedTest, DelayedProcess) {
   TestEventDelayed p;
   YAML::Node node = YAML::Load("{options: { "
                                "enable saving: false, "
-                               "delayed event: true, "
+                               "delayed: true, "
                                "delay range: [2, 20]}}");
   p.load_fake_options(node);
 
