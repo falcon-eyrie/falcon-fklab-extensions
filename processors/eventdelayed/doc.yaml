@@ -14,11 +14,11 @@ Output ports:
     description:
 
 Options:
-  - &enabled
-    name: enabled
+  - &disabled
+    name: disabled
     type: bool
-    default: true
-    description: Enable the processing of incoming events.
+    default: false
+    description: Disabled the processing of incoming events.
   - &lockout
     name: lockout period
     type: double
@@ -44,12 +44,11 @@ Options:
 
 State:
   Static:
-    - options: *enabled
+    - options: *lockout
       external access: write
       shared: true
-    - options: *lockout
-        external access: write
-        shared: true
+  Follower:
     - options: *delayed
-        external access: write
-        shared: true
+      external access: write
+    - options: *disabled
+      external access: write

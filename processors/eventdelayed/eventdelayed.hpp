@@ -72,13 +72,13 @@ protected:
 
   // STATES
 protected:
-  StaticState<bool> *enabled_;
-  StaticState<bool> *delayed_event_;
+  FollowerState<bool> *disabled_;
+  FollowerState<bool> *delayed_event_;
   StaticState<double> *lockout_period_;
 
   // OPTIONS
 protected:
-  options::Bool default_enabled_{true};
+  options::Bool default_disabled_{false};
   options::Measurement<double, false> initial_lockout_period_{
       50, "ms", options::positive<double>(true)};
   options::Bool initial_delayed_event_{false};
@@ -106,6 +106,6 @@ protected:
 
   // CONSTANT
 protected:
-  const std::string ENABLED_S = "enabled";
+  const std::string ENABLED_S = "disabled";
   const std::string LOCKOUT_PERIOD_S = "lockout period";
 };

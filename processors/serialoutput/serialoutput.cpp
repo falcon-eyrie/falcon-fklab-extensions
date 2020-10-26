@@ -36,7 +36,7 @@ void SerialOutput::CreatePorts() {
 void SerialOutput::Preprocess(ProcessingContext &context) {
 
   if (fd_.openDevice(port_address_().c_str(), baudrate_()) != 1) {
-    throw ProcessingConfigureError(
+    throw ProcessingPreprocessingError(
         "Impossible to open the serial port specified.", name());
   }
 

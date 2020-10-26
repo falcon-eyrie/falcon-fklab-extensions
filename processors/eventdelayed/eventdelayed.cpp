@@ -20,7 +20,7 @@
 #include "eventdelayed.hpp"
 
 EventDelayed::EventDelayed(): delayed_range_(150, 200) {
-  add_option("enabled", default_enabled_,
+  add_option(ENABLED_S, default_disabled_,
              "Enable the processing of incoming events.");
 
   // Flexible processing event feature
@@ -74,14 +74,14 @@ void EventDelayed::CreatePorts() {
       EventType::Capabilities(), EventType::Parameters(DEFAULT_EVENT),
       PortOutPolicy(SlotRange(1)));
 
-  enabled_ = create_static_state(ENABLED_S, default_enabled_(), true,
+  disabled_ = create_follower_state(ENABLED_S, default_disabled_(),
                                  Permission::WRITE);
 
   lockout_period_ = create_static_state(
       LOCKOUT_PERIOD_S, initial_lockout_period_(), true, Permission::WRITE);
 
-  delayed_event_ = create_static_state(
-      "delayed event", initial_delayed_event_(), true, Permission::WRITE);
+  delayed_event_ = create_follower_state(
+      "delayed event", initial_delayed_event_(), Permission::WRITE);
 }
 
 void EventDelayed::Preprocess(ProcessingContext &context) {
@@ -110,6 +110,8 @@ void EventDelayed::Process(ProcessingContext &context) {
   std::uniform_int_distribution<> distrib(delayed_range_.lower(),
                                           delayed_range_.upper());
 
+
+
   while (!context.terminated()) {
 
     while (!event_queue_.empty() and event_queue_.top().ts < Clock::now()) {
@@ -117,7 +119,7 @@ void EventDelayed::Process(ProcessingContext &context) {
                         Clock ::now() - event_queue_.top().ts)
                         .count();
 
-      LOG(DEBUG) << name() << "Time to sent a delayed event ("
+      LOG(DEBUG) << name() << ". Time to sent a delayed event ("
                  << event_queue_.top().data_in->event() << ") with " << millis
                  << "ms late.";
 
@@ -136,12 +138,11 @@ void EventDelayed::Process(ProcessingContext &context) {
       continue;
     }
 
-    if (enabled_->get()) {
+    if (!disabled_->get()) {
       int wait_time = distrib(generator_);
       if (delayed_event_->get()) {
         ++delayed_received_event_;
-        LOG(DEBUG) << name() << "Save an event (" << data_in->event()
-                   << ") to send later with " << wait_time << "ms delayed.";
+        LOG(INFO) << name() << ". Save an event (" << data_in->event() << ") to send later with " << wait_time << "ms delayed.";
         auto delay =
             data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
         Delayed event(delay, data_in);
@@ -159,7 +160,7 @@ void EventDelayed::Process(ProcessingContext &context) {
 void EventDelayed::send_event(EventType::Data *data_in,
                               EventType::Data *data_out, std::string filepath) {
   if (not to_lock_out()) {
-    LOG(DEBUG) << name() << "Sent one event: " << data_in->event();
+    LOG(INFO) << name() << ". Sent one event: " << data_in->event();
     data_out = data_out_port_->slot(0)->ClaimData(true);
     data_out->set_hardware_timestamp(data_in->hardware_timestamp());
 
