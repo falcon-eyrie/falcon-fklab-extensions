@@ -1,0 +1,29 @@
+Description: Arrival of target events set state to true, arrival of non-target events set state to false. All events are forwarded to output stream.
+
+Long description:
+
+Input port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Output port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - name: target event
+    type: string
+    default: None
+    description: The target event that sets the state to true
+
+State:
+  Broadcaster:
+    - name: enabled
+      type: bool
+      default: false
+      description: If target event is received, the state become true, if it is another event, it set back to false.
+      external access: write
