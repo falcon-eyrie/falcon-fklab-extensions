@@ -22,6 +22,10 @@
 #include "iprocessor.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 #include "utilities/zmqutil.hpp"
+#include <nlohmann/json.hpp>
+// for convenience
+using json = nlohmann::json;
+
 
 typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
 const int OPEN_EPHYS_SIGNAL_SAMPLING_FREQUENCY = 200;
@@ -46,7 +50,7 @@ protected:
   options::Value<ChannelMap, false> channelmap_;
   options::Value<std::uint64_t, false> npackets_{
       0, options::zeroismax<std::uint64_t>()};
-  options::Value<unsigned int, false> batch_size_{1};
+  options::Value<unsigned int, false> batch_size_{5};
 
 private:
   uint64_t extract_timestamps(std::string msg);
@@ -54,6 +58,7 @@ private:
 // PORT
 protected:
   std::map<std::string, PortOut<MultiChannelType<double>> *> data_ports_;
+
   unsigned int sample_counter_;
   uint64_t valid_packet_counter_;
   TimePoint first_valid_packet_arrival_time_;
@@ -62,8 +67,7 @@ protected:
   // VARIABLES
 protected:
   zmq::socket_t data_socket_;
-  zmq::socket_t event_socket_;
-  zmq::socket_t heartbeat_socket_;
   uint64_t  data_counter_;
+  uint64_t  last_message_number = -1;
   uint64_t  data_corrupted_counter_;
 };
