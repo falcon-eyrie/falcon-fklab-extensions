@@ -57,12 +57,12 @@ private:
 
 // PORT
 protected:
-  std::map<std::string, PortOut<MultiChannelType<double>> *> data_ports_;
-
+  std::map<std::string, PortOut<MultiChannelType<float>> *> data_ports_;
+  std::map<int, std::vector<float> *> samples_;
   unsigned int sample_counter_;
   uint64_t valid_packet_counter_;
   TimePoint first_valid_packet_arrival_time_;
-  uint64_t timestamp_;
+
 
   // VARIABLES
 protected:

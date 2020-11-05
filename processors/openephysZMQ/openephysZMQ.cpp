@@ -17,7 +17,9 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 #include "openephysZMQ.hpp"
+#include <algorithm>
 #include <string>
+
 OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
   add_option("address", address_, "ZMQ network address to connect");
 
@@ -37,11 +39,14 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
 
 void OpenEphysZMQ::CreatePorts() {
   for (auto &it : channelmap_()) {
-    data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
+    data_ports_[it.first] = create_output_port<MultiChannelType<float>>(
         it.first,
-        MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
-        MultiChannelType<double>::Parameters(),
+        MultiChannelType<float>::Capabilities(ChannelRange(it.second.size())),
+        MultiChannelType<float>::Parameters(),
         PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
+    for (auto &chan : it.second) {
+      samples_[chan] = new std::vector<float>();
+    }
   }
 }
 
@@ -82,12 +87,12 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
 
-  int data_index = 0;
   sample_counter_ = 0;
 
-  std::vector<MultiChannelType<double>::Data *> data_vector(data_ports_.size());
+  std::vector<uint64_t> timestamps;
+  MultiChannelType<float>::Data *data_vector;
 
-  while (!context.terminated() ) {
+  while (!context.terminated()) {
 
     zmq_frames data_msg;
     s_nonblocking_recv_multi(data_socket_, data_msg);
@@ -98,75 +103,72 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
       // Header:
       // {"content":{"n_channels":16,"n_real_samples":928,"n_samples":1024,"sample_rate":40000,"timestamp":142912},
       // "data_size":65536,"message_no":197705,"type":"data"}
-
-      /*if (last_message_number + 1 != header["message_no"].get<int>()){
-        LOG(DEBUG) << name() << ". Message lost: " <<
-      header["message_no"].get<int>() - last_message_number;
-        data_corrupted_counter_++;
-        last_message_number = header["message_no"].get<int>();q
-        continue;
-      }*/
-      float data_out[header["content"]["n_channels"].get<int>()]
-                    [header["content"]["n_samples"].get<int>()];
-      memcpy(data_out, &data_msg[2], header["data_size"].get<int>());
-
-      LOG(DEBUG) << name()
-                 << ". Header: " << header;
+      LOG(DEBUG) << name() << ". Header: " << header;
 
       last_message_number = header["message_no"].get<int>();
-      timestamp_ = header["content"]["timestamp"];
+      uint64_t timestamp_ = header["content"]["timestamp"];
+      float sample_rate_ = timestamp_ = header["content"]["sample_rate"];
 
       valid_packet_counter_++;
-      if (valid_packet_counter_ == 1) {
+
+      if (valid_packet_counter_ == 1) { // first packet
         first_valid_packet_arrival_time_ = Clock::now();
         LOG(INFO) << name() << ": Received first valid data packet"
-                    << " (TS = " << timestamp_ << ").";
+                  << " (TS = " << timestamp_ << ").";
+      } else if (last_message_number + 1 !=
+                 header["message_no"].get<int>()) { // Missed packet
+        LOG(DEBUG) << name() << ". Message lost: "
+                   << header["message_no"].get<int>() - last_message_number;
+        data_corrupted_counter_++;
+        continue;
       }
 
+      last_message_number = header["message_no"].get<int>();
+      // Data
+      LOG(DEBUG) << name() << " Copy data";
+      int n_sample = std::min(header["content"]["n_real_samples"].get<int>(),
+                              header["content"]["n_samples"].get<int>());
+
+      std::vector<float_t> data_out;
+      data_out.reserve(header["content"]["n_channels"].get<int>() *
+                                  header["content"]["n_samples"].get<int>());
+      std::copy(data_msg[2].begin(), data_msg[2].end(), data_out.begin());
+
+      LOG(DEBUG) << name() << " Resize data";
       // copy data onto buffers for each configured channel group
-      data_index = 0;
+      for (auto &it : samples_) {
+        it.second->insert(it.second->end(), data_out.begin()+n_sample * it.first,
+                          data_out.begin()+n_sample * (it.first+1));
+        LOG(DEBUG) << name() << " Resize data: " << &it.second[0];
+      }
 
-      MultiChannelType<double>::Data::sample_iterator data_iter;
-      for (int sample = 0; sample < header["content"]["n_real_samples"].get<int>();
-             sample++) {
-        for (auto &it : channelmap_()) {
-          LOG(DEBUG) << name() << " Load data in the port " << it.first;
+      for (auto &it : channelmap_()) {
 
-          // publish data buckets
-
-          if (sample_counter_ == batch_size_()) {
-              for (auto &it : data_ports_) {
-                  LOG(DEBUG) << name() << " Publish the dataPacket for the port " << it.first;
-                  it.second->slot(0)->PublishData();
-              }
-
-            sample_counter_ = 0;
-
-          }
-
-          // Create a new packet
-          if (sample_counter_ == 0) {
-
-              LOG(DEBUG) << name() << " Create a new packet ";
-              data_vector[data_index] = data_ports_[it.first]->slot(0)->ClaimData(false);
-              // set data bucket metadata
-              data_vector[data_index]->set_hardware_timestamp(timestamp_);
-              data_vector[data_index]->set_source_timestamp();
-              data_iter = data_vector[data_index]->begin_sample(0);
-              data_vector[data_index]->set_sample_timestamp(sample_counter_, timestamp_);
-          }
-
-          for (auto &channel : it.second) {
-            LOG(DEBUG) << name() << " Load " << channel << "sample : " << sample << " resultat: " <<data_out[channel][sample] ;
-            (*data_iter) = (double)(data_out[channel][sample]);
-            ++data_iter;
-          }
-          data_index++;
+        if (samples_[it.second[0]]->size() < batch_size_()) {
+          break;
         }
-        ++sample_counter_;
+        LOG(DEBUG) << name() << " Send a new packet on the port " << it.first;
+        data_vector = data_ports_[it.first]->slot(0)->ClaimData(false);
+        // set data bucket metadata
+        data_vector->set_hardware_timestamp(timestamp_);
+        data_vector->set_source_timestamp();
+        // publish data buckets
+        for (auto &channel : it.second) {
+          LOG(DEBUG) << name() << " Load " << channel;
+          std::vector<float> packet;
+          std::copy(samples_[channel]->begin(),
+                    samples_[channel]->begin()+batch_size_(), packet.begin());
+          data_vector->set_data_channel(channel, packet);
+        }
+
+        std::vector<uint64_t> t;
+        std::copy(timestamps.begin(), timestamps.begin()+batch_size_(), t.begin());
+        data_vector->set_sample_timestamps(t);
+        data_ports_[it.first]->slot(0)->PublishData();
       }
     }
   }
+
   SlotType s;
   for (auto &it : data_ports_) {
     for (s = 0; s < it.second->number_of_slots(); ++s) {
