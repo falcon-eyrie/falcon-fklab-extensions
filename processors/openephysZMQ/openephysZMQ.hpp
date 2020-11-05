@@ -26,6 +26,7 @@
 // for convenience
 using json = nlohmann::json;
 
+int ts_increase (uint64_t i) { return ++i; }
 
 typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
 const int OPEN_EPHYS_SIGNAL_SAMPLING_FREQUENCY = 200;
@@ -62,12 +63,13 @@ protected:
   unsigned int sample_counter_;
   uint64_t valid_packet_counter_;
   TimePoint first_valid_packet_arrival_time_;
+  std::vector<uint64_t>* timestamps;
 
 
   // VARIABLES
 protected:
   zmq::socket_t data_socket_;
   uint64_t  data_counter_;
-  uint64_t  last_message_number = -1;
+  int  last_message_number = -1;
   uint64_t  data_corrupted_counter_;
 };
