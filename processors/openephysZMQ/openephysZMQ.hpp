@@ -26,7 +26,7 @@
 // for convenience
 using json = nlohmann::json;
 
-int ts_increase (uint64_t i) { return ++i; }
+
 
 typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
 const int OPEN_EPHYS_SIGNAL_SAMPLING_FREQUENCY = 200;
@@ -52,9 +52,6 @@ protected:
   options::Value<std::uint64_t, false> npackets_{
       0, options::zeroismax<std::uint64_t>()};
   options::Value<unsigned int, false> batch_size_{5};
-
-private:
-  uint64_t extract_timestamps(std::string msg);
 
 // PORT
 protected:

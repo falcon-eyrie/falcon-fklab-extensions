@@ -86,6 +86,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
   data_corrupted_counter_ = 0;
   valid_packet_counter_ = 0;
+
 }
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
@@ -124,22 +125,30 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
       last_message_number = header["message_no"].get<int>();
 
       // Data
-      int n_sample = std::min(header["content"]["n_real_samples"].get<int>(),
-                              header["content"]["n_samples"].get<int>());
-
-      std::vector<uint32_t> buffer;
-      buffer.reserve(header["content"]["n_channels"].get<int>()*header["content"]["n_samples"].get<int>());
+      int n_samples = header["content"]["n_samples"].get<int>();
+      int n_real_samples =  header["content"]["n_real_samples"].get<int>();
 
       // copy data onto buffers for each configured channel group
       for (auto &it : samples_) {
-        it.second->insert(it.second->end(), data_msg[2].begin()+n_sample * it.first,
-                          data_msg[2].begin()+n_sample * (it.first+1));
+        auto start_index = data_msg[2].begin()+n_samples * it.first;
+
+        it.second->insert(it.second->end(), start_index, start_index+n_real_samples);
 
       }
-      float sample_rate_ = header["content"]["sample_rate"];
-      std::vector<uint64_t> ts(n_sample);
-      std::fill_n(ts.begin(), n_sample ,header["content"]["timestamp"]);
-      std::transform (ts.begin(), ts.end(), ts.begin(), ts_increase);
+      uint64_t sample_rate_ = header["content"]["sample_rate"];
+      uint64_t init_ts = header["content"]["timestamp"].get<int>();
+
+      auto ts_increase =[&init_ts, &sample_rate_, idx=0]() mutable {
+        ++idx;
+        return (init_ts+idx)*(1000/sample_rate_);
+      };
+
+      std::vector<uint64_t> ts(n_real_samples);
+      ts.reserve(n_real_samples);
+      std::generate_n(ts.begin(), n_real_samples, ts_increase);
+
+      LOG(DEBUG) << "start index" << ts[0]*sample_rate_/1000;
+      LOG(DEBUG) << "end index" << ts[n_real_samples-1]*sample_rate_/1000;
       timestamps->insert(timestamps->end(), ts.begin(), ts.end());
 
       for (auto &it : channelmap_()) {
@@ -168,15 +177,6 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
       }
     }
   }
-
-  SlotType s;
-  for (auto &it : data_ports_) {
-    for (s = 0; s < it.second->number_of_slots(); ++s) {
-      LOG(INFO) << name() << ". Port " << it.first << ". Slot " << s
-                << ". Streamed " << it.second->slot(s)->nitems_produced()
-                << " data packets. ";
-    }
-  }
 }
 
 void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
@@ -195,12 +195,16 @@ void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
                      (static_cast<double>(runtime.count()) / 1000)
               << " packets/second.";
 
+  SlotType s;
+  for (auto &it : data_ports_) {
+    for (s = 0; s < it.second->number_of_slots(); ++s) {
+      LOG(INFO) << name() << ". Port " << it.first << ". Slot " << s
+                << ". Streamed " << it.second->slot(s)->nitems_produced()
+                << " data packets. ";
+    }
+  }
   data_socket_.close();
 }
 
-uint64_t OpenEphysZMQ::extract_timestamps(std::string msg) {
-  // TODO
-  return 0;
-}
 
 REGISTERPROCESSOR(OpenEphysZMQ)
