@@ -140,15 +140,13 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
       auto ts_increase =[&init_ts, &sample_rate_, idx=0]() mutable {
         ++idx;
-        return (init_ts+idx)*(1000/sample_rate_);
+        return (init_ts+idx)*static_cast<uint64_t>(1000000/sample_rate_);
       };
 
       std::vector<uint64_t> ts(n_real_samples);
       ts.reserve(n_real_samples);
       std::generate_n(ts.begin(), n_real_samples, ts_increase);
 
-      LOG(DEBUG) << "start index" << ts[0]*sample_rate_/1000;
-      LOG(DEBUG) << "end index" << ts[n_real_samples-1]*sample_rate_/1000;
       timestamps->insert(timestamps->end(), ts.begin(), ts.end());
 
       for (auto &it : channelmap_()) {
