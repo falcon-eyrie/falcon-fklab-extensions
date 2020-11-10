@@ -78,10 +78,10 @@ void NlxSignalRecord::set_convert_byte_order(bool b) {
   convert_byte_order_ = b;
 }
 
-bool NlxSignalRecord::FromNetworkBuffer(const char *buffer, size_t n) {
+int NlxSignalRecord::FromNetworkBuffer(const char *buffer, size_t n) {
   // check size
   if (n != nlx_packetbytesize_) {
-    return false;
+    return ERROR_TOO_SMALL_PACKET;
   }
 
   if (convert_byte_order_) {
@@ -149,23 +149,29 @@ bool NlxSignalRecord::initialized() const { return initialized_; }
 
 bool NlxSignalRecord::finalized() const { return finalized_; }
 
-bool NlxSignalRecord::valid() {
-  if (buffer_[NLX_FIELD_STX] != NLX_STX ||
-      buffer_[NLX_FIELD_RAWPACKETID] != NLX_RAWPACKETID ||
-      buffer_[NLX_FIELD_PACKETSIZE] != nlx_packetsize_) {
+int NlxSignalRecord::valid() {
+  if (buffer_[NLX_FIELD_STX] != NLX_STX){
     initialized_ = false;
-    return false;
+    return ERROR_NLX_FIELD_STX;
+  }
+  else if(buffer_[NLX_FIELD_RAWPACKETID] != NLX_RAWPACKETID){
+    initialized_ = false;
+    return ERROR_NLX_FIELD_RAWPACKETID;
+  }
+  else if(buffer_[NLX_FIELD_PACKETSIZE] != nlx_packetsize_) {
+    initialized_ = false;
+    return ERROR_NLX_FIELD_PACKETSIZE;
   }
 
   if (buffer_[nlx_field_crc_] != crc()) {
     finalized_ = false;
-    return false;
+    return ERROR_BAD_CRC;
   }
 
   initialized_ = true;
   finalized_ = true;
 
-  return true;
+  return SUCCESS_READING_BUFFER;
 }
 
 uint64_t NlxSignalRecord::timestamp() const {

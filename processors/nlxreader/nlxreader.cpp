@@ -145,9 +145,17 @@ void NlxReader::Process(ProcessingContext &context) {
       int recvlen =
           recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
 
-      if (!nlxrecord_.FromNetworkBuffer(buffer_, recvlen)) {
+      int rc = nlxrecord_.FromNetworkBuffer(buffer_, recvlen);
+
+      if (rc != 0) {
         ++stats_.n_invalid;
+
         LOG(INFO) << name() << ": Received invalid record.";
+        LOG_IF(DEBUG, rc == nlx::ERROR_BAD_CRC) << name() << ". Wrong CRC.";
+        LOG_IF(DEBUG, rc == nlx::ERROR_NLX_FIELD_STX) << name() << ". Wrong STX field.";
+        LOG_IF(DEBUG, rc == nlx::ERROR_NLX_FIELD_RAWPACKETID) << name() << ". Wrong Raw packet id.";
+        LOG_IF(DEBUG, rc == nlx::ERROR_TOO_SMALL_PACKET) << name() << ". Packet smaller than expected";
+        LOG_IF(DEBUG, rc == nlx::ERROR_NLX_FIELD_PACKETSIZE) << name() << ". Wrong packet size field.";
         continue;
       }
 
