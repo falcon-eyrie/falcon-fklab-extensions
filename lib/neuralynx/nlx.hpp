@@ -219,7 +219,9 @@ class NlxSignalRecord {
   void set_data(std::vector<double> &v);
   void set_data(std::vector<double>::iterator it);
 
- protected:
+  std::vector<int32_t> buffer_;
+  int32_t nlx_packetsize_;
+protected:
   std::vector<int32_t>::iterator data_begin();
   std::vector<int32_t>::iterator data_end();
 
@@ -228,7 +230,6 @@ class NlxSignalRecord {
 
   bool convert_byte_order_;
   unsigned int nchannels_;
-  std::vector<int32_t> buffer_;
   bool initialized_ = false;
   bool finalized_ = false;
 
@@ -236,7 +237,6 @@ class NlxSignalRecord {
   unsigned int nlx_packetbytesize_;
   uint16_t nlx_field_crc_;
   uint16_t nlx_field_data_last_;
-  int32_t nlx_packetsize_;
 };
 
 // timestamp related constants

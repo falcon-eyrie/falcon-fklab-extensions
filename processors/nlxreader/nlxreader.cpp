@@ -147,15 +147,20 @@ void NlxReader::Process(ProcessingContext &context) {
 
       int rc = nlxrecord_.FromNetworkBuffer(buffer_, recvlen);
 
+
       if (rc != 0) {
         ++stats_.n_invalid;
 
         LOG(INFO) << name() << ": Received invalid record.";
-        LOG_IF(DEBUG, rc == nlx::ERROR_BAD_CRC) << name() << ". Wrong CRC.";
-        LOG_IF(DEBUG, rc == nlx::ERROR_NLX_FIELD_STX) << name() << ". Wrong STX field.";
-        LOG_IF(DEBUG, rc == nlx::ERROR_NLX_FIELD_RAWPACKETID) << name() << ". Wrong Raw packet id.";
-        LOG_IF(DEBUG, rc == nlx::ERROR_TOO_SMALL_PACKET) << name() << ". Packet smaller than expected";
-        LOG_IF(DEBUG, rc == nlx::ERROR_NLX_FIELD_PACKETSIZE) << name() << ". Wrong packet size field.";
+
+        LOG(DEBUG) << name()<< ". STX field: " << nlxrecord_.buffer_[nlx::NLX_FIELD_STX]
+                   << " instead of " << nlx::NLX_STX;
+        LOG(DEBUG) << name() << ". Raw packet id:"<< nlxrecord_.buffer_[nlx::NLX_FIELD_RAWPACKETID]
+                   << " instead of " << nlx::NLX_RAWPACKETID;
+        LOG(DEBUG) << name() << ". Packet size field: "<< "Actual size: " << recvlen
+                   << " \nReported size in the packet: " << nlxrecord_.buffer_[nlx::NLX_FIELD_PACKETSIZE]
+                   << " \nExpected size: " << nlxrecord_.nlx_packetsize_;
+
         continue;
       }
 
