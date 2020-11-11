@@ -18,8 +18,9 @@
 // ---------------------------------------------------------------------
 
 #include "nlx.hpp"
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <iostream>
 
 using namespace nlx;
 
@@ -84,19 +85,21 @@ int NlxSignalRecord::FromNetworkBuffer(const char *buffer, size_t n) {
     return ERROR_TOO_SMALL_PACKET;
   }
 
-  if (convert_byte_order_) {
-    // perform ntoh conversion, copying into local buffer in the process
+  std::copy(buffer, buffer + n, (char *)buffer_.data());
+
+  std::uint32_t tmp = ((NLX_STX << 8) & 0xFF00FF00) | ((NLX_STX >> 8) & 0xFF00FF);
+
+  if (buffer_[NLX_FIELD_STX] == tmp){
     char *p = (char *)buffer_.data();
     for (unsigned int k = 0; k < n; k += 2) {
+      set_convert_byte_order(true);
       *((uint16_t *)(p + k)) = ntohs(*((uint16_t *)(buffer + k)));
     }
-  } else {
-    std::copy(buffer, buffer + n, (char *)buffer_.data());
   }
 
   // test if valid record (record size os OK, first 3 fields are OK, CRC checks
   // out)
-  return valid();
+  return valid(buffer_);
 }
 
 size_t NlxSignalRecord::ToNetworkBuffer(char *buffer, size_t n) {
@@ -149,21 +152,22 @@ bool NlxSignalRecord::initialized() const { return initialized_; }
 
 bool NlxSignalRecord::finalized() const { return finalized_; }
 
-int NlxSignalRecord::valid() {
-  if (buffer_[NLX_FIELD_STX] != NLX_STX){
+int NlxSignalRecord::valid(std::vector<int32_t> buffer) {
+
+  if (buffer[NLX_FIELD_STX] != NLX_STX){
     initialized_ = false;
     return ERROR_NLX_FIELD_STX;
   }
-  else if(buffer_[NLX_FIELD_RAWPACKETID] != NLX_RAWPACKETID){
+  else if(buffer[NLX_FIELD_RAWPACKETID] != NLX_RAWPACKETID){
     initialized_ = false;
     return ERROR_NLX_FIELD_RAWPACKETID;
   }
-  else if(buffer_[NLX_FIELD_PACKETSIZE] != nlx_packetsize_) {
+  else if(buffer[NLX_FIELD_PACKETSIZE] != nlx_packetsize_) {
     initialized_ = false;
     return ERROR_NLX_FIELD_PACKETSIZE;
   }
 
-  if (buffer_[nlx_field_crc_] != crc()) {
+  if (buffer[nlx_field_crc_] != crc()) {
     finalized_ = false;
     return ERROR_BAD_CRC;
   }

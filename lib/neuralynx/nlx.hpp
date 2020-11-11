@@ -186,7 +186,7 @@ class NlxSignalRecord {
   bool initialized() const;
   bool finalized() const;
 
-  int valid();
+  int valid(std::vector<int32_t> buffer);
 
   // timestamp access functions
   uint64_t timestamp() const;

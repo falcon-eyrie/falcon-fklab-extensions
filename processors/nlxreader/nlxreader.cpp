@@ -46,14 +46,11 @@ NlxReader::NlxReader() : IProcessor(PRIORITY_HIGH) {
              "streaming data packets.");
   add_option("trigger/channel", hardware_trigger_channel_,
              "Digital input channel to use as hardware trigger");
-  add_option("convert byte order", convert_byte_order_,
-             "Perform network to host byte conversion.");
 }
 
 void NlxReader::Configure(const YAML::Node &node,
                           const GlobalContext &context) {
   nlxrecord_.set_nchannels(nchannels_());
-  nlxrecord_.set_convert_byte_order(convert_byte_order_());
 }
 
 void NlxReader::CreatePorts() {
@@ -147,7 +144,6 @@ void NlxReader::Process(ProcessingContext &context) {
 
       int rc = nlxrecord_.FromNetworkBuffer(buffer_, recvlen);
 
-
       if (rc != 0) {
         ++stats_.n_invalid;
 
@@ -160,6 +156,7 @@ void NlxReader::Process(ProcessingContext &context) {
         LOG(DEBUG) << name() << ". Packet size field: "<< "Actual size: " << recvlen
                    << " \nReported size in the packet: " << nlxrecord_.buffer_[nlx::NLX_FIELD_PACKETSIZE]
                    << " \nExpected size: " << nlxrecord_.nlx_packetsize_;
+        LOG_IF(DEBUG, rc == nlx::ERROR_BAD_CRC) << name() <<". Error Bad CRC";
 
         continue;
       }

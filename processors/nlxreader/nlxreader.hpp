@@ -104,5 +104,4 @@ class NlxReader : public IProcessor {
           options::zeroismax<std::uint64_t>()};
   options::Bool triggered_{false};
   options::Value<uint32_t, false> hardware_trigger_channel_{0};
-  options::Bool convert_byte_order_{true};
 };
