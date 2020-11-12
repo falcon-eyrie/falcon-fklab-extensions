@@ -40,7 +40,7 @@ void SerialOutput::Preprocess(ProcessingContext &context) {
         "Impossible to open the serial port specified.", name());
   }
 
-  LOG(INFO) << "Serial port " << port_address_() << " opened.";
+  LOG(INFO) << name() <<"Serial port " << port_address_() << " opened.";
 }
 
 void SerialOutput::Process(ProcessingContext &context) {
@@ -56,10 +56,10 @@ void SerialOutput::Process(ProcessingContext &context) {
     const char *message = (data_in->event() + '\0').c_str();
 
     if ((fd_.writeString(message)) != 1) {
-      LOG(ERROR) << name() << ". Serial message " << data_in->event()
+      LOG(INFO) << name() << ". Serial message " << data_in->event()
                  << " not delivered.";
     } else {
-      LOG_IF(UPDATE, event_log_()) << name() << ". Message " << data_in->event()
+      LOG(INFO) << name() << ". Message " << data_in->event()
                                    << " transmitted serially.";
     }
 
