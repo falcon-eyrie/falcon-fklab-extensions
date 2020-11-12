@@ -123,7 +123,7 @@ void EventDelayed::Process(ProcessingContext &context) {
                  << event_queue_.top().data_in->event() << ") with " << millis
                  << "ms late.";
 
-      send_event(event_queue_.top().data_in, data_out, filepath);
+      send_event(event_queue_.top().data_in, data_out, "_delayed", filepath);
       event_queue_.pop();
     }
 
@@ -147,9 +147,10 @@ void EventDelayed::Process(ProcessingContext &context) {
             data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
         Delayed event(delay, data_in);
         event_queue_.push(event);
+        send_event(event_queue_.top().data_in, data_out, "", filepath);
       } else {
         ++ontime_received_event_;
-        send_event(data_in, data_out, filepath);
+        send_event(data_in, data_out, "_ontime", filepath);
       }
 
       data_in_port_->slot(0)->ReleaseData();
@@ -158,13 +159,13 @@ void EventDelayed::Process(ProcessingContext &context) {
 }
 
 void EventDelayed::send_event(EventType::Data *data_in,
-                              EventType::Data *data_out, std::string filepath) {
+                              EventType::Data *data_out, std::string type, std::string filepath) {
   if (not to_lock_out()) {
     LOG(INFO) << name() << ". Sent one event: " << data_in->event();
     data_out = data_out_port_->slot(0)->ClaimData(true);
     data_out->set_hardware_timestamp(data_in->hardware_timestamp());
 
-    data_out->set_event(data_in->event());
+    data_out->set_event(data_in->event() + type);
     data_out->set_source_timestamp();
     data_out_port_->slot(0)->PublishData();
     if (save_events_()) { // save stim events to disk

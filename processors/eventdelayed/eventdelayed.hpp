@@ -90,7 +90,7 @@ protected:
 
 
 private:
-  void send_event(EventType::Data *data_in, EventType::Data *data_out,
+  void send_event(EventType::Data *data_in, EventType::Data *data_out,std::string type,
                   std::string filepath);
   // variables
 protected:
