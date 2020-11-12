@@ -54,8 +54,5 @@ Options:
     type: uint32_t
     default: 0
     description: Digital input channel to use as hardware trigger
-  - name: convert byte order
-    type: bool
-    default: true
-    description: Perform network to host byte conversion.
+
 

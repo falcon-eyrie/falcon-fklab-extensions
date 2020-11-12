@@ -11,7 +11,6 @@ graph:
       options:
         batch size: 10
         gap fill: asap
-        convert byte order: true
     distributor:
       class: Distributor
       options:

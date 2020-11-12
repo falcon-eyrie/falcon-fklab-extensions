@@ -44,10 +44,6 @@ Options:
       If 'asap', all missed packets will be filled with last available batch of samples.
       If 'distributed', missed packets will be filled with the last available batch of samples at each iteration.
 
-  - name: convert byte order
-    type: bool
-    default: true
-    description: Perform network to host byte conversion.
 
 
 States:

@@ -57,6 +57,14 @@ constexpr uint16_t NLX_NCHANNELS_FROM_NFIELDS(uint16_t n) {
   return n - 8 - NLX_NFIELDS_EXTRA;
 }
 
+constexpr uint16_t SUCCESS_READING_BUFFER = 0;
+constexpr uint16_t ERROR_NLX_FIELD_STX = 2;
+constexpr uint16_t ERROR_NLX_FIELD_RAWPACKETID = 3;
+constexpr uint16_t ERROR_NLX_FIELD_PACKETSIZE = 5;
+constexpr uint16_t ERROR_TOO_SMALL_PACKET = 4;
+constexpr uint16_t ERROR_BAD_CRC = 1;
+
+
 constexpr uint16_t NLX_FIELD_STX = 0;
 constexpr uint16_t NLX_FIELD_RAWPACKETID = 1;
 constexpr uint16_t NLX_FIELD_PACKETSIZE = 2;
@@ -153,9 +161,9 @@ class NlxSignalRecord {
   bool convert_byte_order() const;
   void set_convert_byte_order(bool b);
 
-  bool FromNetworkBuffer(const char *buffer, size_t n);
+  int FromNetworkBuffer(const char *buffer, size_t n);
 
-  template <typename T> bool FromNetworkBuffer(const std::vector<T> &buffer) {
+  template <typename T> int FromNetworkBuffer(const std::vector<T> &buffer) {
     return FromNetworkBuffer((char *)buffer.data(), buffer.size() * sizeof(T));
   }
 
@@ -178,7 +186,7 @@ class NlxSignalRecord {
   bool initialized() const;
   bool finalized() const;
 
-  bool valid();
+  int valid(std::vector<int32_t> buffer);
 
   // timestamp access functions
   uint64_t timestamp() const;
@@ -211,7 +219,9 @@ class NlxSignalRecord {
   void set_data(std::vector<double> &v);
   void set_data(std::vector<double>::iterator it);
 
- protected:
+  std::vector<int32_t> buffer_;
+  int32_t nlx_packetsize_;
+protected:
   std::vector<int32_t>::iterator data_begin();
   std::vector<int32_t>::iterator data_end();
 
@@ -220,7 +230,6 @@ class NlxSignalRecord {
 
   bool convert_byte_order_;
   unsigned int nchannels_;
-  std::vector<int32_t> buffer_;
   bool initialized_ = false;
   bool finalized_ = false;
 
@@ -228,7 +237,6 @@ class NlxSignalRecord {
   unsigned int nlx_packetbytesize_;
   uint16_t nlx_field_crc_;
   uint16_t nlx_field_data_last_;
-  int32_t nlx_packetsize_;
 };
 
 // timestamp related constants

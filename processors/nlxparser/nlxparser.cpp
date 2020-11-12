@@ -70,8 +70,6 @@ NlxParser::NlxParser() : IProcessor(PRIORITY_HIGH) {
       "filled with last available batch of samples. If 'distributed', "
       "missed packets will be filled with the last available batch of samples "
       "at each iteration.");
-  add_option("convert byte order", convert_byte_order_,
-             "Perform network to host byte conversion.");
 }
 
 void NlxParser::CreatePorts() {
@@ -102,7 +100,6 @@ void NlxParser::CompleteStreamInfo() {
             << " channels raw digilynx data.";
 
   nlxrecord_.set_nchannels(nchannels_);
-  nlxrecord_.set_convert_byte_order(convert_byte_order_());
 
   output_port_signal_->streaminfo(0).set_parameters(
       MultiChannelType<double>::Parameters(
@@ -154,9 +151,21 @@ void NlxParser::Process(ProcessingContext &context) {
       break;
     }
 
-    if (!nlxrecord_.FromNetworkBuffer(data_in->data())) {
+    int rc = nlxrecord_.FromNetworkBuffer(data_in->data());
+    if (rc != 0) {
       ++stats_.n_invalid;
+
       LOG(INFO) << name() << ": Received invalid record.";
+
+      LOG(DEBUG) << name()<< ". STX field: " << nlxrecord_.buffer_[nlx::NLX_FIELD_STX]
+                 << " instead of " << nlx::NLX_STX;
+      LOG(DEBUG) << name() << ". Raw packet id:"<< nlxrecord_.buffer_[nlx::NLX_FIELD_RAWPACKETID]
+                 << " instead of " << nlx::NLX_RAWPACKETID;
+      LOG(DEBUG) << name() << ". Packet size field: "
+                 << " \nReported size in the packet: " << nlxrecord_.buffer_[nlx::NLX_FIELD_PACKETSIZE]
+                 << " \nExpected size: " << nlxrecord_.nlx_packetsize_;
+      LOG_IF(DEBUG, rc == nlx::ERROR_BAD_CRC) << name() <<". Error Bad CRC";
+
       continue;
     }
 
