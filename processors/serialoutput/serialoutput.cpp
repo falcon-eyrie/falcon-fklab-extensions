@@ -53,7 +53,7 @@ void SerialOutput::Process(ProcessingContext &context) {
       break;
     }
 
-    const char *message = (data_in->event() + '\0').c_str();
+    const char *message = (data_in->event()+ "E\0").c_str();
 
     if ((fd_.writeString(message)) != 1) {
       LOG(INFO) << name() << ". Serial message " << data_in->event()
