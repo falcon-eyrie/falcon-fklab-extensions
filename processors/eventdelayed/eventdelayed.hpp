@@ -41,7 +41,7 @@ class EventDelayed : public IProcessor {
 public:
   EventDelayed();
   void CreatePorts() override;
-  void Configure(const YAML::Node &node, const GlobalContext &context) override;
+  void Configure(const GlobalContext &context) override;
   void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;

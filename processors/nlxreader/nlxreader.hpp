@@ -42,7 +42,7 @@ class NlxReader : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
   NlxReader();
-  void Configure(const YAML::Node &node, const GlobalContext &context) override;
+  void Configure(const GlobalContext &context) override;
   void CreatePorts() override;
   void CompleteStreamInfo() override;
   void Prepare(GlobalContext &context) override;

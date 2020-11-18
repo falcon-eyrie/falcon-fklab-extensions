@@ -29,8 +29,7 @@ EventSource::EventSource() : IProcessor() {
              "Rate (in Hz) at which events are generated.");
 }
 
-void EventSource::Configure(const YAML::Node &node,
-                            const GlobalContext &context) {
+void EventSource::Configure(const GlobalContext &context) {
   for (auto &el : event_list_()) {
     LOG(INFO) << name() << ". Event " << el << " configured for streaming.";
   }

@@ -28,8 +28,7 @@ MultiChannelFilter::MultiChannelFilter() : IProcessor() {
   add_option("filter", filter_def_, "Filter definition.", true);
 }
 
-void MultiChannelFilter::Configure(const YAML::Node &node,
-                                   const GlobalContext &context) {
+void MultiChannelFilter::Configure(const GlobalContext &context) {
   if (!filter_def_()["file"]) {
     filter_template_.reset(dsp::filter::construct_from_yaml(filter_def_()));
   } else {

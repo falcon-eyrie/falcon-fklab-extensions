@@ -22,8 +22,7 @@
 constexpr datatype FalconProcessor::DEFAULT_ARGUMENT3;
 constexpr datatype FalconProcessor::DEFAULT_ARGUMENT4;
 
-void FalconProcessor::Configure(const YAML::Node &node,
-                                const GlobalContext &context) {
+void FalconProcessor::Configure(const GlobalContext &context) {
   option1_ = node["option1"].as<datatype1>(DEFAULT_OPTION1);
   option2_ = node["option2"].as<datatype2>();
 }

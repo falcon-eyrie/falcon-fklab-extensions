@@ -71,7 +71,7 @@ TEST(EventDelayedTest, Configure) {
   EXPECT_EQ(p.get_delayed_range(), expect_result);
 
   GlobalContext globalContext;
-  p.Configure(node, globalContext);
+  p.Configure(globalContext);
   EXPECT_EQ(p.delayed_range_.lower(), 2);
   EXPECT_EQ(p.delayed_range_.upper(), 20);
 
@@ -88,7 +88,7 @@ TEST(EventDelayedTest, OnTimeProcess) {
   GlobalContext globalContext;
   RunContext runContext(globalContext);
   ProcessingContext context(runContext, "tests", false);
-  p.Configure(node, globalContext);
+  p.Configure(globalContext);
   p.Preprocess(context);
   std::deque<EventType::Data *> fake_data;
   std::deque<long int> fake_delay;
@@ -125,7 +125,7 @@ TEST(EventDelayedTest, DelayedProcess) {
   GlobalContext globalContext;
   RunContext runContext(globalContext);
   ProcessingContext context(runContext, "tests", false);
-  p.Configure(node, globalContext);
+  p.Configure(globalContext);
   p.Preprocess(context);
 
   std::deque<EventType::Data *> fake_data;
