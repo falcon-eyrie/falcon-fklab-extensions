@@ -30,7 +30,7 @@ class EventSource : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
   EventSource();
-  void Configure(const YAML::Node &node, const GlobalContext &context) override;
+  void Configure(const GlobalContext &context) override;
   void CreatePorts() override;
   void Process(ProcessingContext &context) override;
 

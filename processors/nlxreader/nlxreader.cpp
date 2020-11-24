@@ -48,8 +48,7 @@ NlxReader::NlxReader() : IProcessor(PRIORITY_HIGH) {
              "Digital input channel to use as hardware trigger");
 }
 
-void NlxReader::Configure(const YAML::Node &node,
-                          const GlobalContext &context) {
+void NlxReader::Configure(const GlobalContext &context) {
   nlxrecord_.set_nchannels(nchannels_());
 }
 

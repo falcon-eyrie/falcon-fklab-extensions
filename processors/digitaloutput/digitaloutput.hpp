@@ -33,8 +33,7 @@ class DigitalOutput : public IProcessor {
 public:
   DigitalOutput();
   void CreatePorts() override;
-  void Configure(const YAML::Node &node,
-                         const GlobalContext &context) override;
+  void Configure(const GlobalContext &context) override;
   void Process(ProcessingContext &context) override;
 
   // DATA PORTS

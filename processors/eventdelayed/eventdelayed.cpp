@@ -43,8 +43,7 @@ EventDelayed::EventDelayed(): delayed_range_(150, 200) {
 
 }
 
-void EventDelayed::Configure(const YAML::Node &node,
-                             const GlobalContext &context) {
+void EventDelayed::Configure(const GlobalContext &context) {
 
   if (initial_lockout_period_() <= 0) {
     LOG(INFO) << name() << ". No lockout period set.";

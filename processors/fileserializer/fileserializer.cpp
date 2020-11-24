@@ -50,8 +50,7 @@ void FileSerializer::CreatePorts() {
                                  PortInPolicy(SlotRange(1, 256), false, 0));
 }
 
-void FileSerializer::Configure(const YAML::Node &node,
-                               const GlobalContext &context) {
+void FileSerializer::Configure(const GlobalContext &context) {
   LOG(INFO) << "format: " << format_.to_yaml();
   LOG(INFO) << "encoding: " << encoding_.to_yaml();
   LOG(INFO) << "throttle enabled: " << throttle_();

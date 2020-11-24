@@ -40,7 +40,7 @@ void Rebuffer::CreatePorts() {
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, 256)));
 }
 
-void Rebuffer::Configure(const YAML::Node &node, const GlobalContext &context) {
+void Rebuffer::Configure(const GlobalContext &context) {
   LOG(INFO) << name() << ". Downsample factor set to " << downsample_factor_()
             << ".";
   LOG(INFO) << name() << ". Buffer size set to " << buffer_size_.to_string()

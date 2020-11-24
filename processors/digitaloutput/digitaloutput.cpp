@@ -29,8 +29,7 @@ DigitalOutput::DigitalOutput() {
   add_option("protocols", protocols_yaml_, "");
   add_option("event logging", event_log_, "Log message (UPDATE level) if true");
 }
-void DigitalOutput::Configure(const YAML::Node &node,
-                              const GlobalContext &context) {
+void DigitalOutput::Configure(const GlobalContext &context) {
 
   if (device_type_() == "dummy") {
     device_ = std::unique_ptr<DigitalDevice>(new DummyDIO(nchannels_()));
