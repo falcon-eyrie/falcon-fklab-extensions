@@ -159,7 +159,7 @@ void EventDelayed::Process(ProcessingContext &context) {
 
 void EventDelayed::send_event(EventType::Data *data_in,
                               EventType::Data *data_out, std::string type, std::string filepath) {
-  if (not to_lock_out()) {
+  if (type== "" or not to_lock_out()) {
     LOG(INFO) << name() << ". Sent one event: " << data_in->event();
     data_out = data_out_port_->slot(0)->ClaimData(true);
     data_out->set_hardware_timestamp(data_in->hardware_timestamp());
@@ -189,6 +189,7 @@ void EventDelayed::Postprocess(ProcessingContext &context) {
 }
 
 bool EventDelayed::to_lock_out() {
+  
   auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
                     Clock ::now() - previous_TS_nostim_)
                     .count();

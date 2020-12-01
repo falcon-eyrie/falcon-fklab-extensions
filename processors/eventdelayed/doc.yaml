@@ -2,10 +2,9 @@ Description: Transfer event ontime or with a delay randomly chosen in a range. T
 too close events and an option file logging of these events.
 
 Long description : There is three different states
-                  - Enabled state - enabled=true = No event are sent
-                  - Ontime state - delayed=false = Event are sent immediatly with the suffix _ontime
-                  - Delayed state - delayed= true = Event are sent immediatly as it arrived + another event when the delay time is reached with the suffix _delayed
-
+                    - Enabled state - enabled=true = No event are sent
+                    - Ontime state -  delayed=false = Event are sent immediatly with the suffix _ontime
+                    - Delayed state - delayed= true = Event are sent immediatly as it arrived and in that case the lock-out time is not updated + another event when the delay time is reached with the suffix _delayed
 
 Input ports:
   - name: events
