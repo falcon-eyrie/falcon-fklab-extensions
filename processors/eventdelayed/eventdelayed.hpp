@@ -46,6 +46,12 @@ public:
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;
 
+  /* Use with delayed event check if enough time will have passed between this stimulation and the last occuring stimulation.
+   * if still in the look out period, the event is ignored.
+   * @input TimePoint when the new stimulation should occur in the future. 
+   * @return true if still in the look out period
+   */
+  bool to_lock_out_in_future(TimePoint start_event);
   /* check if enough time has passed since the last triggered event. if still
    * in the look out period, the event is ignored.
    *
