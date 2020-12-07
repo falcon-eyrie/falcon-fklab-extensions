@@ -53,10 +53,10 @@ void SerialOutput::Process(ProcessingContext &context) {
       break;
     }
 
-    const char *message = (data_in->event()+ "E\0").c_str();
+    std::string message = data_in->event()+ "\0";
 
-    if ((fd_.writeString(message)) != 1) {
-      LOG(INFO) << name() << ". Serial message " << data_in->event()
+    if ((fd_.writeString(message.c_str())) != 1) {
+      LOG(INFO) << name() << ". Serial message " << message
                  << " not delivered.";
     } else {
       LOG(INFO) << name() << ". Message " << data_in->event()
