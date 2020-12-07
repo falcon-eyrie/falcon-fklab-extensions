@@ -90,8 +90,9 @@ protected:
   options::Bool initial_delayed_event_{false};
   options::Bool save_events_{true};
   options::String prefix_{"stim_"};
-
-
+  options::String msg_delayed_{"d"};
+  options::String msg_ontime_{"o"};
+  options::String msg_detection_{"r"};
   options::Value<std::vector<long int>, true> initial_delayed_range_{{150, 200}};
 
 

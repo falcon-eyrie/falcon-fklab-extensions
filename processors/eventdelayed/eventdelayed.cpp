@@ -34,6 +34,16 @@ EventDelayed::EventDelayed() : delayed_range_(150, 200)
              "if delayed event is true, the delayed time will be pseudo-randomly "
              "chosen in this range.");
 
+  // message feature
+  add_option("message/detection", msg_detection_,
+               "Delayed mode: message to send when an event is received.");
+  // message feature
+  add_option("message/delayed", msg_delayed_,
+               "Delayed mode: message to send when the event has been delayed.");
+
+  add_option("message/ontime", msg_ontime_,
+               "Ontime mode: message to send when an event is received.");
+
   // saving feature
   add_option("enable saving", save_events_,
              "Enable saving of target events to disk.");
@@ -136,7 +146,7 @@ void EventDelayed::Process(ProcessingContext &context)
                  << event_queue_.top().data_in->event() << ") with " << millis
                  << "ms late.";
 
-      send_event(event_queue_.top().data_in, data_out, "_delayed", filepath);
+      send_event(event_queue_.top().data_in, data_out, msg_delayed_(), filepath);
       event_queue_.pop();
     }
 
@@ -167,7 +177,7 @@ void EventDelayed::Process(ProcessingContext &context)
         {
           Delayed event(delay, data_in);
           event_queue_.push(event);
-          send_event(event_queue_.top().data_in, data_out, "", filepath);
+          send_event(event_queue_.top().data_in, data_out, msg_detection_(), filepath);
         }
         else
         {
@@ -180,7 +190,7 @@ void EventDelayed::Process(ProcessingContext &context)
         ++ontime_received_event_;
         if (not to_lock_out())
         {
-          send_event(data_in, data_out, "_ontime", filepath);
+          send_event(data_in, data_out, msg_ontime_(), filepath);
         }
         else
         {
@@ -198,11 +208,11 @@ void EventDelayed::send_event(EventType::Data *data_in,
                               EventType::Data *data_out, std::string type, std::string filepath)
 {
 
-  LOG(INFO) << name() << ". Sent one event: " << data_in->event();
+  LOG(INFO) << name() << ". Sent one event: " << type;
   data_out = data_out_port_->slot(0)->ClaimData(true);
   data_out->set_hardware_timestamp(data_in->hardware_timestamp());
 
-  data_out->set_event(data_in->event() + type);
+  data_out->set_event(type);
   data_out->set_source_timestamp();
   data_out_port_->slot(0)->PublishData();
   if (save_events_())

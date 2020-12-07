@@ -38,6 +38,18 @@ Options:
     type: long int
     default: "[150, 250] ms"
     description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
+  - name: message/delayed
+    type: string
+    default: "ripple_delayed"
+    description: Delayed mode - message to send when the event has been delayed.
+  - name: message/detection
+    type: string
+    default: "ripple"
+    description: Delayed mode- message to send when an event is received.
+  - name: message/ontime
+    type: string
+    default: "ripple_ontime"
+    description:Ontime mode: message to send when an event is received.
   - name: enabled saving
     type: bool
     default: true
