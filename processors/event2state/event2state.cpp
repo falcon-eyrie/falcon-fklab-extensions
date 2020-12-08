@@ -47,12 +47,15 @@ void Event2State::Process(ProcessingContext &context) {
     ++event_counter_.all_received;
     if (*data_in == target_event_()){
       ++event_counter_.target;
-      LOG_IF(INFO, !enabled_->exchange(true)) << name() << ". Mode true ";
+      LOG_IF(INFO, enabled_->exchange(true)) << name() << ". Mode True.";
+      enabled_->set(true);
 
     } else {
       ++event_counter_.non_target;
-      enabled_->exchange(false);
+      LOG_IF(DEBUG, enabled_->exchange(true)) << name() << ". Mode False.";
+      enabled_->set(false);
     }
+    
 
     data_out = data_out_port_->slot(0)->ClaimData(false);
     data_out->set_source_timestamp();
