@@ -21,266 +21,270 @@
 
 EventDelayed::EventDelayed() : delayed_range_(150, 200)
 {
-  add_option(ENABLED_S, default_disabled_,
-             "Enable the processing of incoming events.");
+    add_option(ENABLED_S, default_disabled_,
+               "Enable the processing of incoming events.");
 
-  // Flexible processing event feature
-  add_option(LOCKOUT_PERIOD_S, initial_lockout_period_,
-             "Lock out time after the processing of an event.");
+    // Flexible processing event feature
+    add_option(LOCKOUT_PERIOD_S, initial_lockout_period_,
+               "Lock out time after the processing of an event.");
 
-  add_option("delayed", initial_delayed_event_,
-             "Enable the delay of the event for a time randomly chosen between the delay range");
-  add_option("delay range", initial_delayed_range_,
-             "if delayed event is true, the delayed time will be pseudo-randomly "
-             "chosen in this range.");
+    add_option("delayed", initial_delayed_event_,
+               "Enable the delay of the event for a time randomly chosen between the delay range");
+    add_option("delay range", initial_delayed_range_,
+               "if delayed event is true, the delayed time will be pseudo-randomly "
+               "chosen in this range.");
 
-  // message feature
-  add_option("message/detection", msg_detection_,
+    // message feature
+    add_option("message/detection", msg_detection_,
                "Delayed mode: message to send when an event is received.");
-  // message feature
-  add_option("message/delayed", msg_delayed_,
+    // message feature
+    add_option("message/delayed", msg_delayed_,
                "Delayed mode: message to send when the event has been delayed.");
 
-  add_option("message/ontime", msg_ontime_,
+    add_option("message/ontime", msg_ontime_,
                "Ontime mode: message to send when an event is received.");
 
-  // saving feature
-  add_option("enable saving", save_events_,
-             "Enable saving of target events to disk.");
-  add_option(
-      "filename prefix", prefix_,
-      "if enable saving is true, the saving file is name 'prefix + event'");
+    // saving feature
+    add_option("enable saving", save_events_,
+               "Enable saving of target events to disk.");
+    add_option(
+            "filename prefix", prefix_,
+            "if enable saving is true, the saving file is name 'prefix + event'");
 }
 
 void EventDelayed::Configure(const GlobalContext &context)
 {
 
-  if (initial_lockout_period_() <= 0)
-  {
-    LOG(INFO) << name() << ". No lockout period set.";
-  }
-  else
-  {
-    LOG(INFO) << name() << ". Max output frequency set to "
-              << 1e3 / static_cast<double>(initial_lockout_period_()) << " Hz.";
-  }
+    if (initial_lockout_period_() <= 0)
+    {
+        LOG(INFO) << name() << ". No lockout period set.";
+    }
+    else
+    {
+        LOG(INFO) << name() << ". Max output frequency set to "
+                  << 1e3 / static_cast<double>(initial_lockout_period_()) << " Hz.";
+    }
 
-  delayed_range_ = Range<long int>(initial_delayed_range_());
+    delayed_range_ = Range<long int>(initial_delayed_range_());
 
-  if (!initial_delayed_event_())
-  {
-    LOG(INFO) << name() << ". Event are sent on-time.";
-  }
-  else
-  {
-    LOG(INFO) << name() << ". Events are delayed of a range between"
-              << delayed_range_.lower() << " and " << delayed_range_.upper() << " ms.";
-  }
+    if (!initial_delayed_event_())
+    {
+        LOG(INFO) << name() << ". Event are sent on-time.";
+    }
+    else
+    {
+        LOG(INFO) << name() << ". Events are delayed of a range between"
+                  << delayed_range_.lower() << " and " << delayed_range_.upper() << " ms.";
+    }
 
-  if (delayed_range_.upper() - delayed_range_.lower() < initial_lockout_period_())
-  {
+    if (delayed_range_.upper() - delayed_range_.lower() < initial_lockout_period_())
+    {
 
-    LOG(INFO) << name() << ". When the difference between maximal and minimal possible delay is below the lockout period,"
-              << "some weird behavior of detection locked out or not locked out when it should could occur.";
-  }
+        LOG(INFO) << name() << ". When the difference between maximal and minimal possible delay is below the lockout period,"
+                  << "some weird behavior of detection locked out or not locked out when it should could occur.";
+    }
 }
 
 void EventDelayed::CreatePorts()
 {
-  data_in_port_ =
-      create_input_port<EventType>(EventType::Capabilities(),
-                                   PortInPolicy(SlotRange(1), false, 1));
+    data_in_port_ =
+            create_input_port<EventType>(EventType::Capabilities(),
+                                         PortInPolicy(SlotRange(1), false, 1));
 
-  data_out_port_ = create_output_port<EventType>(
-      EventType::Capabilities(), EventType::Parameters(DEFAULT_EVENT),
-      PortOutPolicy(SlotRange(1)));
+    data_out_port_ = create_output_port<EventType>(
+            EventType::Capabilities(), EventType::Parameters(DEFAULT_EVENT),
+            PortOutPolicy(SlotRange(1)));
 
-  disabled_ = create_follower_state(ENABLED_S, default_disabled_(),
-                                    Permission::WRITE);
+    disabled_ = create_follower_state(ENABLED_S, default_disabled_(),
+                                      Permission::WRITE);
 
-  lockout_period_ = create_static_state(
-      LOCKOUT_PERIOD_S, initial_lockout_period_(), true, Permission::WRITE);
+    lockout_period_ = create_static_state(
+            LOCKOUT_PERIOD_S, initial_lockout_period_(), true, Permission::WRITE);
 
-  delayed_event_ = create_follower_state(
-      "delayed event", initial_delayed_event_(), Permission::WRITE);
+    delayed_event_ = create_follower_state(
+            "delayed event", initial_delayed_event_(), Permission::WRITE);
 }
 
 void EventDelayed::Preprocess(ProcessingContext &context)
 {
 
-  ontime_received_event_ = 0;
-  delayed_received_event_ = 0;
-  event_lockout_ = 0;
+    ontime_received_event_ = 0;
+    delayed_received_event_ = 0;
+    event_lockout_ = 0;
 
-  //initialize enough if the past to be sure the first stimulation won't be lockout
-  previous_TS_nostim_ =
-      Clock::now() -
-      std::chrono::milliseconds((long int)lockout_period_->get() + 10);
+    //initialize enough if the past to be sure the first stimulation won't be lockout
+    previous_TS_nostim_ =
+            Clock::now() -
+            std::chrono::milliseconds((long int)lockout_period_->get() + 10);
 }
 
 void EventDelayed::Process(ProcessingContext &context)
 {
-  EventType::Data *data_in = nullptr;
-  EventType::Data *data_out = nullptr;
+    EventType::Data *data_in = nullptr;
+    EventType::Data *data_out = nullptr;
 
-  std::string message;
-  std::string path = context.resolve_path("run://", "run");
-  std::string filepath = path + name();
+    std::string message;
+    std::string path = context.resolve_path("run://", "run");
+    std::string filepath = path + name();
 
-  std::random_device rd;
-  std::mt19937 generator_(rd()); // Standard mersenne_twister_engine (Higher
-                                 // complexity / randomness)
-  std::uniform_int_distribution<> distrib(delayed_range_.lower(),
-                                          delayed_range_.upper());
+    std::random_device rd;
+    std::mt19937 generator_(rd()); // Standard mersenne_twister_engine (Higher
+    // complexity / randomness)
+    std::uniform_int_distribution<> distrib(delayed_range_.lower(),
+                                            delayed_range_.upper());
 
-  while (!context.terminated())
-  {
-
-    while (!event_queue_.empty() and event_queue_.top().ts < Clock::now())
+    while (!context.terminated())
     {
-      auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
-                        Clock ::now() - event_queue_.top().ts)
-                        .count();
 
-      LOG(DEBUG) << name() << ". Time to sent a delayed event ("
-                 << event_queue_.top().data_in->event() << ") with " << millis
-                 << "ms late.";
-
-      send_event(event_queue_.top().data_in, data_out, msg_delayed_(), filepath);
-      event_queue_.pop();
-    }
-
-    if (!data_in_port_->slot(0)->RetrieveData(data_in))
-    {
-      break;
-    }
-
-    auto nread = data_in_port_->slot(0)->status_read();
-
-    if (nread == 0)
-    {
-      data_in_port_->slot(0)->ReleaseData();
-      continue;
-    }
-
-    if (!disabled_->get())
-    {
-      int wait_time = distrib(generator_);
-      if (delayed_event_->get())
-      {
-        ++delayed_received_event_;
-        LOG(INFO) << name() << ". Save an event (" << data_in->event() << ") to send later with " << wait_time << "ms delayed.";
-        auto delay =
-            data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
-
-        if (not to_lock_out_in_future(delay))
+        while (!event_queue_.empty() and event_queue_.top().ts < Clock::now())
         {
-          Delayed event(delay, data_in);
-          event_queue_.push(event);
-          send_event(event_queue_.top().data_in, data_out, msg_detection_(), filepath);
-        }
-        else
-        {
-          LOG(DEBUG) << name() << data_in->event() << " has been locked-out";
-          ++event_lockout_;
-        }
-      }
-      else
-      {
-        ++ontime_received_event_;
-        if (not to_lock_out())
-        {
-          send_event(data_in, data_out, msg_ontime_(), filepath);
-        }
-        else
-        {
-          LOG(DEBUG) << name() << data_in->event() << " has been locked-out";
-          ++event_lockout_;
-        }
-      }
+            auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    Clock ::now() - event_queue_.top().ts)
+                    .count();
 
-      data_in_port_->slot(0)->ReleaseData();
+            LOG(DEBUG) << name() << ". Time to sent a delayed event ("
+                       << event_queue_.top().data_in->event() << ") with " << millis
+                       << "ms late.";
+
+            send_event(event_queue_.top().data_in, data_out, msg_delayed_(), filepath);
+            event_queue_.pop();
+        }
+
+        if (!data_in_port_->slot(0)->RetrieveData(data_in))
+        {
+            break;
+        }
+
+        auto nread = data_in_port_->slot(0)->status_read();
+
+        if (nread == 0)
+        {
+            data_in_port_->slot(0)->ReleaseData();
+            continue;
+        }
+
+        if (!disabled_->get()) {
+            int wait_time = distrib(generator_);
+            if (delayed_event_->get()) {
+                ++delayed_received_event_;
+                LOG(INFO) << name() << ". Save an event (" << data_in->event() << ") to send later with " << wait_time
+                          << "ms delayed.";
+                auto delay =
+                        data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
+
+                if (not to_lock_out_in_future(delay)) {
+                    Delayed event(delay, data_in);
+                    event_queue_.push(event);
+                    send_event(event_queue_.top().data_in, data_out, msg_detection_(), filepath);
+                } else {
+                    LOG(DEBUG) << name() << data_in->event() << " has been locked-out in delayed mode";
+                    ++event_lockout_;
+                }
+            } else {
+                ++ontime_received_event_;
+                if (not to_lock_out()) {
+                    send_event(data_in, data_out, msg_ontime_(), filepath);
+                } else {
+                    LOG(DEBUG) << name() << data_in->event() << " has been locked-out in ontime mode";
+                    ++event_lockout_;
+                }
+            }
+        }else{
+            ++ontime_received_event_;
+            if (not to_lock_out())
+            {
+                send_event(data_in, data_out, msg_detection_(), filepath);
+            }
+            else
+            {
+                LOG(DEBUG) << name() << data_in->event() << " has been locked-out in disable mode";
+                ++event_lockout_;
+            }
+
+
+        }
+         data_in_port_->slot(0)->ReleaseData();
+
     }
-  }
 }
 
 void EventDelayed::send_event(EventType::Data *data_in,
                               EventType::Data *data_out, std::string type, std::string filepath)
 {
 
-  LOG(INFO) << name() << ". Sent one event: " << type;
-  data_out = data_out_port_->slot(0)->ClaimData(true);
-  data_out->set_hardware_timestamp(data_in->hardware_timestamp());
+    LOG(INFO) << name() << ". Sent one event: " << type;
+    data_out = data_out_port_->slot(0)->ClaimData(true);
+    data_out->set_hardware_timestamp(data_in->hardware_timestamp());
 
-  data_out->set_event(type);
-  data_out->set_source_timestamp();
-  data_out_port_->slot(0)->PublishData();
-  if (save_events_())
-  { // save stim events to disk
-    write_data_logfile(filepath, prefix_() + data_in->event(),
-                       data_in->serial_number());
-  }
+    data_out->set_event(type);
+    data_out->set_source_timestamp();
+    data_out_port_->slot(0)->PublishData();
+    if (save_events_())
+    { // save stim events to disk
+        write_data_logfile(filepath, prefix_() + data_in->event(),
+                           data_in->serial_number());
+    }
 }
 void EventDelayed::Postprocess(ProcessingContext &context)
 {
 
-  auto msg = "Successfully executed conversion protocol: " +
-             std::to_string(ontime_received_event_) + "ontime and " +
-             std::to_string(delayed_received_event_) + " delayed with " +
-             std::to_string(event_lockout_) + " events locked out.";
+    auto msg = "Successfully executed conversion protocol: " +
+               std::to_string(ontime_received_event_) + "ontime and " +
+               std::to_string(delayed_received_event_) + " delayed with " +
+               std::to_string(event_lockout_) + " events locked out.";
 
-  ontime_received_event_ = 0;
-  delayed_received_event_ = 0;
-  event_lockout_ = 0;
+    ontime_received_event_ = 0;
+    delayed_received_event_ = 0;
+    event_lockout_ = 0;
 }
 
 bool EventDelayed::to_lock_out_in_future(TimePoint start_event)
 {
-  TimePoint last_future_event;
-  if (event_queue_.empty())
-    last_future_event = previous_TS_nostim_ ;
-  else 
-    last_future_event = event_queue_.top().ts;
-  
-  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_event - last_future_event).count();
+    TimePoint last_future_event;
+    if (event_queue_.empty())
+        last_future_event = previous_TS_nostim_ ;
+    else
+        last_future_event = event_queue_.top().ts;
 
-  if (millis <= lockout_period_->get())
-    return true;
+    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_event - last_future_event).count();
 
-  previous_TS_nostim_ = last_future_event;
-  return false;
+    if (millis <= lockout_period_->get())
+        return true;
+
+    previous_TS_nostim_ = last_future_event;
+    return false;
 }
 
 bool EventDelayed::to_lock_out()
 {
 
-  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    Clock ::now() - previous_TS_nostim_)
-                    .count();
-  if (millis <= lockout_period_->get())
-  {
+    auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
+            Clock ::now() - previous_TS_nostim_)
+            .count();
+    if (millis <= lockout_period_->get())
+    {
 
-    return true;
-  }
-  previous_TS_nostim_ = Clock::now();
-  return false;
+        return true;
+    }
+    previous_TS_nostim_ = Clock::now();
+    return false;
 }
 
 void EventDelayed::write_data_logfile(std::string file_path,
                                       std::string filename, uint64_t data)
 {
-  if (save_events_())
-  { // save stim events to disk
-    // filename will also be the key to the container of files
-    // check if this type of event has been saved before
-    if (streams_.count(filename) == 0)
-    {
-      create_file(file_path, filename);
-    }
+    if (save_events_())
+    { // save stim events to disk
+        // filename will also be the key to the container of files
+        // check if this type of event has been saved before
+        if (streams_.count(filename) == 0)
+        {
+            create_file(file_path, filename);
+        }
 
-    streams_[filename]->write(reinterpret_cast<const char *>(&data),
-                              sizeof(decltype(data)));
-  }
+        streams_[filename]->write(reinterpret_cast<const char *>(&data),
+                                  sizeof(decltype(data)));
+    }
 }
 
 REGISTERPROCESSOR(EventDelayed)

@@ -123,6 +123,12 @@ Detect population bursts using a threshold crossing algorithm.
      - read-only
      - read/write
      -
+   * - **smooth time**
+     - double
+     - option: smooth time
+     - read-only
+     - read/write
+     -
    * - **detection lockout time**
      - double
      - option: detection lockout time
@@ -142,6 +148,7 @@ Detect population bursts using a threshold crossing algorithm.
      - read-only
      - read/write
      -
+
 
 
 

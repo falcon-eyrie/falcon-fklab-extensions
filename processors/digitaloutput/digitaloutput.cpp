@@ -23,9 +23,9 @@
 #include <iostream>
 
 DigitalOutput::DigitalOutput() {
-  add_option("pulse width", pulse_width_, "");
-  add_option("device/type", device_type_, "");
-  add_option("device/nchannels", nchannels_, "");
+  add_option("pulse width", pulse_width_, "duration of digital output pulse in microseconds");
+  add_option("device/type", device_type_, "Only dummy type implemented yet");
+  add_option("device/nchannels", nchannels_, "Number of digital channel on the device.");
   add_option("protocols", protocols_yaml_, "");
   add_option("event logging", event_log_, "Log message (UPDATE level) if true");
 }

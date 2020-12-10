@@ -2,10 +2,10 @@ Resources
 =========
 
 Resources are automatically added in falcon at installation time. It is available with their corresponding URIs.
-It can be found either in the _build folder inside the falcon-core repository (post-build time) or in installation position
+It can be found either in the _build folder inside the falcon-core repository (post-build time) or the share folder in the installation path.
 
-Graph example
--------------
+Graph examples
+--------------
 A set of graphs is stored in remote-side and can be accessed either for direct running or as template in a graph file by
 using the uri : graphs://graph_name.yaml
 
@@ -14,6 +14,7 @@ Available graphs :
 - events/event_test.yaml : allow to test event processors (eventsource -> eventfilter -> eventlogger)
 - neuralynx/nlx_test.yaml : classic neuralynx workflow  (reader -> parser -> distributor)
 - neuralynx/nlx_test_save.yaml : reader -> file serializer
+- neuralynx/ripple_detection.yaml : see `ripple detection use-case <examples/graph.html>`_
 
 
 Filters

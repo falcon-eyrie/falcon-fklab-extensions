@@ -2,8 +2,16 @@
 
 EventDelayed
 ------------
-Transfer event with ontime or with a delay randomly chosen in a range. There is also a lockout period to remove
+Transfer event ontime or with a delay randomly chosen in a range. There is also a lockout period to remove
 too close events and an option file logging of these events.
+
+There is three different states:
+
+- Enabled state -> enabled= true = Detection event is sent but no ontime or delayed event is sent.
+- Ontime state  -> delayed=false = Event are sent immediately with the ontime message
+- Delayed state -> delayed= true = Event are sent immediately as it arrived with the detection message and another event when the delay time is reach with the delayed message.
+
+This 3 messages can be personalized in the options.
 
 .. list-table:: **Input port**
    :header-rows: 1
@@ -38,22 +46,34 @@ too close events and an option file logging of these events.
      - data type
      - default
      - description
-   * - **enabled**
+   * - **disabled**
      - bool
-     - true
-     - Enable the processing of incoming events.
+     - false
+     - Disabled the processing of incoming events.
    * - **lockout period**
      - double
      - 50.0 ms
-     -  Lock out time after the processing of an event.
+     - Lock out time after the processing of an event.
    * - **delayed**
      - bool
      - false
-     -  Enable the delay of the event for a time randomly chosen between the delay range
+     - Enable the delay of the event for a time randomly chosen between the delay range
    * - **delay range**
      - long int
      - [150, 250] ms
      -  if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
+   * - **message/detection**
+     - string
+     - "r"
+     - Delayed/Disable mode - message to send when an event is received.
+   * - **message/delayed**
+     - string
+     - "d"
+     - Delayed mode - message to send when the event has been delayed.
+   * - **message/ontime**
+     - string
+     - "o"
+     - Delayed mode - message to send when an event is received.
    * - **enabled saving**
      - bool
      - true
@@ -62,3 +82,47 @@ too close events and an option file logging of these events.
      - string
      - "stim_"
      - add a prefix in the filename (prefix+eventname) where target event are saved
+
+
+
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+
+.. list-table:: **Static State**
+   :header-rows: 1
+
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
+   * - **lockout period**
+     - double
+     - option: lockout period
+     - read-only
+     - read/write
+     -
+
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+
+.. list-table:: **Follower States**
+   :header-rows: 1
+
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
+   * - **delayed**
+     - bool
+     - option: delayed
+     - read/write
+     - read/write
+     -
+   * - **disabled**
+     - bool
+     - option: disabled
+     - read/write
+     - read/write
+     -

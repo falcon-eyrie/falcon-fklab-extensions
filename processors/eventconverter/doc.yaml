@@ -1,4 +1,4 @@
-Description: Convert incoming target event into another event with possibility to set a lock-out period and save in a file
+Description: Convert incoming target event into another event.
 
 Input ports:
   - name: events

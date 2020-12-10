@@ -30,7 +30,7 @@ SerialOutput::SerialOutput() {
 void SerialOutput::CreatePorts() {
 
   data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
-                                               PortInPolicy(SlotRange(1, 10)));
+                                               PortInPolicy(SlotRange(1, 10), false, 1));
 }
 
 void SerialOutput::Preprocess(ProcessingContext &context) {
@@ -54,10 +54,18 @@ void SerialOutput::Process(ProcessingContext &context) {
 
           for (int k = 0; k < nslots; ++k) {
               // retrieve new data
-              if (!data_in_port_->slot(k)->RetrieveData(data_in)) {
+              if (!data_in_port_->slot(k)->RetrieveData(data_in))
+                {
                   break;
-              }
+                }
 
+                auto nread = data_in_port_->slot(k)->status_read();
+
+                if (nread == 0)
+                {
+                  data_in_port_->slot(k)->ReleaseData();
+                  continue;
+                }
               std::string message = data_in->event()+ "\0";
 
               if ((fd_.writeString(message.c_str())) != 1) {

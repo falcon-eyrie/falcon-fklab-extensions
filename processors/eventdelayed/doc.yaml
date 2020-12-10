@@ -2,7 +2,7 @@ Description: Transfer event ontime or with a delay randomly chosen in a range. T
 too close events and an option file logging of these events.
 
 Long description : There is three different states
-                    - Enabled state - enabled=true = No event are sent
+                    - Enabled state - enabled=true = Detection event is sent but no ontime or delayed event is sent.
                     - Ontime state -  delayed=false = Event are sent immediatly with the suffix _ontime
                     - Delayed state - delayed= true = Event are sent immediatly as it arrived and in that case the lock-out time is not updated + another event when the delay time is reached with the suffix _delayed
 
@@ -40,15 +40,15 @@ Options:
     description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
   - name: message/delayed
     type: string
-    default: "ripple_delayed"
+    default: "d"
     description: Delayed mode - message to send when the event has been delayed.
   - name: message/detection
     type: string
-    default: "ripple"
+    default: "r"
     description: Delayed mode- message to send when an event is received.
   - name: message/ontime
     type: string
-    default: "ripple_ontime"
+    default: "o"
     description:Ontime mode: message to send when an event is received.
   - name: enabled saving
     type: bool
