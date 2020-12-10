@@ -30,7 +30,7 @@ SerialOutput::SerialOutput() {
 void SerialOutput::CreatePorts() {
 
   data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
-                                               PortInPolicy(SlotRange(1)));
+                                               PortInPolicy(SlotRange(1, 10)));
 }
 
 void SerialOutput::Preprocess(ProcessingContext &context) {
@@ -46,26 +46,35 @@ void SerialOutput::Preprocess(ProcessingContext &context) {
 void SerialOutput::Process(ProcessingContext &context) {
 
   EventType::Data *data_in = nullptr;
-
+  auto nslots = data_in_port_->number_of_slots();
   while (!context.terminated()) {
 
-    if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
-      break;
-    }
 
-    std::string message = data_in->event()+ "\0";
+      while (!context.terminated()) {
 
-    if ((fd_.writeString(message.c_str())) != 1) {
-      LOG(INFO) << name() << ". Serial message " << message
-                 << " not delivered.";
-    } else {
-      LOG(INFO) << name() << ". Message " << data_in->event()
-                                   << " transmitted serially.";
-    }
+          for (int k = 0; k < nslots; ++k) {
+              // retrieve new data
+              if (!data_in_port_->slot(k)->RetrieveData(data_in)) {
+                  break;
+              }
 
-    data_in_port_->slot(0)->ReleaseData();
+              std::string message = data_in->event()+ "\0";
+
+              if ((fd_.writeString(message.c_str())) != 1) {
+                  LOG(INFO) << name() << ". Serial message " << message
+                            << " not delivered.";
+              } else {
+                  LOG(INFO) << name() << ". Message " << data_in->event()
+                            << " transmitted serially.";
+              }
+
+              data_in_port_->slot(k)->ReleaseData();
+          }
+      }
   }
+
 }
+
 
 void SerialOutput::Postprocess(ProcessingContext &context) {
   fd_.closeDevice();
