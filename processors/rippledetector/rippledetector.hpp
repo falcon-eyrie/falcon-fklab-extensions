@@ -58,6 +58,7 @@ class RippleDetector : public IProcessor {
   BroadcasterState<bool> *ripple_;
   StaticState<double> *threshold_dev_;
   StaticState<double> *detection_lockout_time_;
+  FollowerState<bool> * detection_enabled_;
   StaticState<bool> *stream_events_;
   StaticState<double> *smooth_time_;
   StaticState<bool> *stats_out_;
@@ -89,6 +90,7 @@ class RippleDetector : public IProcessor {
       10., "second", options::positive<double>(true)};
   options::Measurement<double, false> initial_detection_lockout_time_{
       30., "ms", options::positive<double>(true)};
+
   options::Bool default_stream_events_{true};
   options::Bool initial_stats_out_{true};
   options::Measurement<double, false> stats_buffer_size_{

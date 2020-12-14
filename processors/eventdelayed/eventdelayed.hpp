@@ -59,46 +59,37 @@ public:
    */
   bool to_lock_out();
 
-  /* Wrote in a file (in append mode) the data
-   *
-   * @input file_path path where to write the file (in the context of this
-   * processor - run context path)
-   * @input filename  (in the context of this processor - prefix option + event
-   * name)
-   * @input data data to write (in the context of this processor - the
-   * timestamp)
-   *
-   */
-  void write_data_logfile(std::string file_path, std::string filename,
-                          uint64_t data);
   // DATA PORTS
 protected:
   PortIn<EventType> *data_in_port_;
-  PortOut<EventType> *data_out_port_;
+  PortOut<EventType> *output_port_;
 
   // STATES
 protected:
   FollowerState<bool> *disabled_;
   FollowerState<bool> *delayed_event_;
-  StaticState<double> *lockout_period_;
+  StaticState<double> *stop_detection_period_;
+  StaticState<double>  *stop_analysis_period_;
+  BroadcasterState<bool> *analysis_unlocked_;
 
   // OPTIONS
 protected:
   options::Bool default_disabled_{false};
-  options::Measurement<double, false> initial_lockout_period_{
-      50, "ms", options::positive<double>(true)};
+  options::Measurement<double, false> initial_stop_detection_period_{
+      50, "ms", options::positive<double>(false)};
+  options::Measurement<double, false> initial_stop_analysis_period_{
+      50., "ms", options::positive<double>(false)};
   options::Bool initial_delayed_event_{false};
   options::Bool save_events_{true};
   options::String prefix_{"stim_"};
   options::String msg_delayed_{"d"};
-  options::String msg_ontime_{"o"};
   options::String msg_detection_{"r"};
+  options::String msg_ontime_{"o"};
   options::Value<std::vector<long int>, true> initial_delayed_range_{{150, 200}};
 
 
 private:
-  void send_event(EventType::Data *data_in, EventType::Data *data_out,std::string type,
-                  std::string filepath);
+  void send_event(EventType::Data *data_in, std::string type);
   // variables
 protected:
   uint64_t ontime_received_event_;
@@ -113,6 +104,8 @@ protected:
 
   // CONSTANT
 protected:
-  const std::string ENABLED_S = "disabled";
-  const std::string LOCKOUT_PERIOD_S = "lockout period";
+  const std::string DISABLED_S = "disabled mode";
+  const std::string DISABLED_S = "delayed mode";
+  const std::string STOP_DETECTION_TIME_S = "stop detection time";
+  const std::string STOP_ANALYSIS_TIME_S = "stop analysis time";
 };

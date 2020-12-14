@@ -1,22 +1,22 @@
 processors:
     source:
-      class: NlxReader
-      advanced:
-        threadpriority: 100
-        threadcore: 0
-      options:
-        address: 127.0.0.1
-        port: 5000
-        batch size: 3
-        update interval: 10
-        channelmap:
-           hp: [13,20]
-           cx: [9]
+        class: NlxReader
+        advanced:
+            threadpriority: 100
+            threadcore: 0
+        options:
+            address: 127.0.0.1
+            port: 5000
+            batch size: 3
+            update interval: 10
+            channelmap:
+                hp: [13,20]
+                cx: [9]
     ripple_filter (1-2):
-      class: MultiChannelFilter
-      options:
-        filter:
-            file: iir_ripple_low_delay/matlab_design/iir_ripple_low_delay.filter
+        class: MultiChannelFilter
+        options:
+            filter:
+                file: iir_ripple_low_delay/matlab_design/iir_ripple_low_delay.filter
     HIPPOCAMPUS_detector:
         class: RippleDetector
         options:
@@ -70,8 +70,11 @@ processors:
     stimulation_trigger:
         class: EventDelayed
         options:
+            disabled mode: false
             delayed mode: false # switch for true if you want delayed events
-            lockout period: 250
+            stop detection time: 250
+            stop analysis time: 50
+            delay range: [150, 200]
     ttl_output:
         class: SerialOutput
 
@@ -84,9 +87,10 @@ connections:
     - CORTEX_detector.events=eventfilter.blocking_events
     - HIPPOCAMPUS_detector.statistics=networksink.data
     - eventfilter.events=stimulation_trigger.events
-    - stimulation_trigger.events=ttl_output.events
-    - eventfilter.events=eventsink.events
+    - HIPPOCAMPUS_detector.events=eventsink.events
     - eventfilter.events=datasink_ev.data
     - HIPPOCAMPUS_detector.statistics=datasink_ripplestats.data
+    - stimulation_trigger.events=ttl_output.events
 
-
+states:
+    - [stimulation_trigger.analysis enabled, HIPPOCAMPUS_detector.detection enabled]

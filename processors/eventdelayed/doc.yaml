@@ -1,10 +1,12 @@
-Description: Transfer event ontime or with a delay randomly chosen in a range. There is also a lockout period to remove
-too close events and an option file logging of these events.
+Description: Divide an event in two events -> detection (send ontime event if not locked out) and stimulations (send an event depending
+  depending on 3 modes (disabled, ontime or with a delay randomly chosen in a range) if not locked out)
+  There is also a lockout period to remove too close events and an option file logging of these events.
 
-Long description : There is three different states
-                    - Enabled state - enabled=true = Detection event is sent but no ontime or delayed event is sent.
-                    - Ontime state -  delayed=false = Event are sent immediatly with the suffix _ontime
-                    - Delayed state - delayed= true = Event are sent immediatly as it arrived and in that case the lock-out time is not updated + another event when the delay time is reached with the suffix _delayed
+Long description :
+    - Enabled state: enabled=true =  Only one detection event is sent ontime if not locked-out.
+    - Ontime state:  delayed=false = A detection event + a stimulation event is sent ontime if not locked-out.
+    - Delayed state: delayed=true = A detection event is sent immediatly + a stimulation event is sent once the delayed time is reached.
+
 
 Input ports:
   - name: events
@@ -24,11 +26,7 @@ Options:
     type: bool
     default: false
     description: Disabled the processing of incoming events.
-  - &lockout
-    name: lockout period
-    type: double
-    default: 50 ms
-    description: Lock out time after the processing of an event.
+
   - &delayed
     name: delayed
     type: bool
@@ -38,18 +36,32 @@ Options:
     type: long int
     default: "[150, 250] ms"
     description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
+
   - name: message/delayed
     type: string
     default: "d"
-    description: Delayed mode - message to send when the event has been delayed.
-  - name: message/detection
-    type: string
-    default: "r"
-    description: Delayed mode- message to send when an event is received.
+    description: Message to send on the stimulation port when the event has been delayed.
   - name: message/ontime
     type: string
     default: "o"
-    description:Ontime mode: message to send when an event is received.
+    description: Message to send on the detection port when an event is received
+  - name: message/detection
+    type: string
+    default: "r"
+    description: Message to send on the detection port when an event is received
+
+  - &detection_lockout
+    name: stop detection time
+    type: double
+    default: 50 ms
+    description: Lock out time for sending new detection/stimulation after a stimulation.
+
+  - &analysis_lockout
+    name: stop analysis time
+    type: double
+    default: 50 ms
+    description: Lock out time for detecting pattern after a stimulation 
+
   - name: enabled saving
     type: bool
     default: true
@@ -61,7 +73,10 @@ Options:
 
 State:
   Static:
-    - options: *lockout
+    - options: *detection_lockout
+      external access: write
+      shared: true
+    - options: *analysis_lockout
       external access: write
       shared: true
   Follower:
@@ -69,3 +84,5 @@ State:
       external access: write
     - options: *disabled
       external access: write
+    - name: analysis enabled
+      external access: read

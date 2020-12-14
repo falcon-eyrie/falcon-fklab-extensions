@@ -89,6 +89,13 @@ States:
       external access: read
       description:
 
+  follower:
+    - name: detection enabled
+      type: bool
+      default: true
+      external access: None
+      description: Enable the detection of ripples
+
   static:
     - options: *threshold
       external access: write
