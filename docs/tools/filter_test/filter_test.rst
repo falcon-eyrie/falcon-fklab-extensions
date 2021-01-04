@@ -1,13 +1,5 @@
-Digital filter test
-===================
-
-The filter test tool can be used to test the digital filtering library
-that is included with falcon. Given the definition of a FIR or IIR filter,
-the tool provides three functions:
-
-1. to filter a signal
-2. to time the execution of filtering
-3. to compute the filter's impulse reponse
+Usage
+=====
 
 
 Command-line options
