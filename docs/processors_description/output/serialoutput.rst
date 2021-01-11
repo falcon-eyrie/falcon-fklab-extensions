@@ -1,5 +1,8 @@
+.. _SerialOutput:
+
 SerialOutput
 =============
+
 Take an EventData stream and sets digital outputs according to an event-specific protocol
 
 .. list-table:: **Input ports**

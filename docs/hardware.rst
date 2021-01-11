@@ -12,4 +12,3 @@ The serial communication allow to connect an arduino while the digital communica
    hardware/neuralynx
    hardware/openephys
    hardware/arduino
-   hardware/advantech

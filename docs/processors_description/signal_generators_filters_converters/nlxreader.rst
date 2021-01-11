@@ -1,4 +1,4 @@
-.. _nxlreader:
+.. _NxlReader:
 
 NlxReader
 =========

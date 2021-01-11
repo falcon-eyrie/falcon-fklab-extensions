@@ -12,3 +12,11 @@ It can be found either in the _build folder inside the falcon-core repository (p
    resource/filters/filters
 
 
+Use Case
+========
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   examples/ripple_detection

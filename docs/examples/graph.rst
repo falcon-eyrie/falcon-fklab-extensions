@@ -3,103 +3,47 @@ Ripple detection graph
 
 .. code-block:: yaml
 
-    processors:
-        source:
-          class: NlxReader
-          advanced:
-            threadpriority: 100
-            threadcore: 0
-          options:
-            address: 127.0.0.1
-            port: 5000
-            batch size: 3
-            update interval: 10
-            channelmap:
-               hp: [13,20]
-               cx: [9]
+    falcon:
+      version: 1.0
 
-        ripple_filter (1-2):
-          class: MultiChannelFilter
-          options:
-            filter:
-                file: iir_ripple_low_delay/matlab_design/iir_ripple_low_delay.filter
+    graph: graphs://neuralynx/ripple_detection.yaml
+
+    options:
+        source:
+           options:
+              address:      # Ip address of Cheetah system
+              channelmap:
+               hp: []       # Hippocampus channel to analyze
+               cx: []       # Cortex channel to analyze
 
         HIPPOCAMPUS_detector:
-            class: RippleDetector
             options:
-                threshold dev: 14
+                threshold dev: 3
                 smooth time: 7 # in seconds
-                detection lockout time: 50 #ms
-                stream events: true
-                stream statistics: true
-                statistics buffer size: 1.0 # sec
-                statistics downsample factor: 4
-                use power: true
+                detection lockout time: 50 #ms  # Post-detection lock-out - remove all detections
 
         CORTEX_detector :
-            class: RippleDetector
             options:
                 threshold dev: 12
                 smooth time: 8 # in seconds
                 detection lockout time: 40 #ms
-                stream events: true
-                stream statistics: false
-                statistics buffer size: 1.0 # sec
-                statistics downsample factor: 4
-                use power: true
 
         eventfilter:
-            class: EventFilter
             options:
-                target event: ripple
-                block duration: 40
-                sync time: 1.5
-                block wait time: 4 # below 3.5, asynch can occur
-                detection criterion: "any" # 'any', 'all' or number
-                discard warnings: false
-
-        networksink:
-            class: ZMQSerializer
-            options:
-                encoding: binary
-                format: compact
-
-        eventsink:
-            class: EventLogger
-            options:
-                target event: ripple
-
-        datasink_ev:
-            class: FileSerializer
-            options:
-                encoding: yaml
-                format: full
-
-        datasink_ripplestats:
-            class: FileSerializer
-            options:
-                encoding: binary
-                format: compact
+                block duration: 40  # Filter out all detections after detecting a "ripple" aka artefact in the cortex signal
+                sync time: 1.5      #  Time between two detections to consider it as only one.
+                block wait time: 4  # Filter out all detections arrived before detecting a "ripple" aka artefact in the cortex signal
+                                    # below 3.5, asynch can occur
 
         stimulation_trigger:
-            class: EventDelayed
             options:
-                delayed mode: false # switch for true if you want delayed events
-                lockout period: 250
+                delayed: true
+                lockout period: 150  # Post-stimulation lock-out - remove all stimulation events / keep detections
+                detection lockout period: 60  # Post-stimulation detection lock-out - remove all detections
+                delay range:
+                - 30
+                - 50
 
         ttl_output:
-            class: SerialOutput
-
-    connections:
-        - source.hp=ripple_filter1.data
-        - source.cx=ripple_filter2.data
-        - ripple_filter1.data=HIPPOCAMPUS_detector.data
-        - ripple_filter2.data=CORTEX_detector.data
-        - HIPPOCAMPUS_detector.events=eventfilter.events
-        - CORTEX_detector.events=eventfilter.blocking_events
-        - HIPPOCAMPUS_detector.statistics=networksink.data
-        - eventfilter.events=stimulation_trigger.events
-        - stimulation_trigger.events=ttl_output.events
-        - eventfilter.events=eventsink.events
-        - eventfilter.events=datasink_ev.data
-        - HIPPOCAMPUS_detector.statistics=datasink_ripplestats.data
+            options:
+                port address:  # port usb where the arduino is plugged

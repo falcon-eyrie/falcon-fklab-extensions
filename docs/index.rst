@@ -101,7 +101,7 @@ Overview
 |resource|
 ..........
 
-**Resources**: Available Graphs and filters
+**Resources & Use-case**: Available Graphs and filters
 
 .. rst-class:: clearfix row
 
@@ -123,7 +123,6 @@ Indices and tables
    hardware
    libs
    tools
-   example
    resource
 
 .. |lib| image:: icons/lib.svg

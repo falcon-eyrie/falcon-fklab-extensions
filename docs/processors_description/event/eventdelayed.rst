@@ -74,14 +74,6 @@ This 3 messages can be personalized in the options.
      - string
      - "o"
      - Delayed mode - message to send when an event is received.
-   * - **enabled saving**
-     - bool
-     - true
-     - Enable saving of target events to disk.
-   * - **prefix**
-     - string
-     - "stim_"
-     - add a prefix in the filename (prefix+eventname) where target event are saved
 
 
 

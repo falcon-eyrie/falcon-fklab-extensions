@@ -10,5 +10,4 @@ Content table
    hardware
    libs
    tools
-   example
    resource
