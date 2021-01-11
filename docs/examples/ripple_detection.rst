@@ -122,9 +122,11 @@ In both case, no detection are recorded during this time and the threshold as we
 A contrario, for the stimulation lock-out time (stimulation trigger/lockout period) occurring after a stimulation, detections are recorded and the statistical signal + threshold
 are updated.
 
-.. figure:: ../images/falcon_ripple_detection.png
+Ripple detection schema in delayed mode:
 
-   Ripple detection schema in delayed mode
+.. image:: ../images/ripple_lockout.png
+   :width: 80%
+
 
 Output through ZMQ network
 ..........................
