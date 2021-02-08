@@ -50,7 +50,7 @@ Detect ripples in a MultiChannelData stream and emits a ripple event in response
      - double
      - 10.0 seconds
      - integration time for signal statistics. Must be a positive number.
-   * - **detection lockout time**
+   * - **analysis lockout time**
      - double
      - 30 ms
      - refractory period after threshold crossing detection that is not considered for updating of statistics
@@ -144,7 +144,7 @@ Detect ripples in a MultiChannelData stream and emits a ripple event in response
      - read-only
      - read/write
      - integration time for signal statistics. Must be a positive number.
-   * - **detection lockout time**
+   * - **analysis lockout time**
      - double
      - option: detection lockout time
      - read-only

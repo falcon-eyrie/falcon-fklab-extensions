@@ -46,15 +46,19 @@ This 3 messages can be personalized in the options.
      - data type
      - default
      - description
-   * - **disabled**
+   * - **detection only mode**
      - bool
      - false
      - Disabled the processing of incoming events.
-   * - **lockout period**
+   * - **analysis lockout period**
      - double
      - 50.0 ms
-     - Lock out time after the processing of an event.
-   * - **delayed**
+     - Disable time for ripple detection after stimulation
+   * - **event trigger lockout period**
+     - double
+     - 50.0 ms
+     - Disable time for sending trigger event after stimulation
+   * - **delayed mode**
      - bool
      - false
      - Enable the delay of the event for a time randomly chosen between the delay range
@@ -88,9 +92,15 @@ This 3 messages can be personalized in the options.
      - external access
      - peers access
      - description
-   * - **lockout period**
+   * - **analysis lockout time**
      - double
-     - option: lockout period
+     - option: analysis lockout time
+     - read-only
+     - read/write
+     -
+    * - **event trigger lockout time**
+     - double
+     - option: event trigger lockout time
      - read-only
      - read/write
      -
@@ -106,13 +116,13 @@ This 3 messages can be personalized in the options.
      - external access
      - peers access
      - description
-   * - **delayed**
+   * - **delayed mode**
      - bool
-     - option: delayed
+     - option: delayed mode
      - read/write
      - read/write
      -
-   * - **disabled**
+   * - **detection only mode**
      - bool
      - option: disabled
      - read/write
