@@ -16,7 +16,9 @@ Use Case
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    examples/ripple_detection
+   examples/graph
+   examples/overview

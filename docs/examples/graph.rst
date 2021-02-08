@@ -1,6 +1,15 @@
 Ripple detection graph
 ======================
 
+
+The graph is divided in two parts : 
+
+- server-side template
+- user-side graph
+
+The user should called the server-side template and only modified the option is interested on. 
+The graph below is an example : 
+
 .. code-block:: yaml
 
     falcon:
@@ -20,13 +29,13 @@ Ripple detection graph
             options:
                 threshold dev: 3
                 smooth time: 7 # in seconds
-                detection lockout time: 50 #ms  # Post-detection lock-out - remove all detections
+                analysis lockout time: 50 #ms  # Post-detection lock-out - remove all detections
 
         CORTEX_detector :
             options:
                 threshold dev: 12
                 smooth time: 8 # in seconds
-                detection lockout time: 40 #ms
+                analysis lockout time: 40 #ms
 
         eventfilter:
             options:
@@ -38,8 +47,8 @@ Ripple detection graph
         stimulation_trigger:
             options:
                 delayed: true
-                lockout period: 150  # Post-stimulation lock-out - remove all stimulation events / keep detections
-                detection lockout period: 60  # Post-stimulation detection lock-out - remove all detections
+                event trigger lockout time: 150  # Post-stimulation lock-out - remove all stimulation events / keep detections
+                analysis lockout time: 60  # Post-stimulation detection lock-out - remove all detections
                 delay range:
                 - 30
                 - 50
@@ -47,3 +56,8 @@ Ripple detection graph
         ttl_output:
             options:
                 port address:  # port usb where the arduino is plugged
+
+
+For more information, this is the template graph called in background : 
+
+.. literalinclude:: ../../resources/graphs/neuralynx/ripple_detection.yaml

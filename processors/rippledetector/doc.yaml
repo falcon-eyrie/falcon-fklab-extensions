@@ -30,7 +30,7 @@ Options:
     default: 10.0 seconds
     description: Integration time for estimating signal statistics. Must be a positive number (sec).
   - &detectlookuptime
-    name: detection lockout time
+    name: analysis lockout time
     type: double
     default: 30 ms
     description: refractory period after threshold crossing detection that is not considered for updating of statistics

@@ -4,40 +4,40 @@ Hippocampal ripple detection
 Overview
 --------
 
-
-
 Implementation
 --------------
 
 Algorithm
 .........
 
-- **Recording**: the hippocampal activity is recorded at 4 or 32 kHz depending on the experiment.
-  Experiments that only focus on SWR are done at 4 kHz, whereas those that also use single cell
-  signal (between 300 and 6000 Hz) have to be recorded at 32 kHz.
+- **Recording**: the hippocampal activity is recorded between 4 and 32 kHz depending on the type of experiment.
+  Experiments that only focus on SWR are usually done at 4 kHz, whereas those that also require spikes (to look at unit activity)
+  between 300 and 6000 Hz) have to be recorded at 32 kHz.
 
 .. image:: ../images/ripple_source.png
    :width: 120 %
 
-- **Filtering**: the filter is a Chebyshev type II with a pass-band from 130 to 283 Hz and
-  transition edges of 10%. This specific design comes from the initial wish to reject as many gamma bursts as possible.
+
+- **Filtering**: the filter is a band-pass Chebyshev type II filtering between 130 to 283 Hz and
+  with transition edges of 10%. This specific design is chosen to minimise the detection of gamma bursts. The type of filter used can be change
+  in the graph definition (see next page.)
 
 .. image:: ../images/ripple_filtering.png
    :width: 120 %
 
-- **Envelope estimation**: the simple squared value of the filtered signal is the estimation
-  of the envelope in this algorithm. While neglecting to smooth the signal may lead to
+- **Envelope estimation**: To reduce the computation time, the envelope is estimated using 
+  the squared value of the filtered signal. While neglecting to smooth the signal may lead to
   spurious detections due to outliers, the advantage of speed of detection obtained with
   this choice outweighs the disadvantage of false detections caused by a few rare outliers.
 
-- **Thresholding**: the threshold is permanently modified as the experiment runs.
+- **Thresholding**: the threshold is constantly modified as the experiment runs.
   Indeed, it is based on statistical properties of the envelope which are the mean and the Mean Absolute Deviation (MAD).
   Every time a new value is computed (on the last time bin of 10 ms), it is added to the
   previous statistics with a predefined weight (α).
 
-The corresponding equations are:
+  The corresponding equations are:
 
-.. math::
+  .. math::
 
     mean = (1  -α )* mean + α   * (mean of last time bin)
     
@@ -45,82 +45,53 @@ The corresponding equations are:
     
     threshold = mean + arbitrary factor *MAD
 
-The arbitrary factor is what the user has to tune for every experiment. 
-The higher it is, the less the number of detections will be.
+  The arbitrary factor is what the user has to set for every experiment. 
+  A too low threshold will detect too much noise, a too high threshold will miss the smaller ripples.
 
 .. image:: ../images/ripple_threshold.png
    :width: 120 %
 
 
-- **Cortical channel comparison**: as the rat is moving in its environment, some actions
-  like chewing and bumping lead to artifacts in the neural signal. Fortunately, they are
-  largely spread in the brain so that we can detect them outside hippocampus. This
-  property is harnessed to reject them when they trigger a detection. An electrode records
-  the signal in the cortex (where no SWRs occur) and the ripple detection algorithm is
-  also running on it. If the same event is detected in the hippocampus and in the cortex,
-  it is considered as an artifact and it is directly rejected.
+- **Trigger stimulation**: 
+
+  There are also three modes available to deliver stimulation:
+
+  - detection only - only detections are sent
+  - ontime  - stimulation is sent immediatly after detection
+  - delayed - stimulation is sent after a random time (ms) uniformly chosen from a range specified by the user (see option stimulation_trigger).
+
+  This mode can be changed while Falcon is running by modifying the delayed and detection only state.
 
 
-- **Trigger stimulation**: To avoid over-stimulation, a post-processing technique consists of blocking any detection that
-  occurs less than 150 ms after a stimulation. This is called the lock-out period.
-  There is also three modes to deliver stimulation:
-  - enabled - only detections are sent
-  - ontime  - directly sent after detection
-  - delayed - directly sent detection and then sent stimulation after a uniform-random time (ms) chose in a range (see option of EventDelayed).
+Event filtering
+...............
 
-  This mode can be change in running time by modifying the delayed and enabled state.
+- **Artefact removal using a cortical recording**: as the rat is moving through the environment, 
+  some actions like chewing and bumping lead to artefacts in the neural signal. 
+  Luckily, they are largely spread in the brain, which means we can detect them outside hippocampus. 
+  This property is harnessed to ignore the (false) detections of these artefacts. 
+  An electrode records the signal in the cortex (where no SWRs occur) and the ripple detection algorithm 
+  is also running on it. If a hippocampus detection coincides with a cortex detection 
+  it is considered as an artifact artefact and it is directly rejected.
 
-Graph
-.....
 
-.. image:: ../images/ripple_graph.png
-   :width: 50 %
-   :align: right
 
-**Graph description:**
+- **Avoid overstimulation using a post-stimulation lock-out**: to limit the output stimulation frequency 
+  and avoid overstimulation, stimulations are not triggered in a post-stimulation window defined by the user 
+  (see config file: stimulation_trigger/event trigger lockout time). Usually the output stimulation frequency is 
+  limited to 2 Hz which means a event trigger lock-out period of 250 ms.
 
-- **source** (Neuralynx data): :ref:`NlxReader`
-- **ripple filter 1**: :ref:`MultiChannelFilter`
-- **ripple filter 2**: :ref:`MultiChannelFilter`
-- **hippocampus detector**: :ref:`RippleDetector`
-- **cortex detector**: :ref:`RippleDetector`
-- **network sink** (log signal) : :ref:`ZMQSerializer`
-- **event filter** : :ref:`EventFilter`
-- **event delayed** (trigger stimulation) : :ref:`EventDelayed`
-- **ttl output** (communication to the arduino): :ref:`SerialOutput`
 
-User input in real-time
-.......................
+- **Avoid multiple detections of a single ripple using a post-detection analysis lock-out**: Usually set to 50ms in ripple
+  detector, it ensures once a ripple has been detected, that no new detections or statistics update of the threshold is done. 
+  This value can be set before the experimentation via the option called "analysis lockout time" in the ripple detector.
+  
 
-Processor ripple filter (1-2) (:ref:`RippleDetector`):
+- **Avoid detection of a stimulation artefact using a post-stimulation analysis lock-out**: In ontime mode, this lockout period
+  happend at the same time as the previous described upper. But, when being in delayed mode, the stimulation can occur much later, 
+  adding an artefact. To avoid to assimilate it to a new ripple, a lockout time is trigger after each stimulation to disable the ripple analysis.
+  This time can be set  before the  experimentation via the option called "analysis lockout time" in the stimulation trigger. 
 
-- threshold dev (double)
-- smooth time (double): integration time for signal statistics. Must be a positive number.
-- detection lockout time (double): Current refractory period following threshold crossing that is not considered for  updating signal statistics and for event detection.
-- stream events (bool)
-- stream statistics (bool)
-
-.. note:: As their is two RippleDetectors, these states are available for each processor.
-
-Processor trigger stimulation (:ref:`EventDelayed`):
-
-- delayed (bool) - decide if the stimulation after ripple detection should be delayed or ontime.
-- detection lockout period (double): Current refractory period following a stimulation where the signal is not
-  considered for  updating signal statistics and for event detection to avoid false detection due to electrical spike generated by the stimulation.
-- lockout period (double): Current refractory period following a stimulation where the detection is considered but no
-  stimulation is triggered to avoid over-stimulation.
-
-Lock-out time
-.............
-
-There is 3 different lock-out times which can be confusing.
-
-- In ontime mode, when stimulation and detection are sent at the same time, the post-stimulation detection (stimulation trigger/detection lockout period) and the detection lock-out time (Ripple detector/ detection lockout time) are identical.
-- In delayed mode, the stimulation is sent later. The detection lock-out time will occur after the detection while the post-stimulation lock-out time will occur after the stimulation.
-
-In both case, no detection are recorded during this time and the threshold as well as the statistical signal is not updated.
-A contrario, for the stimulation lock-out time (stimulation trigger/lockout period) occurring after a stimulation, detections are recorded and the statistical signal + threshold
-are updated.
 
 Ripple detection schema in delayed mode:
 
@@ -128,11 +99,11 @@ Ripple detection schema in delayed mode:
    :width: 80%
 
 
-Output through ZMQ network
-..........................
 
-format : (timestamps, [ statistical detector output, threshold])
-
-.. image:: ../images/ripple_threshold.png
-
-.. include:: graph.rst
+.. note:: 
+  
+    During the post-detection and post-stimulation detection lockout 
+    all detections are discarded. However, during the post-stimulation 
+    stimulation lock-out only the stimulation triggers are blocked, detections 
+    are still recorded (if they do not fall within a post-detection 
+    or post-stimulation detection lockout time).

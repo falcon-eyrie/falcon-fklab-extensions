@@ -22,7 +22,7 @@ processors:
         options:
             threshold dev: 14
             smooth time: 7 # in seconds
-            detection lockout time: 50 #ms
+            analysis lockout time: 50 #ms
             stream events: true
             stream statistics: true
             statistics buffer size: 1.0 # sec
@@ -33,7 +33,7 @@ processors:
         options:
             threshold dev: 12
             smooth time: 8 # in seconds
-            detection lockout time: 40 #ms
+            analysis lockout time: 40 #ms
             stream events: true
             stream statistics: false
             statistics buffer size: 1.0 # sec
@@ -70,10 +70,10 @@ processors:
     stimulation_trigger:
         class: EventDelayed
         options:
-            disabled mode: false
+            detection only mode: false
             delayed mode: false # switch for true if you want delayed events
-            stop detection time: 250
-            stop analysis time: 50
+            event trigger lockout time: 250
+            analysis lockout time: 50
             delay range: [150, 200]
     ttl_output:
         class: SerialOutput

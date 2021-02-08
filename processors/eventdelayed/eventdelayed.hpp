@@ -104,8 +104,8 @@ protected:
 
   // CONSTANT
 protected:
-  const std::string DISABLED_S = "disabled mode";
-  const std::string DISABLED_S = "delayed mode";
-  const std::string STOP_DETECTION_TIME_S = "stop detection time";
-  const std::string STOP_ANALYSIS_TIME_S = "stop analysis time";
+  const std::string DISABLED_S = "detection only mode";
+  const std::string DELAYED_S = "delayed mode";
+  const std::string STOP_DETECTION_TIME_S = "analysis lockout time";
+  const std::string STOP_ANALYSIS_TIME_S = "event trigger lockout time";
 };

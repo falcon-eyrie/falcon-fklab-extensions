@@ -22,13 +22,13 @@ Output ports:
 
 Options:
   - &disabled
-    name: disabled
+    name: detection only mode
     type: bool
     default: false
     description: Disabled the processing of incoming events.
 
   - &delayed
-    name: delayed
+    name: delayed mode
     type: bool
     default: False
     description: Enable the delay of the event for a time randomly chosen between the delay range
@@ -51,13 +51,13 @@ Options:
     description: Message to send on the detection port when an event is received
 
   - &detection_lockout
-    name: stop detection time
+    name: event trigger lockout time
     type: double
     default: 50 ms
     description: Lock out time for sending new detection/stimulation after a stimulation.
 
   - &analysis_lockout
-    name: stop analysis time
+    name: analysis lockout time
     type: double
     default: 50 ms
     description: Lock out time for detecting pattern after a stimulation 
