@@ -91,32 +91,40 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
   MultiChannelType<float>::Data *data_vector;
 
-  while (!context.terminated()) {
+  while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
 
-    zmq_frames data_msg;
-    s_nonblocking_recv_multi(data_socket_, data_msg);
+    std::string header;
+    std::string message;
+    zmq::message_t msg_data;
 
-    if (data_msg.size() >= 2) {
-      json header = json::parse(data_msg[1]);
+    if (s_recv(data_socket_, header, ZMQ_DONTWAIT)) {  //Receive DATA header
+
+      s_recv(data_socket_, message);                   // Receive real header
+      data_socket_.recv(&msg_data);                    // Receive data
+
+      // With a copy into a non-const collection
+      json header = json::parse(message);
 
       // Header:
       // {"content":{"n_channels":16,"n_real_samples":928,"n_samples":1024,"sample_rate":40000,"timestamp":142912},
       // "data_size":65536,"message_no":197705,"type":"data"}
+
       LOG(DEBUG) << name() << ". Header: " << header;
 
       valid_packet_counter_++;
+      uint64_t init_ts = header["content"]["timestamp"].get<uint64_t>();
 
       if (valid_packet_counter_ == 1) { // first packet
         first_valid_packet_arrival_time_ = Clock::now();
-        LOG(INFO) << name() << ": Received first valid data packet"
-                  << " (TS = " << header["content"]["timestamp"] << ").";
+        LOG(INFO) << name() << ". Received first valid data packet"
+                  << " (OE TS = " << header["content"]["timestamp"] << ")";
       } else if (last_message_number + 1 !=
                  header["message_no"].get<int>()) { // Missed packet
         LOG(DEBUG) << name() << ". Message lost: "
                    << header["message_no"].get<int>() - last_message_number;
         data_corrupted_counter_++;
-        continue;
       }
+
       last_message_number = header["message_no"].get<int>();
 
       // Data
@@ -125,17 +133,18 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
       // copy data onto buffers for each configured channel group
       for (auto &it : samples_) {
-        auto start_index = data_msg[2].begin() + n_samples * it.first;
+        auto start_index = &(msg_data.data<float>()[0]) + n_samples*it.first;
 
         it.second->insert(it.second->end(), start_index,
                           start_index + n_real_samples);
+
       }
       uint64_t sample_rate_ = header["content"]["sample_rate"];
-      uint64_t init_ts = header["content"]["timestamp"].get<int>();
+
 
       auto ts_increase = [&init_ts, &sample_rate_, idx = 0]() mutable {
         ++idx;
-       // return (init_ts + idx) * static_cast<uint64_t>(1000000 / sample_rate_); // microseconds timestamps
+        //return init_ts + idx * static_cast<uint64_t>(1000000 / sample_rate_); // microseconds timestamps
         return init_ts + idx; // OpenEphys timestamp index
       };
 
@@ -144,6 +153,8 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
       std::generate_n(ts.begin(), n_real_samples, ts_increase);
 
       timestamps->insert(timestamps->end(), ts.begin(), ts.end());
+      }
+
       bool send_packet = false;
 
       for (auto &it : channelmap_()) {
@@ -151,16 +162,18 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
         if (samples_[it.second[0]]->size() < batch_size_()) {
           break;
         }
-        LOG(DEBUG) << name() << " Send a new packet on the port " << it.first;
+        LOG(INFO) << name() << " Send a new packet on the port " << it.first;
         data_vector = data_ports_[it.first]->slot(0)->ClaimData(false);
         // set data bucket metadata
         data_vector->set_hardware_timestamp(*timestamps->begin());
         data_vector->set_source_timestamp();
-        // publish data buckets
+
+        int i = 0;
         for (auto &channel : it.second) {
           std::vector<float> packet(samples_[channel]->begin(),
                                     samples_[channel]->begin() + batch_size_());
-          data_vector->set_data_channel(channel, packet);
+          data_vector->set_data_channel(i, packet);
+          i = i+1;
           samples_[channel]->erase(samples_[channel]->begin(),
                                    samples_[channel]->begin() + batch_size_());
         }
@@ -171,12 +184,13 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
         data_ports_[it.first]->slot(0)->PublishData();
         send_packet = true;
       }
+
       if(send_packet) {
         timestamps->erase(timestamps->begin(),
                           timestamps->begin() + batch_size_());
       }
 
-    }
+
   }
 }
 
