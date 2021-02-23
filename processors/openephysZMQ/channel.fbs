@@ -1,0 +1,14 @@
+ 
+// IDL file for one channel 
+
+
+table ContinuousData {
+    samples: [float];
+    channel_nbr: int;
+    nbr_samples: int;
+    timestamps: int64; 
+    message_no: long;
+    sample_rate: int;
+}
+
+root_type ContinuousData;
