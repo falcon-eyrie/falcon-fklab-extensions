@@ -23,6 +23,8 @@
 #include "multichanneldata/multichanneldata.hpp"
 #include "utilities/zmqutil.hpp"
 
+typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
+
 class OpenEphysZMQ : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
 public:
@@ -36,14 +38,17 @@ public:
 protected:
   options::String address_{"127.0.0.1", options::notempty<std::string>()};
   options::Value<unsigned int, false> data_port_{
-      3335, options::positive<unsigned int>(true)};
+      5556, options::positive<unsigned int>(true)};
+  options::Value<ChannelMap, false> channelmap_;
   options::Value<std::uint64_t, false> npackets_{
       0, options::zeroismax<std::uint64_t>()};
-  options::Value<unsigned int, false> nchannels_{384, options::positive<unsigned int>(true)};
-  options::Value<unsigned int, false> sampling_rate_{30000, options::positive<unsigned int>(true)};
+  options::Value<unsigned int, false> batch_size_{1};
+
   // PORT
 protected:
-  PortOut<MultiChannelType<unsigned int>> *data_out_port_;
+  std::map<std::string, PortOut<MultiChannelType<float>> *> data_ports_;
+  std::map<int, std::vector<float> *> samples_;
+  std::vector<uint64_t> *timestamps;
 
   // VARIABLES
 protected:

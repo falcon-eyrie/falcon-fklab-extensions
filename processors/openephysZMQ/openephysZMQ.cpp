@@ -24,40 +24,43 @@
 
 
 OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
-  add_option("address", address_, "ZMQ network address to connect");
-  add_option("port", data_port_,
-             "ZMQ network port to subscribe to the data stream");
-
-  add_option("nchannels", nchannels_,
-             "The number of channels stream from Open-Ephys.");
-
-  add_option("sampling rate", sampling_rate_,
-             "Sampling rate selected in Open-Ephys.");
-  add_option("npackets", npackets_,
-             "The total number of data packets to read "
-             "(0 means continuous recording).");
+    add_option("address", address_, "ZMQ network address to connect");
+    add_option("port", data_port_,
+               "ZMQ network port to subscribe to the data stream");
+    add_option("channelmap", channelmap_,
+               "Mapping of channels to processor output ports.", true);
+    add_option("npackets", npackets_,
+               "The total number of data packets to read "
+               "(0 means continuous recording).");
+    add_option("batch size", batch_size_,
+               "The number of data packets to concatenate into "
+               "single multi-channel data bucket.");
 }
 
 void OpenEphysZMQ::CreatePorts() {
-    data_out_port_ = create_output_port<MultiChannelType<unsigned int>>(
-        "data", MultiChannelType<unsigned int>::Capabilities(ChannelRange(nchannels_())),
-        MultiChannelType<unsigned int>::Parameters(),
-        PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
+    for (auto &it : channelmap_()) {
+      data_ports_[it.first] = create_output_port<MultiChannelType<float>>(
+          it.first,
+          MultiChannelType<float>::Capabilities(ChannelRange(it.second.size())),
+          MultiChannelType<float>::Parameters(),
+          PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
+      for (auto &chan : it.second) {
+        samples_[chan] = new std::vector<float>();
+      }
+      timestamps = new std::vector<uint64_t>();
+   }
 }
 
 
 void OpenEphysZMQ::CompleteStreamInfo() {
-  for (auto &it : data_ports_) {
-    // finalize data type with nsamples == batch_size and nchannels taken from
-    // channel map
-    it.second->streaminfo(0).set_parameters(
-        MultiChannelType<double>::Parameters(
-            channelmap_().at(it.first).size(), batch_size_(),
-            OPEN_EPHYS_SIGNAL_SAMPLING_FREQUENCY));
-    it.second->streaminfo(0).set_stream_rate(
-        IRREGULARSTREAM);
-  }
-
+    for (auto &it : data_ports_) {
+      // finalize data type with nsamples == batch_size and nchannels taken from
+      // channel map
+      it.second->streaminfo(0).set_parameters(
+          MultiChannelType<double>::Parameters(
+              channelmap_().at(it.first).size(), batch_size_(),30000));
+      it.second->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
+    }
 }
 
 void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
@@ -84,7 +87,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
 
-  MultiChannelType<unsigned int>::Data *data_vector;
+  MultiChannelType<float>::Data *data_vector;
 
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
 
@@ -117,6 +120,15 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           int32_t n_samples = data->nbr_samples();
           LOG(DEBUG) << name() << "number of data in the packet: " << n_samples;
 
+          // copy data onto buffers for each configured channel group
+          for (auto &it : samples_) {
+            auto start_index = data->samples()->begin() + n_samples*it.first;
+
+            it.second->insert(it.second->end(), start_index,
+                              start_index + n_samples);
+
+          }
+
          // uint64_t sample_rate_ = data->sample_rate();
 
           auto ts_increase = [&init_ts, n=0]() mutable {
@@ -124,64 +136,42 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
             //return init_ts + n * static_cast<uint64_t>(1000000 / sample_rate_); // microseconds timestamps
             return init_ts + n; // OpenEphys timestamp index
           };
-          LOG(INFO) << name() << " Copy data ";
 
-           std::vector<uint64_t> ts(n_samples);
-           ts.reserve(n_samples);
-           std::generate_n(ts.begin(), n_samples, ts_increase);
-
-          std::vector<uint32_t> vec;
-          vec.reserve(data->samples()->size());
-          vec.assign(data->samples()->begin(), data->samples()->end());
-
-          auto ts_increase = [&init_ts, &sample_rate_, idx=0]() mutable {
-            ++idx;
-            //return init_ts - n_samples * static_cast<uint64_t>(1000000 / sample_rate_); // microseconds timestamps
-            return init_ts + idx; // OpenEphys timestamp index
-          };
-
-
-
+          std::vector<uint64_t> ts(n_samples);
+          ts.reserve(n_samples);
+          std::generate_n(ts.begin(), n_samples, ts_increase);
           timestamps->insert(timestamps->end(), ts.begin(), ts.end());
-      }
 
-      bool send_packet = false;
+      }
 
       for (auto &it : channelmap_()) {
 
-        if (samples_[it.second[0]]->size() < batch_size_()) {
-          break;
-        }
-        LOG(INFO) << name() << " Send a new packet on the port " << it.first;
-        data_vector = data_ports_[it.first]->slot(0)->ClaimData(false);
-        // set data bucket metadata
-        data_vector->set_hardware_timestamp(*timestamps->begin());
-        data_vector->set_source_timestamp();
+             if (samples_[it.second[0]]->size() < batch_size_()) {
+               break;
+             }
 
-        int i = 0;
-        for (auto &channel : it.second) {
-          std::vector<float> packet(samples_[channel]->begin(),
-                                    samples_[channel]->begin() + batch_size_());
+             data_vector = data_ports_[it.first]->slot(0)->ClaimData(false);
+             // set data bucket metadata
+             data_vector->set_hardware_timestamp(*timestamps->begin());
+             data_vector->set_source_timestamp();
 
-          data_vector->set_data_sample(i, packet);
+             int i = 0;
+             for (auto &channel : it.second) {
+               std::vector<float> packet(samples_[channel]->begin(),
+                                         samples_[channel]->begin() + batch_size_());
+               data_vector->set_data_channel(i, packet);
+               ++i;
+               samples_[channel]->erase(samples_[channel]->begin(),
+                                        samples_[channel]->begin() + batch_size_());
+             }
+             std::vector<uint64_t> t(timestamps->begin(),
+                                     timestamps->begin() + batch_size_());
 
-          LOG(INFO)<< data_vector->data_sample(0,i) << " "<< data_vector->data_sample(1,i);
-          i = i+1;
-          samples_[channel]->erase(samples_[channel]->begin(),
-                                   samples_[channel]->begin() + batch_size_());
-        }
-        std::vector<uint64_t> t(timestamps->begin(),
-                                timestamps->begin() + batch_size_());
-
-        data_vector->set_sample_timestamps(t);
-        data_ports_[it.first]->slot(0)->PublishData();
-        send_packet = true;
-      }
-
-          LOG(INFO) << name() << " Send a new packet on the port ";
-      }
-
-
+             data_vector->set_sample_timestamps(t);
+             data_ports_[it.first]->slot(0)->PublishData();
+             timestamps->erase(timestamps->begin(),
+                               timestamps->begin() + batch_size_());
+       }
   }
 }
 
