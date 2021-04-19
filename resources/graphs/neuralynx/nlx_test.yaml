@@ -1,5 +1,4 @@
-graph:
-  processors:
+processors:
     reader:
       class: NlxPureReader
       options:
@@ -18,6 +17,6 @@ graph:
           a: [1,2,3,4]
           b: [5,6,7,8]
 
-  connections:
+connections:
     - reader = parser
     - parser.data = distributor.data

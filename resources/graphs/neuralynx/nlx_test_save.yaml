@@ -1,5 +1,4 @@
-graph:
-  processors:
+processors:
     reader:
       class: NlxPureReader
       options:
@@ -13,5 +12,5 @@ graph:
         format: compact
         preamble: false
 
-  connections:
+connections:
     - reader = saver

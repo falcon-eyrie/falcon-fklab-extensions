@@ -4,9 +4,6 @@ processors:
 
   logger:
     class: SerialOutput
-    options:
-      target event: test
-      enabled: True
 
   event source (1-2):
     class: EventSource
@@ -18,15 +15,15 @@ processors:
     class: EventConverter
     options:
       event name: test
-      replace: 0
+      replace: true
 
-
-
+  event sync:
+    class: EventSync
+    options:
+      target event: test
+      
 connections:
   - event source1.events=p:data.f:sink
   - event source2.events=p:events.f:event converter
-  - event converter.events = logger.events
-
-states:
-  - [sink1.tickle, sink2.tickle]
-
+  - event converter.events = event sync.events
+  - event sync.events = logger.events

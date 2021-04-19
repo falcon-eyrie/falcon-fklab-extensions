@@ -1,0 +1,23 @@
+processors:
+    reader:
+      class: OpenEphysZMQ
+      options:
+        channelmap:
+          hp: [13,20]
+          cx: [9]
+    saver cx:
+      class: FileSerializer
+      options:
+        encoding: binary
+        format: compact
+        preamble: false
+    saver hp:
+      class: FileSerializer
+      options:
+        encoding: yaml
+        format: compact
+        preamble: false
+
+connections:
+    - reader.cx = saver cx
+    - reader.hp = saver hp
