@@ -70,7 +70,7 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
     node["event"] = event_;
   }
 }
-/*
+
 void SerializeYAML(YAML::Node &node,
                    Serialization::Format format =
                                Serialization::Format::FULL) const override {
@@ -83,22 +83,20 @@ void SerializeYAML(YAML::Node &node,
     node["signal"] = data_;
   }
 }
-*/
-void Data::SerializeFlatBuffer(std::ostream &stream,
+
+void SerializeFlatBuffer(std::ostream &stream,
                         uint16_t streamid,
-                        uint64_t packetid) const {
+                        uint64_t packetid) const override{
 
   flatbuffers::FlatBufferBuilder builder(1024);
   auto ts = static_cast<uint64_t>(
               std::chrono::duration_cast<std::chrono::microseconds>(
                   source_timestamp_.time_since_epoch())
-                  .count());
-  auto event_name = builder.CreateString(event_);
-  auto buffer = CreateEventData(builder, event_name, ts, streamid, packetid);
+                  .count())
+
+  auto buffer = CreateEventData(builder, event_, ts, streamid, packetid);
   builder.Finish(buffer);
   stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
-
-
 }
 
 void Data::YAMLDescription(YAML::Node &node,

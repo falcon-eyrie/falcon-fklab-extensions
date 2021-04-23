@@ -1,0 +1,12 @@
+ 
+ 
+// IDL file for one channel 
+
+table EventData {
+    events: string;
+    timestamps: int64; 
+    packetid: int;
+    streamid: int;
+}
+
+root_type EventData;

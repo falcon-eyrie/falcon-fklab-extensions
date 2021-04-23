@@ -29,6 +29,7 @@
 #include "utilities/iterators.hpp"
 #include "utilities/string.hpp"
 
+#include "multichanneldata_generated.h"
 typedef Range<size_t> SampleRange;
 
 namespace nsMultiChannel {
@@ -249,6 +250,26 @@ template <typename T> class Data : public Base::Data {
       // flat list
       node["signal"] = data_;
     }
+  }
+
+  void SerializeFlatBuffer(std::ostream &stream,
+                          uint16_t streamid,
+                          uint64_t packetid) const override{
+    flatbuffers::FlatBufferBuilder builder(1024);
+    auto samples = builder.CreateVector(reinterpret_cast<const signed char *>(data_.data()),
+                                        data_.size() * sizeof(T));
+    auto ts =  static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    source_timestamp_.time_since_epoch())
+                    .count());
+
+    auto buffer = CreateMultichannelData(builder, samples, nchannels_,
+                                         nsamples_, ts, sample_rate_,
+                                         streamid, packetid);
+    builder.Finish(buffer);
+    stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
+
+
   }
 
   void YAMLDescription(YAML::Node &node,
