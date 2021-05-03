@@ -46,8 +46,8 @@ protected:
 
   // PORT
 protected:
-  std::map<std::string, PortOut<MultiChannelType<float>> *> data_ports_;
-  std::map<int, std::vector<float> *> samples_;
+  std::map<std::string, PortOut<MultiChannelType<double>> *> data_ports_;
+  std::map<int, std::vector<double> *> samples_;
   std::vector<uint64_t> *timestamps;
 
   // VARIABLES

@@ -39,13 +39,14 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
 
 void OpenEphysZMQ::CreatePorts() {
     for (auto &it : channelmap_()) {
-      data_ports_[it.first] = create_output_port<MultiChannelType<float>>(
+      data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
           it.first,
-          MultiChannelType<float>::Capabilities(ChannelRange(it.second.size())),
-          MultiChannelType<float>::Parameters(),
+          MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
+          MultiChannelType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
       for (auto &chan : it.second) {
-        samples_[chan] = new std::vector<float>();
+        LOG(INFO) << chan;
+        samples_[chan] = new std::vector<double>();
       }
       timestamps = new std::vector<uint64_t>();
    }
@@ -87,7 +88,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
 
-  MultiChannelType<float>::Data *data_vector;
+  MultiChannelType<double>::Data *data_vector;
 
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
 
@@ -143,7 +144,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           timestamps->insert(timestamps->end(), ts.begin(), ts.end());
 
       }
-
+      bool packet_send = false;
       for (auto &it : channelmap_()) {
 
              if (samples_[it.second[0]]->size() < batch_size_()) {
@@ -156,22 +157,31 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
              data_vector->set_source_timestamp();
 
              int i = 0;
-             for (auto &channel : it.second) {
-               std::vector<float> packet(samples_[channel]->begin(),
-                                         samples_[channel]->begin() + batch_size_());
-               data_vector->set_data_channel(i, packet);
-               ++i;
-               samples_[channel]->erase(samples_[channel]->begin(),
-                                        samples_[channel]->begin() + batch_size_());
-             }
-             std::vector<uint64_t> t(timestamps->begin(),
-                                     timestamps->begin() + batch_size_());
 
-             data_vector->set_sample_timestamps(t);
+             for (auto &channel : it.second) {
+               std::move( samples_[channel]->begin(), samples_[channel]->begin() + batch_size_(), data_vector->begin_channel(i));
+               ++i;
+             }
+
+             std::move( timestamps->begin(),
+                        timestamps->begin() + batch_size_(), data_vector->sample_timestamps().begin());
              data_ports_[it.first]->slot(0)->PublishData();
-             timestamps->erase(timestamps->begin(),
-                               timestamps->begin() + batch_size_());
-       }
+             packet_send = true;
+
+    }
+
+    if(packet_send){
+        for (auto &it : channelmap_()) {
+          for (auto &channel : it.second) {
+            samples_[channel]->erase(samples_[channel]->begin(),
+                                     samples_[channel]->begin() + batch_size_());
+
+          }
+         }
+          timestamps->erase(timestamps->begin(),
+                            timestamps->begin() + batch_size_());
+    }
+
   }
 }
 
