@@ -28,15 +28,28 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
     add_option("port", data_port_,
                "ZMQ network port to subscribe to the data stream");
     add_option("channelmap", channelmap_,
-               "Mapping of channels to processor output ports.", true);
+               "Mapping of channels to processor output ports.");
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
     add_option("batch size", batch_size_,
                "The number of data packets to concatenate into "
                "single multi-channel data bucket.");
+    add_option("nchannels", nchannels_,
+               "The number of channels in the data packet sent by Open-Ephys.");
 }
 
+void OpenEphysZMQ::Configure(const GlobalContext &context) {
+
+    if(channelmap_().find("channels") != channelmap_().end()){
+       auto vec = new std::vector<int>(nchannels_());
+       std::iota(vec->begin(), vec->end(), 0);
+       channelmap_.set_value({{"channels", *vec}});
+
+       LOG(INFO) << name() << " The channels port will stream channels from 0 to " << nchannels_();
+    }
+
+}
 void OpenEphysZMQ::CreatePorts() {
     for (auto &it : channelmap_()) {
       data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
@@ -45,7 +58,6 @@ void OpenEphysZMQ::CreatePorts() {
           MultiChannelType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
       for (auto &chan : it.second) {
-        LOG(INFO) << chan;
         samples_[chan] = new std::vector<double>();
       }
       timestamps = new std::vector<uint64_t>();
