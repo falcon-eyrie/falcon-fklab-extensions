@@ -84,21 +84,19 @@ void SerializeYAML(YAML::Node &node,
   }
 }
 */
-void Data::SerializeFlatBuffer(std::ostream &stream,
-                        uint16_t streamid,
-                        uint64_t packetid) const {
+void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
+                               std::vector<flatbuffers::Offset<Channel>> *data_channel
+                              ) const {
 
-  flatbuffers::FlatBufferBuilder builder(1024);
-  auto ts = static_cast<uint64_t>(
-              std::chrono::duration_cast<std::chrono::microseconds>(
-                  source_timestamp_.time_since_epoch())
-                  .count());
-  auto event_name = builder.CreateString(event_);
-  auto buffer = CreateEventData(builder, event_name, ts, streamid, packetid);
-  builder.Finish(buffer);
-  stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
+    std::vector<flatbuffers::Offset<flatbuffers::String>>* vec = nullptr;
+    vec->push_back(builder->CreateString(event_));
+    auto samples = CreateStringdataDirect(*builder, vec);
+    auto channel = CreateChannel(*builder, Samples_Stringdata,
+                                 samples.Union(),
+                                 builder->CreateString( "event_name"),
+                                 1);
 
-
+    data_channel->push_back(channel);
 }
 
 void Data::YAMLDescription(YAML::Node &node,
