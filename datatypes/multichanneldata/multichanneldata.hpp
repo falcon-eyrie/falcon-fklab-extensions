@@ -313,10 +313,11 @@ template<> inline void Data<double>::SerializeFlatBuffer(flatbuffers::FlatBuffer
                          std::vector<flatbuffers::Offset<Channel>> *data_channel
                          )const{
 
-        auto samples = CreateFloat64dataDirect(*builder, &data_);
-        auto channel = CreateChannel(*builder,Samples_Float64data, samples.Union(),builder->CreateString( "data"),
-                                     nsamples_);
-        data_channel->push_back(channel);
+    std::vector<uint64_t> shapes = {nsamples(), nchannels()};
+    auto channel = CreateChannel(*builder,DataType_Float64Series,
+                                     CreateFloat64SeriesDirect(*builder, &data_, &shapes, &timestamps_).Union(),
+                                     builder->CreateString( "data"));
+    data_channel->push_back(channel);
 }
 
 
@@ -324,11 +325,11 @@ template<> inline void Data<int>::SerializeFlatBuffer(flatbuffers::FlatBufferBui
                          std::vector<flatbuffers::Offset<Channel>> *data_channel
                          )const{
 
-       auto samples = CreateIntdataDirect(*builder, &data_);
-       auto channel = CreateChannel(*builder,Samples_Intdata,samples.Union(),builder->CreateString( "data"),
-                                      nsamples_);
-
-       data_channel->push_back(channel);
+    std::vector<uint64_t> shapes = {nsamples(), nchannels()};
+    auto channel = CreateChannel(*builder,DataType_IntSeries,
+                                     CreateIntSeriesDirect(*builder, &data_, &shapes, &timestamps_).Union(),
+                                     builder->CreateString( "data"));
+    data_channel->push_back(channel);
 
 }
 
@@ -336,11 +337,11 @@ template<> inline void Data<unsigned int>::SerializeFlatBuffer(flatbuffers::Flat
                          std::vector<flatbuffers::Offset<Channel>> *data_channel
                          )const{
 
-       auto samples = CreateUIntdataDirect(*builder, &data_);
-       auto channel = CreateChannel(*builder,Samples_UIntdata,samples.Union(),builder->CreateString( "data"),
-                                      nsamples_);
-
-       data_channel->push_back(channel);
+    std::vector<uint64_t> shapes = {nsamples(), nchannels()};
+    auto channel = CreateChannel(*builder,DataType_UIntSeries,
+                                     CreateUIntSeriesDirect(*builder, &data_, &shapes, &timestamps_).Union(),
+                                     builder->CreateString( "data"));
+    data_channel->push_back(channel);
 
 }
 

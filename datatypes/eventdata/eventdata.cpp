@@ -88,13 +88,9 @@ void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
                                std::vector<flatbuffers::Offset<Channel>> *data_channel
                               ) const {
 
-    std::vector<flatbuffers::Offset<flatbuffers::String>>* vec = nullptr;
-    vec->push_back(builder->CreateString(event_));
-    auto samples = CreateStringdataDirect(*builder, vec);
-    auto channel = CreateChannel(*builder, Samples_Stringdata,
-                                 samples.Union(),
-                                 builder->CreateString( "event_name"),
-                                 1);
+    auto channel = CreateChannel(*builder, DataType_StringValue,
+                                 CreateStringValue(*builder, builder->CreateString(event_)).Union(),
+                                 builder->CreateString( "event"));
 
     data_channel->push_back(channel);
 }

@@ -89,19 +89,14 @@ void Data::YAMLDescription(YAML::Node &node,
 void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
                                std::vector<flatbuffers::Offset<Channel>> *data_channel
                               ) const {
-    std::vector<float>* vec = nullptr;
-    vec->push_back(bin_size_);
-    auto channel= CreateChannel(*builder, Samples_Float32data,
-                                 CreateFloat32dataDirect(*builder, vec).Union(),
-                                 builder->CreateString("bin size"),
-                                 n_spikes_);
 
-    std::vector<float>* vec_mua = nullptr;
-    vec_mua->push_back(mua());
-    auto channel_mua= CreateChannel(*builder, Samples_Float32data,
-                                 CreateFloat32dataDirect(*builder, vec_mua).Union(),
-                                 builder->CreateString("mua"),
-                                 n_spikes_);
+    auto channel= CreateChannel(*builder, DataType_Float64Value,
+                                 CreateFloat64Value(*builder, bin_size_).Union(),
+                                 builder->CreateString("bin size"));
+
+    auto channel_mua= CreateChannel(*builder, DataType_UIntValue,
+                                 CreateUIntValue(*builder, mua()).Union(),
+                                 builder->CreateString("mua"));
 
     data_channel->push_back(channel);
     data_channel->push_back(channel_mua);

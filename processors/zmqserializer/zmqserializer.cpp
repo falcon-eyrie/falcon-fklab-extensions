@@ -87,7 +87,7 @@ void ZMQSerializer::Process(ProcessingContext &context) {
         buffer.str("");
         buffer.clear();
 
-        if (serializer_->Serialize(buffer, it, k, packetid_[k]++)) {
+        if (serializer_->Serialize(buffer, it, k, packetid_[k]++, data_port_->slot(k)->upstream_address())) {
           if (!s_send(*(sockets_[idx]), buffer.str())) {
             LOG(DEBUG) << "failed to send zmq message.";
           }

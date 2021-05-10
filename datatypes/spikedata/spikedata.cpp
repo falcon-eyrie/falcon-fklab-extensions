@@ -174,16 +174,10 @@ void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
                                std::vector<flatbuffers::Offset<Channel>> *data_channel
                               ) const {
 
-    auto channel= CreateChannel(*builder, Samples_Float64data,
-                                 CreateFloat64dataDirect(*builder, &amplitudes_).Union(),
-                                 builder->CreateString("amplitude"),
-                                 n_detected_spikes_);
-
-    auto channel_ts= CreateChannel(*builder, Samples_UInt64data,
-                                 CreateUInt64dataDirect(*builder, &hw_ts_detected_spikes_).Union(),
-                                 builder->CreateString("hardware timestamp"),
-                                 n_detected_spikes_);
+    auto shape = std::vector<uint64_t>(n_detected_spikes_);
+    auto channel= CreateChannel(*builder, DataType_Float64Series,
+                                 CreateFloat64SeriesDirect(*builder, &amplitudes_, &shape, &hw_ts_detected_spikes_).Union(),
+                                 builder->CreateString("spike data"));
 
     data_channel->push_back(channel);
-    data_channel->push_back(channel_ts);
 }
