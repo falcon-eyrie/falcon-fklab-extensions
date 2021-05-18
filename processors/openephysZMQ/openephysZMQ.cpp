@@ -57,10 +57,6 @@ void OpenEphysZMQ::CreatePorts() {
           MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
           MultiChannelType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
-      for (auto &chan : it.second) {
-        samples_[chan] = new std::vector<double>();
-      }
-      timestamps = new std::vector<uint64_t>();
    }
 }
 
@@ -99,8 +95,10 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 }
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
-
-  MultiChannelType<double>::Data *data_vector;
+  unsigned int sample_counter_ = batch_size_();
+  unsigned int data_index = 0;
+  MultiChannelType<double>::Data::sample_iterator data_iter;
+  std::vector<MultiChannelType<double>::Data *> data_vector(data_ports_.size());
 
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
 
@@ -133,67 +131,42 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           int32_t n_samples = data->nbr_samples();
           LOG(DEBUG) << name() << "number of data in the packet: " << n_samples;
 
-          // copy data onto buffers for each configured channel group
-          for (auto &it : samples_) {
-            auto start_index = data->samples()->begin() + n_samples*it.first;
+          // claim new data buckets
+          for(int i=0; i<n_samples; i++){
+              if (sample_counter_ == batch_size_()) {
+                data_index = 0;
+                for (auto &it : data_ports_) {
+                  data_vector[data_index] = it.second->slot(0)->ClaimData(false);
+                  // set data bucket metadata
+                  data_vector[data_index]->set_hardware_timestamp(init_ts);
+                  data_vector[data_index]->set_source_timestamp();
+                  data_index++;
 
-            it.second->insert(it.second->end(), start_index,
-                              start_index + n_samples);
+                }
+                sample_counter_ = 0;
+              }
 
+              // copy data onto buffers for each configured channel group
+              data_index = 0;
+              for (auto &it : channelmap_()) {
+                data_vector[data_index]->set_sample_timestamp(sample_counter_, init_ts+i);
+                data_iter = data_vector[data_index]->begin_sample(sample_counter_);
+                for (auto &channel : it.second) {
+                  (*data_iter) = *(data->samples()->begin() + i*channel);
+                  ++data_iter;
+                }
+                data_index++;
+              }
+
+              ++sample_counter_;
+              // publish data buckets
+              if (sample_counter_ == batch_size_()) {
+                for (auto &it : data_ports_) {
+                  it.second->slot(0)->PublishData();
+                }
+              }
           }
-
-         // uint64_t sample_rate_ = data->sample_rate();
-
-          auto ts_increase = [&init_ts, n=0]() mutable {
-            ++n;
-            //return init_ts + n * static_cast<uint64_t>(1000000 / sample_rate_); // microseconds timestamps
-            return init_ts + n; // OpenEphys timestamp index
-          };
-
-          std::vector<uint64_t> ts(n_samples);
-          ts.reserve(n_samples);
-          std::generate_n(ts.begin(), n_samples, ts_increase);
-          timestamps->insert(timestamps->end(), ts.begin(), ts.end());
-
       }
-      bool packet_send = false;
-      for (auto &it : channelmap_()) {
-
-             if (samples_[it.second[0]]->size() < batch_size_()) {
-               break;
-             }
-
-             data_vector = data_ports_[it.first]->slot(0)->ClaimData(false);
-             // set data bucket metadata
-             data_vector->set_hardware_timestamp(*timestamps->begin());
-             data_vector->set_source_timestamp();
-
-             int i = 0;
-
-             for (auto &channel : it.second) {
-               std::move( samples_[channel]->begin(), samples_[channel]->begin() + batch_size_(), data_vector->begin_channel(i));
-               ++i;
-             }
-
-             std::move( timestamps->begin(),
-                        timestamps->begin() + batch_size_(), data_vector->sample_timestamps().begin());
-             data_ports_[it.first]->slot(0)->PublishData();
-             packet_send = true;
-
-    }
-
-    if(packet_send){
-        for (auto &it : channelmap_()) {
-          for (auto &channel : it.second) {
-            samples_[channel]->erase(samples_[channel]->begin(),
-                                     samples_[channel]->begin() + batch_size_());
-
-          }
-         }
-          timestamps->erase(timestamps->begin(),
-                            timestamps->begin() + batch_size_());
-    }
-
   }
 }
 
