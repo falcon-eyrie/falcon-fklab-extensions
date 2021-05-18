@@ -25,10 +25,8 @@
 
 OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
     add_option("address", address_, "ZMQ network address to connect");
-    add_option("port", data_port_,
+    add_option("port", port_,
                "ZMQ network port to subscribe to the data stream");
-    add_option("channelmap", channelmap_,
-               "Mapping of channels to processor output ports.");
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
@@ -39,37 +37,22 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
                "The number of channels in the data packet sent by Open-Ephys.");
 }
 
-void OpenEphysZMQ::Configure(const GlobalContext &context) {
-
-    if(channelmap_().find("channels") != channelmap_().end()){
-       auto vec = new std::vector<int>(nchannels_());
-       std::iota(vec->begin(), vec->end(), 0);
-       channelmap_.set_value({{"channels", *vec}});
-
-       LOG(INFO) << name() << " The channels port will stream channels from 0 to " << nchannels_();
-    }
-
-}
 void OpenEphysZMQ::CreatePorts() {
-    for (auto &it : channelmap_()) {
-      data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
-          it.first,
-          MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
+    data_port_= create_output_port<MultiChannelType<double>>(
+          "data",
+          MultiChannelType<double>::Capabilities(ChannelRange(nchannels_())),
           MultiChannelType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
-   }
+
 }
 
 
 void OpenEphysZMQ::CompleteStreamInfo() {
-    for (auto &it : data_ports_) {
-      // finalize data type with nsamples == batch_size and nchannels taken from
-      // channel map
-      it.second->streaminfo(0).set_parameters(
+    data_port_->streaminfo(0).set_parameters(
           MultiChannelType<double>::Parameters(
-              channelmap_().at(it.first).size(), batch_size_(),30000));
-      it.second->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
-    }
+              nchannels_(), batch_size_(),30000));
+    data_port_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
+
 }
 
 void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
@@ -80,14 +63,14 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
     data_socket_.setsockopt(ZMQ_SUBSCRIBE, source_id_.c_str(),
                             source_id_.length());
     data_socket_.connect("tcp://" + address_() + ":" +
-                         std::to_string(data_port_()));
+                         std::to_string(port_()));
   } catch (...) {
     LOG(INFO) << "Error when connecting the socket to the address "
-              << "tcp://" << address_() << ":" << std::to_string(data_port_());
+              << "tcp://" << address_() << ":" << std::to_string(port_());
   }
 
   LOG(INFO) << name() << ". Falcon is connected to the address tcp://"
-            << address_() << ":" << std::to_string(data_port_())
+            << address_() << ":" << std::to_string(port_())
             << " and is ready to receive data from OpenEphys.";
 
   data_corrupted_counter_ = 0;
@@ -96,9 +79,8 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
-  unsigned int data_index = 0;
   MultiChannelType<double>::Data::sample_iterator data_iter;
-  std::vector<MultiChannelType<double>::Data *> data_vector(data_ports_.size());
+  MultiChannelType<double>::Data* data_out;
 
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
 
@@ -132,38 +114,29 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           LOG(DEBUG) << name() << "number of data in the packet: " << n_samples;
 
           // claim new data buckets
-          for(int i=0; i<n_samples; i++){
+          for(int samples=0; samples<n_samples; samples++){
               if (sample_counter_ == batch_size_()) {
-                data_index = 0;
-                for (auto &it : data_ports_) {
-                  data_vector[data_index] = it.second->slot(0)->ClaimData(false);
-                  // set data bucket metadata
-                  data_vector[data_index]->set_hardware_timestamp(init_ts);
-                  data_vector[data_index]->set_source_timestamp();
-                  data_index++;
+                 data_out= data_port_->slot(0)->ClaimData(false);
+                 // set data bucket metadata
+                 data_out->set_hardware_timestamp(init_ts);
+                 data_out->set_source_timestamp();
 
-                }
-                sample_counter_ = 0;
+                 sample_counter_ = 0;
               }
 
               // copy data onto buffers for each configured channel group
-              data_index = 0;
-              for (auto &it : channelmap_()) {
-                data_vector[data_index]->set_sample_timestamp(sample_counter_, init_ts+i);
-                data_iter = data_vector[data_index]->begin_sample(sample_counter_);
-                for (auto &channel : it.second) {
-                  (*data_iter) = *(data->samples()->begin() + i*channel);
-                  ++data_iter;
-                }
-                data_index++;
+              data_out->set_sample_timestamp(sample_counter_, init_ts+samples);
+              data_iter = data_out->begin_sample(sample_counter_);
+
+              for (unsigned int channel=0; channel<nchannels_(); channel++) {
+                (*data_iter) = *(data->samples()->begin() + samples*channel);
+                ++data_iter;
               }
 
               ++sample_counter_;
               // publish data buckets
               if (sample_counter_ == batch_size_()) {
-                for (auto &it : data_ports_) {
-                  it.second->slot(0)->PublishData();
-                }
+                  data_port_->slot(0)->PublishData();
               }
           }
       }
