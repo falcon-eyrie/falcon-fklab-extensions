@@ -86,18 +86,20 @@ void Data::YAMLDescription(YAML::Node &node,
   }
 }
 
-void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                               std::vector<flatbuffers::Offset<Channel>> *data_channel
-                              ) const {
+void Data::SerializeFlatBuffer(std::vector<uint8_t>* buffer) const {
+    auto ts =  static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    source_timestamp().time_since_epoch())
+                    .count());
 
-    auto channel= CreateChannel(*builder, DataType_Float64Value,
-                                 CreateFloat64Value(*builder, bin_size_).Union(),
-                                 builder->CreateString("bin size"));
-
-    auto channel_mua= CreateChannel(*builder, DataType_UIntValue,
-                                 CreateUIntValue(*builder, mua()).Union(),
-                                 builder->CreateString("mua"));
-
-    data_channel->push_back(channel);
-    data_channel->push_back(channel_mua);
+    flexbuffers::Builder fbb;
+    auto startMap = fbb.StartMap();
+    fbb.Float("bin size", bin_size_);
+    fbb.UInt("mua", mua());
+    fbb.UInt("hardware ts", hardware_timestamp());
+    fbb.UInt("source ts", ts);
+    fbb.String("type", "mua");
+    fbb.EndMap(startMap);
+    fbb.Finish();
+    (*buffer) = fbb.GetBuffer();
 }

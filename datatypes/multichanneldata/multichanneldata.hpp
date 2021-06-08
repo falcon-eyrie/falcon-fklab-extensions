@@ -29,8 +29,6 @@
 #include "utilities/iterators.hpp"
 #include "utilities/string.hpp"
 
-
-
 typedef Range<size_t> SampleRange;
 
 namespace nsMultiChannel {
@@ -252,9 +250,34 @@ template <typename T> class Data : public Base::Data {
       node["signal"] = data_;
     }
   }
-  void SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                           std::vector<flatbuffers::Offset<Channel>> *data_channel
-                           ) const override;
+
+  void SerializeFlatBuffer(std::vector<uint8_t>* buffer
+                           ) const override{
+      auto ts =  static_cast<uint64_t>(
+                  std::chrono::duration_cast<std::chrono::microseconds>(
+                      source_timestamp().time_since_epoch())
+                      .count());
+
+      flexbuffers::Builder fbb;
+      auto startMap = fbb.StartMap();
+      fbb.TypedVector("data", [&]{
+             for(auto samples: data_)
+                 fbb.Add(samples);
+      });
+
+      fbb.TypedVector("hardware ts", [&]{
+             for(auto samples: timestamps_)
+                 fbb.Add(samples);
+      });
+
+      fbb.UInt("source ts", ts);
+      fbb.UInt("nchannels", nchannels());
+      fbb.UInt("nsamples", nsamples());
+      fbb.String("type", "multichannel");
+      fbb.EndMap(startMap);
+      fbb.Finish();
+      (*buffer) = fbb.GetBuffer();
+  }
 
   void YAMLDescription(YAML::Node &node,
                        Serialization::Format format =
@@ -303,48 +326,6 @@ template <typename T> class Data : public Base::Data {
   std::vector<uint64_t> timestamps_;
 };
 
-/*template<typename T> void Data<T>::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                                                  std::vector<flatbuffers::Offset<Channel>> *data_channel
-                                                  )const{
-
-}*/
-
-template<> inline void Data<double>::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                         std::vector<flatbuffers::Offset<Channel>> *data_channel
-                         )const{
-
-    std::vector<uint64_t> shapes = {nsamples(), nchannels()};
-    auto channel = CreateChannel(*builder,DataType_Float64Series,
-                                     CreateFloat64SeriesDirect(*builder, &data_, &shapes, &timestamps_).Union(),
-                                     builder->CreateString( "data"));
-    data_channel->push_back(channel);
-}
-
-
-template<> inline void Data<int>::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                         std::vector<flatbuffers::Offset<Channel>> *data_channel
-                         )const{
-
-    std::vector<uint64_t> shapes = {nsamples(), nchannels()};
-    auto channel = CreateChannel(*builder,DataType_IntSeries,
-                                     CreateIntSeriesDirect(*builder, &data_, &shapes, &timestamps_).Union(),
-                                     builder->CreateString( "data"));
-    data_channel->push_back(channel);
-
-}
-
-template<> inline void Data<unsigned int>::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                         std::vector<flatbuffers::Offset<Channel>> *data_channel
-                         )const{
-
-    std::vector<uint64_t> shapes = {nsamples(), nchannels()};
-    auto channel = CreateChannel(*builder,DataType_UIntSeries,
-                                     CreateUIntSeriesDirect(*builder, &data_, &shapes, &timestamps_).Union(),
-                                     builder->CreateString( "data"));
-    data_channel->push_back(channel);
-
-}
-
 }  // namespace nsMultiChannel
 
 template <typename T> class MultiChannelType {
@@ -357,5 +338,3 @@ template <typename T> class MultiChannelType {
   using Capabilities = nsMultiChannel::Capabilities;
   using Data = nsMultiChannel::Data<T>;
 };
-
-

@@ -70,29 +70,24 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
     node["event"] = event_;
   }
 }
-/*
-void SerializeYAML(YAML::Node &node,
-                   Serialization::Format format =
-                               Serialization::Format::FULL) const override {
-  Base::Data::SerializeYAML(node, format);
-  if (format == Serialization::Format::FULL ||
-      format == Serialization::Format::COMPACT) {
-    node["timestamps"] = timestamps_;
-    // TODO: write samples individually to list of lists, instead of a single
-    // flat list
-    node["signal"] = data_;
-  }
-}
-*/
-void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                               std::vector<flatbuffers::Offset<Channel>> *data_channel
-                              ) const {
 
-    auto channel = CreateChannel(*builder, DataType_StringValue,
-                                 CreateStringValue(*builder, builder->CreateString(event_)).Union(),
-                                 builder->CreateString( "event"));
+void Data::SerializeFlatBuffer(std::vector<uint8_t> *buffer) const {
 
-    data_channel->push_back(channel);
+    auto ts =  static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    source_timestamp().time_since_epoch())
+                    .count());
+
+    flexbuffers::Builder fbb;
+    auto startMap = fbb.StartMap();
+    fbb.String("event", event_);
+    fbb.UInt("hardware ts", hardware_timestamp());
+    fbb.UInt("source ts", ts);
+    fbb.String("type", "events");
+    fbb.EndMap(startMap);
+    fbb.Finish();
+    (*buffer) = fbb.GetBuffer();
+
 }
 
 void Data::YAMLDescription(YAML::Node &node,

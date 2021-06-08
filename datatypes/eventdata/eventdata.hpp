@@ -76,9 +76,7 @@ class Data : public Base::Data {
                      Serialization::Format format =
                                  Serialization::Format::FULL) const override;
 
-  void SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                           std::vector<flatbuffers::Offset<Channel>> *data_channel
-                          ) const override;
+  void SerializeFlatBuffer(std::vector<uint8_t>* buffer) const override;
 
   void YAMLDescription(YAML::Node &node,
                        Serialization::Format format =

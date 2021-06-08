@@ -170,14 +170,30 @@ void Data::YAMLDescription(YAML::Node &node,
   }
 }
 
-void Data::SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                               std::vector<flatbuffers::Offset<Channel>> *data_channel
-                              ) const {
+void Data::SerializeFlatBuffer(std::vector<uint8_t> *buffer) const {
 
-    auto shape = std::vector<uint64_t>(n_detected_spikes_);
-    auto channel= CreateChannel(*builder, DataType_Float64Series,
-                                 CreateFloat64SeriesDirect(*builder, &amplitudes_, &shape, &hw_ts_detected_spikes_).Union(),
-                                 builder->CreateString("spike data"));
+    auto ts =  static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    source_timestamp().time_since_epoch())
+                    .count());
 
-    data_channel->push_back(channel);
+    flexbuffers::Builder fbb;
+    auto startMap = fbb.StartMap();
+
+    fbb.TypedVector("amplitude", [&]{
+           for(auto samples: amplitudes_)
+               fbb.Add(samples);
+    });
+
+    fbb.TypedVector("hardware ts", [&]{
+           for(auto samples:  hw_ts_detected_spikes_)
+               fbb.Add(samples);
+    });
+
+    fbb.UInt("n_detected_spikes", n_detected_spikes_);
+    fbb.UInt("source ts", ts);
+    fbb.String("type", "spike");
+    fbb.EndMap(startMap);
+    fbb.Finish();
+    (*buffer) = fbb.GetBuffer();
 }
