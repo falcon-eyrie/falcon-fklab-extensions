@@ -71,23 +71,10 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
   }
 }
 
-void Data::SerializeFlatBuffer(std::vector<uint8_t> *buffer) const {
-
-    auto ts =  static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::microseconds>(
-                    source_timestamp().time_since_epoch())
-                    .count());
-
-    flexbuffers::Builder fbb;
-    auto startMap = fbb.StartMap();
-    fbb.String("event", event_);
-    fbb.UInt("hardware ts", hardware_timestamp());
-    fbb.UInt("source ts", ts);
-    fbb.String("type", "events");
-    fbb.EndMap(startMap);
-    fbb.Finish();
-    (*buffer) = fbb.GetBuffer();
-
+void Data::SerializeFlatBuffer(flexbuffers::Builder* fbb){
+    Base::Data::SerializeFlatBuffer(fbb);
+    fbb->String("event", event_);
+    fbb->String("type", "events");
 }
 
 void Data::YAMLDescription(YAML::Node &node,

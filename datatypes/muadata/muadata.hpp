@@ -63,7 +63,7 @@ class Data : public Base::Data {
                        Serialization::Format format =
                        Serialization::Format::FULL) const final;
 
- void SerializeFlatBuffer(std::vector<uint8_t>* buffer) const final;
+  void SerializeFlatBuffer(flexbuffers::Builder* fbb) final;
 
  protected:
   double bin_size_;  // in ms

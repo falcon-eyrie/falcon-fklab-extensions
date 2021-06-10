@@ -251,32 +251,21 @@ template <typename T> class Data : public Base::Data {
     }
   }
 
-  void SerializeFlatBuffer(std::vector<uint8_t>* buffer
-                           ) const override{
-      auto ts =  static_cast<uint64_t>(
-                  std::chrono::duration_cast<std::chrono::microseconds>(
-                      source_timestamp().time_since_epoch())
-                      .count());
-
-      flexbuffers::Builder fbb;
-      auto startMap = fbb.StartMap();
-      fbb.TypedVector("data", [&]{
+  void SerializeFlatBuffer(flexbuffers::Builder* fbb) override{
+      Base::Data::SerializeFlatBuffer(fbb);
+      fbb->TypedVector("data", [&]{
              for(auto samples: data_)
-                 fbb.Add(samples);
+                 fbb->Add(samples);
       });
 
-      fbb.TypedVector("hardware ts", [&]{
+      fbb->TypedVector("timestamps", [&]{
              for(auto samples: timestamps_)
-                 fbb.Add(samples);
+                 fbb->Add(samples);
       });
 
-      fbb.UInt("source ts", ts);
-      fbb.UInt("nchannels", nchannels());
-      fbb.UInt("nsamples", nsamples());
-      fbb.String("type", "multichannel");
-      fbb.EndMap(startMap);
-      fbb.Finish();
-      (*buffer) = fbb.GetBuffer();
+      fbb->UInt("nchannels", nchannels());
+      fbb->UInt("nsamples", nsamples());
+      fbb->String("type", "multichannel");
   }
 
   void YAMLDescription(YAML::Node &node,

@@ -86,20 +86,11 @@ void Data::YAMLDescription(YAML::Node &node,
   }
 }
 
-void Data::SerializeFlatBuffer(std::vector<uint8_t>* buffer) const {
-    auto ts =  static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::microseconds>(
-                    source_timestamp().time_since_epoch())
-                    .count());
+void Data::SerializeFlatBuffer(flexbuffers::Builder* fbb)
+ {
+    Base::Data::SerializeFlatBuffer(fbb);
 
-    flexbuffers::Builder fbb;
-    auto startMap = fbb.StartMap();
-    fbb.Float("bin size", bin_size_);
-    fbb.UInt("mua", mua());
-    fbb.UInt("hardware ts", hardware_timestamp());
-    fbb.UInt("source ts", ts);
-    fbb.String("type", "mua");
-    fbb.EndMap(startMap);
-    fbb.Finish();
-    (*buffer) = fbb.GetBuffer();
+    fbb->Float("bin size", bin_size_);
+    fbb->UInt("mua", mua());
+    fbb->String("type", "mua");
 }
