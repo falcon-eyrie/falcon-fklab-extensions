@@ -54,9 +54,8 @@ class IFilter {
 
   // single channel, single sample
   virtual double process_channel(double, unsigned int channel){return 0;};
-  virtual void process_sample(std::vector<double>::iterator,
-<<<<<<< HEAD
-                              std::vector<double>::iterator) = 0;
+
+  virtual void process_sample(std::vector<double>::iterator,std::vector<double>::iterator) = 0;
   virtual void process_sample(double *, double *) = 0;
 
   // single channel, multiple samples
@@ -79,9 +78,6 @@ class IFilter {
                                   double **) = 0;  // samples<channels>
   virtual void process_by_sample(uint64_t nsamples, double **,
                                  double **) = 0;  // channels<samples>
-=======
-                              std::vector<double>::iterator){};
->>>>>>> add slope filter + big clean-up of the filter lib
   virtual void
   process_by_channel(uint64_t nsamples, std::vector<double> &,
                      std::vector<double> &) = 0;  // samples<channels>
