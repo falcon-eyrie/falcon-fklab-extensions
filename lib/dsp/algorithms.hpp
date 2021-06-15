@@ -193,6 +193,8 @@ class SpikeDetector {
   uint64_t timestamp_detected_spike() const;
   const std::vector<double> &amplitudes_detected_spike() const;
 
+  const std::vector<bool> &channels_detected_spike() const;
+
   /**
    * Spike detection algorithm:
    *
@@ -220,12 +222,10 @@ class SpikeDetector {
     if (detection_mode_ == SpikeDetectionMode::THRESHOLD) {
       // is threshold crossed on any of the channels?
       for (c = 0; c < nchannels_; ++c) {
-        if (previous_sample_[c] <= threshold_ && *it > threshold_) {
-          // std::cout << ". Threshold crossed at timestamp: " << timestamp <<
-          // std::endl;
+        if (previous_sample_[c] >= threshold_ && *it < threshold_) {
+          threshold_crossed_[c] = true;
           detection_mode_ = SpikeDetectionMode::PEAK;
           prepare_peak_detection(timestamp, sample);
-          break;
         }
         ++it;
       }
@@ -233,11 +233,13 @@ class SpikeDetector {
     } else if (detection_mode_ == SpikeDetectionMode::PEAK) {
       // look for peaks
       for (c = 0; c < nchannels_; ++c) {
-        if (!peak_found_[c]) {
-          if (slope_[c] > 0 && *it < previous_sample_[c]) {
+        if (!peak_found_[c] && threshold_crossed_[c]) {
+          // previous slope negative and new value higher than previous => minima
+          if (slope_[c] < 0 && *it > previous_sample_[c]) {
             peak_found_[c] = true;
             ++npeaks_found_;
             peak_amplitudes_[c] = previous_sample_[c];
+            channels_[c] = threshold_crossed_[c];
           }
         }
         ++it;
@@ -245,20 +247,11 @@ class SpikeDetector {
 
       --peak_countdown_;
 
-      if (peak_countdown_ == 0 || npeaks_found_ == nchannels_) {
-        // QUESTION: should we wait until peak_life_time window is over, or
-        // restart threshold detection as soon as a peak was found on all
-        // channels
-
-        // set spike amplitude of channels without peak
-        // QUESTION: should we only accepts spikes with peaks in all channels?
-        // QUESTION: if not, what amplitude should we assign to the channels
-        // without peak (e.g. some invalid value, or current sample)
-        if (npeaks_found_ > 0) {  // spike found!!
+      if (peak_countdown_ == 0) {
+        if (npeaks_found_ > 0){  // spike found!!
           ++nspikes_found_;
           spike_found = true;
         }
-
         detection_mode_ = SpikeDetectionMode::THRESHOLD;
 
       } else {
@@ -295,6 +288,7 @@ class SpikeDetector {
     npeaks_found_ = 0;
     peak_found_.assign(nchannels_, false);
     peak_amplitudes_ = previous_sample_;
+
     // if no peak found, we will return the detection sample
 
     update_slope(sample);
@@ -313,6 +307,8 @@ class SpikeDetector {
   std::vector<double> slope_;
   unsigned int peak_countdown_;
   std::vector<bool> peak_found_;
+  std::vector<bool> threshold_crossed_;
+  std::vector<bool> channels_;
   unsigned int npeaks_found_;
   std::vector<double> peak_amplitudes_;
 };

@@ -38,6 +38,7 @@ void Data::Initialize(unsigned int nchannels, size_t max_nspikes,
   // reserve enough space so that no memory allocation will take place during
   // run
   amplitudes_.reserve(nchannels * max_nspikes);
+  channels_.reserve(nchannels * max_nspikes);
   hw_ts_detected_spikes_.reserve(max_nspikes);
 
   validity_mask_ = ChannelValidityMask(nchannels);
@@ -46,6 +47,37 @@ void Data::Initialize(unsigned int nchannels, size_t max_nspikes,
 unsigned int Data::n_channels() const { return n_channels_; }
 
 double Data::sample_rate() const { return sample_rate_; }
+
+void Data::add_spike_chan(const std::vector<double> &amplitudes, uint64_t hw_timestamp,
+                const std::vector<bool> &channels) {
+  assert(amplitudes.size() == n_channels_);
+  assert(channels.size() == n_channels_);
+  for (unsigned int c = 0; c < n_channels_; ++c){
+    if (channels[c] == true){
+      amplitudes_.push_back(amplitudes[c]);
+      channels_.push_back(channels[c]);
+      ++n_detected_spikes_;
+    } else {
+      amplitudes_.push_back(0);
+      channels_.push_back(0);
+    }
+  }
+  hw_ts_detected_spikes_.push_back(hw_timestamp);
+}
+
+void Data::add_spike_chan(double *amplitudes, uint64_t hw_timestamp, bool *channels){
+  for (unsigned int c = 0; c < n_channels_; ++c) {
+    if (channels[c] == true){
+      amplitudes_.push_back(amplitudes[c]);
+      channels_.push_back(channels[c]);
+      ++n_detected_spikes_;
+    } else {
+      amplitudes_.push_back(0);
+      channels_.push_back(0);
+    }
+  }
+  hw_ts_detected_spikes_.push_back(hw_timestamp);
+}
 
 void Data::add_spike(const std::vector<double> &amplitudes,
                      uint64_t hw_timestamp) {
@@ -120,6 +152,12 @@ void Data::SerializeBinary(std::ostream &stream,
     stream.write(reinterpret_cast<const char *>(zero_amplitudes.data()),
                  n_spikes_to_fill_buffer * n_channels_ *
                      sizeof(decltype(zero_amplitudes[0])));
+    stream.write(reinterpret_cast<const char *>(channels_.data()),
+                 n_detected_spikes_ * n_channels_ *
+                     sizeof(decltype(channels_[0])));
+    stream.write(reinterpret_cast<const char *>(zero_channels.data()),
+                 n_spikes_to_fill_buffer * n_channels_ *
+                     sizeof(decltype(zero_channels[0])));
   }
 
   if (format == Serialization::Format::COMPACT) {
@@ -158,6 +196,10 @@ void Data::YAMLDescription(YAML::Node &node,
     node.push_back(TS_DETECTED_SPIKES + " " + get_type_string<uint64_t>() +
                    " (" + std::to_string(MAX_N_SPIKES_IN_BUFFER) + ")");
     node.push_back(SPIKE_AMPLITUDES + " " + get_type_string<double>() + " (" +
+                   std::to_string(MAX_N_SPIKES_IN_BUFFER) + "," +
+                   std::to_string(n_channels_) + ")");
+    node.push_back(DETECTED_CHANNELS + " " +
+                  get_type_string<unsigned int>() + " (" +
                    std::to_string(MAX_N_SPIKES_IN_BUFFER) + "," +
                    std::to_string(n_channels_) + ")");
   }

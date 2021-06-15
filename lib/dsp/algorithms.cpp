@@ -264,6 +264,10 @@ const std::vector<double> &SpikeDetector::amplitudes_detected_spike() const {
   return peak_amplitudes_;
 }
 
+const std::vector<bool> &SpikeDetector::channels_detected_spike() const {
+  return channels_;
+}
+
 uint64_t SpikeDetector::nspikes() const { return nspikes_found_; }
 
 void SpikeDetector::reset() {
@@ -274,9 +278,11 @@ void SpikeDetector::reset() {
 
   nspikes_found_ = 0;
 
+  threshold_crossed_.assign(nchannels_, false);
   peak_found_.assign(nchannels_, false);
   peak_amplitudes_.assign(nchannels_, 0.0);
   npeaks_found_ = 0;
 
+  channels_.assign(nchannels_, 0);
   detection_mode_ = SpikeDetectionMode::THRESHOLD;
 }

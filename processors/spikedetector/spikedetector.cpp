@@ -25,7 +25,7 @@ SpikeDetector::SpikeDetector() : IProcessor() {
   add_option("invert signal", invert_signal_,
              "Invert signal before spike detection.");
   add_option("buffer size", buffer_size_,
-             "Size (in seconds) of data buffer used for spike detection.");
+             "Size (in milliseconds) of data buffer used for spike detection.");
   add_option("strict time bin check", strict_time_bin_check_,
              "Strict check of compatibility of spike detection buffer size "
              "with the upstream processor");
@@ -149,9 +149,10 @@ void SpikeDetector::Process(ProcessingContext &context) {
         if (spike_detector_->is_spike<double *>(
                 data_in_->sample_timestamp(sample),
                 signals->begin_sample(sample))) {
-          spike_data_out_->add_spike(
+          spike_data_out_->add_spike_chan(
               spike_detector_->amplitudes_detected_spike(),
-              spike_detector_->timestamp_detected_spike());
+              spike_detector_->timestamp_detected_spike(),
+              spike_detector_->channels_detected_spike());
         }
       }
       // update counters and timestamp data

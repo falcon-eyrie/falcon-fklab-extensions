@@ -53,7 +53,7 @@ class SpikeDetector : public IProcessor {
   // VARIABLES
  protected:
   unsigned int n_channels_;
-  size_t n_incoming_;
+  size_t n_incoming_; // buffer_size_/incoming_buffer_size_samples_ 
   size_t incoming_buffer_size_samples_;
   uint64_t n_streamed_events_;
 
@@ -62,7 +62,7 @@ class SpikeDetector : public IProcessor {
 
   // CONSTANTS
  public:
-  unsigned int MAX_N_CHANNELS = 8;
+  unsigned int MAX_N_CHANNELS = 384;
   const std::string PEAK_LIFETIME = "peak lifetime";
   const std::string THRESHOLD = "threshold";
   const int RINGBUFFER_SIZE = 1e5;

@@ -95,6 +95,13 @@ class Data : public Base::Data {
 
   double sample_rate() const;
 
+  void add_spike_chan(const std::vector<double> &amplitudes,
+                 uint64_t hw_timestamp,
+                 const std::vector<bool> &channels);
+
+  void add_spike_chan(double *amplitudes, uint64_t hw_timestamp, 
+                 bool *channels);
+
   void add_spike(const std::vector<double> &amplitudes,
                  uint64_t hw_timestamp);  // 1st argument will change to a better
                                           // interface for matrices
@@ -129,9 +136,10 @@ class Data : public Base::Data {
   void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
 
  protected:
-  uint8_t n_channels_;
+  unsigned int n_channels_;
   unsigned int n_detected_spikes_;
   std::vector<double> amplitudes_;
+  std::vector<unsigned int> channels_;
   // std::vector<double> widths_;
   std::vector<uint64_t> hw_ts_detected_spikes_;
   double sample_rate_;
@@ -149,6 +157,7 @@ class Data : public Base::Data {
   const std::string N_DETECTED_SPIKES = "n_detected_spikes";
   const std::string TS_DETECTED_SPIKES = "TS_detected_spikes";
   const std::string SPIKE_AMPLITUDES = "spike_amplitudes";
+  const std::string DETECTED_CHANNELS = "detected_channels";
 };
 
 }  // namespace nsSpikeType
