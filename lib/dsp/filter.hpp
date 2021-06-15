@@ -19,7 +19,6 @@
 
 #pragma once
 #include <yaml-cpp/yaml.h>
-#include "gram_savitzky_golay.hpp"
 
 #include <array>
 #include <vector>
@@ -33,6 +32,7 @@
 #include <cctype>
 #include <exception>
 
+#include "gram_savitzky_golay.hpp"
 namespace dsp {
 namespace filter {
 
@@ -53,9 +53,11 @@ class IFilter {
   void unrealize();
 
   // single channel, single sample
-  virtual double process_channel(double, unsigned int channel){return 0;};
+  virtual double process_channel(double, unsigned int channel) = 0;
+
+  // all channels, single sample
+  virtual void process_sample(std::vector<double> &, std::vector<double> &) = 0;
   virtual void process_sample(std::vector<double>::iterator,
-<<<<<<< HEAD
                               std::vector<double>::iterator) = 0;
   virtual void process_sample(double *, double *) = 0;
 
@@ -73,18 +75,18 @@ class IFilter {
       std::vector<std::vector<double>> &,
           std::vector<std::vector<double>> &) = 0;  // samples<channels>
   virtual void process_by_sample(
-      std::vector<std::vector<double>> &,
+          std::vector<std::vector<double>> &,
           std::vector<std::vector<double>> &) = 0;  // channels<samples>
   virtual void process_by_channel(uint64_t nsamples, double **,
                                   double **) = 0;  // samples<channels>
   virtual void process_by_sample(uint64_t nsamples, double **,
                                  double **) = 0;  // channels<samples>
-=======
-                              std::vector<double>::iterator){};
->>>>>>> add slope filter + big clean-up of the filter lib
   virtual void
   process_by_channel(uint64_t nsamples, std::vector<double> &,
                      std::vector<double> &) = 0;  // samples<channels>
+  virtual void
+  process_by_sample(uint64_t nsamples, std::vector<double> &,
+                    std::vector<double> &) = 0;  // channels<samples>
 
  protected:
   virtual bool realize_filter(unsigned int nchannels, double init) = 0;
@@ -98,6 +100,7 @@ class IFilter {
 
 class FirFilter : public IFilter {
  public:
+    FirFilter(std::string description = ""): IFilter(description){};
   FirFilter(std::vector<double> &coefficients, std::string description = "");
   virtual IFilter *clone();
 
@@ -106,15 +109,52 @@ class FirFilter : public IFilter {
 
   unsigned int order() const final;
 
+  void set_coeff(std::vector<double> coeff){
+      coefficients_ = coeff;
+      ntaps_ = coefficients_.size();
+      if (ntaps_ < 1) {
+        throw std::runtime_error("Invalid number of filter taps.");
+      }
+      pcoefficients_ = coefficients_.data();
+  }
   std::size_t group_delay() const;
 
   // single channel, single sample
   double process_channel(double input, unsigned int channel = 0) final;
 
+  // all channels, single sample
+  void process_sample(std::vector<double> &input,
+                      std::vector<double> &output) final;
   void process_sample(std::vector<double>::iterator input,
                       std::vector<double>::iterator output) final;
+  void process_sample(double *input, double *output) final;
+
+  // single channel, multiple samples
+  void process_channel(std::vector<double> &input, std::vector<double> &output,
+                       unsigned int channel = 0) final;
+  void process_channel(uint64_t nsamples, std::vector<double>::iterator input,
+                       std::vector<double>::iterator output,
+                       unsigned int channel = 0);
+  void process_channel(uint64_t nsamples, double *input, double *output,
+                       unsigned int channel = 0);
+
+  // all channels, multiple samples
+  void
+  process_by_channel(std::vector<std::vector<double>> &input,
+                     std::vector<std::vector<double>> &output) final;
+  void
+  process_by_sample(std::vector<std::vector<double>> &input,
+                    std::vector<std::vector<double>> &output) final;
+  void process_by_channel(uint64_t nsamples, double **input,
+                          double **output) final;
+  void process_by_sample(uint64_t nsamples, double **input,
+                         double **output) final;
+
   virtual void process_by_channel(uint64_t nsamples, std::vector<double> &input,
                                   std::vector<double> &output);
+  virtual void process_by_sample(uint64_t nsamples, std::vector<double> &input,
+                                 std::vector<double> &output);
+
  protected:
   bool realize_filter(unsigned int nchannels,
                               double init = 0.0) final;
@@ -131,47 +171,16 @@ class FirFilter : public IFilter {
   double *preg_;
 };
 
-class BiquadFilter : public IFilter {
+class SlopeFilter : public FirFilter {
  public:
-  BiquadFilter(double gain, std::vector<std::array<double, 6>> &coefficients,
-               std::string description = "");
-  virtual IFilter *clone();
 
-  static BiquadFilter *FromStream(std::istream &stream, std::string description,
-                                  bool binary);
-
-  unsigned int order() const final;
-
-  // single channel, single sample
-  double process_channel(double x, unsigned int c = 0) final;
-  void process_sample(std::vector<double>::iterator input,
-                      std::vector<double>::iterator output) final;
-
-  void process_by_channel(uint64_t nsamples, std::vector<double> &input,
-                                  std::vector<double> &output) final;
-
-
- protected:
-  bool realize_filter(unsigned int nchannels,
-                              double init = 0.0) final;
-  void unrealize_filter() final;
-
- protected:
-  double gain_;
-  std::vector<std::array<double, 6>> coefficients_;
-
-  unsigned int nstages_;
-
-  std::vector<std::vector<std::array<double, 2>>> registers_;
-};
-
-class SlopeFilter : public IFilter {
- public:
-    SlopeFilter(uint32_t window_size, uint32_t pol_order, uint32_t deriv_order) :
-        IFilter(""), window_size_(window_size), order_({pol_order, deriv_order}){
-
-        filter = new gram_sg::SavitzkyGolayFilter(window_size, window_size, pol_order, deriv_order);
-        to_filter = new std::vector<double>(2*window_size+1);
+  SlopeFilter(uint32_t window_size, uint32_t pol_order, uint32_t deriv_order):
+      FirFilter(""), window_size_(window_size), order_({pol_order, deriv_order})
+     {
+      set_coeff(gram_sg::ComputeWeights(2*window_size+1,
+                                        2*window_size+1,
+                                        pol_order,
+                                        deriv_order));
     }
 
   static SlopeFilter *FromStream(std::istream &stream,
@@ -189,35 +198,79 @@ class SlopeFilter : public IFilter {
       return new SlopeFilter(coefficients[0],coefficients[1], coefficients[2]);
   };
 
-  virtual IFilter *clone(){
+  virtual FirFilter *clone(){
       return new SlopeFilter(window_size_, std::get<0>(order_), std::get<1>(order_));
   };
 
-  // Polynomial Order
-  unsigned int order() const final{return std::get<0>(order_);};
-  // Derivation order? 0: no derivation, 1: first derivative, 2: second derivative...
-  unsigned int deriv_order() const {return std::get<1>(order_);};
-  void process_by_channel(uint64_t nsamples, std::vector<double> &input,
-                          std::vector<double> &output) final;
+    protected:
+     size_t window_size_;
+     std::tuple<size_t, size_t> order_;
+};
 
-protected:
- bool realize_filter(unsigned int nchannels,
-                     double init = 0.0) {
-     nchannels_ = nchannels
-     return true;
- };
+class BiquadFilter : public IFilter {
+ public:
+  BiquadFilter(double gain, std::vector<std::array<double, 6>> &coefficients,
+               std::string description = "");
+  virtual IFilter *clone();
 
- void unrealize_filter() {};
+  static BiquadFilter *FromStream(std::istream &stream, std::string description,
+                                  bool binary);
+
+  unsigned int order() const final;
+
+  // single channel, single sample
+  double process_channel(double x, unsigned int c = 0) final;
+
+  // all channels, single sample
+  void process_sample(std::vector<double> &input,
+                      std::vector<double> &output) final{};
+  void process_sample(std::vector<double>::iterator input,
+                      std::vector<double>::iterator output) final;
+  void process_sample(double *input, double *output) final;
+
+  // single channel, multiple samples
+  void process_channel(std::vector<double> &input, std::vector<double> &output,
+                       unsigned int channel = 0) final;
+  void process_channel(uint64_t nsamples, std::vector<double>::iterator input,
+                       std::vector<double>::iterator output,
+                       unsigned int channel = 0) final;
+  void process_channel(uint64_t nsamples, double *input, double *output,
+                       unsigned int channel = 0) final;
+
+  // all channels, multiple samples
+  void
+  process_by_channel(std::vector<std::vector<double>> &input,
+                     std::vector<std::vector<double>> &output) final;
+  void
+  process_by_sample(std::vector<std::vector<double>> &input,
+                    std::vector<std::vector<double>> &output) final;
+  void process_by_channel(uint64_t nsamples, double **input,
+                          double **output) final;
+  void process_by_sample(uint64_t nsamples, double **input,
+                         double **output) final;
+
+  virtual void process_by_channel(uint64_t nsamples, std::vector<double> &input,
+                                  std::vector<double> &output);
+  virtual void process_by_sample(uint64_t nsamples, std::vector<double> &input,
+                                 std::vector<double> &output);
 
  protected:
-  size_t window_size_;
-  std::tuple<size_t, size_t> order_;
-  gram_sg::SavitzkyGolayFilter* filter;
-  std::vector<double>* to_filter;
+  bool realize_filter(unsigned int nchannels,
+                              double init = 0.0) final;
+  void unrealize_filter() final;
+
+ protected:
+  double gain_;
+  std::vector<std::array<double, 6>> coefficients_;
+
+  unsigned int nstages_;
+
+  std::vector<std::vector<std::array<double, 2>>> registers_;
 };
 
 std::map<std::string, std::string> parse_file_header(std::istream &stream);
 IFilter *construct_from_file(std::string file);
+
 IFilter *construct_from_yaml(const YAML::Node &node);
 
 }  // namespace filter
