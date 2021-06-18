@@ -107,6 +107,7 @@ void EventFilter::Preprocess(ProcessingContext &context) {
     std::this_thread::sleep_for(
         std::chrono::milliseconds(static_cast<int>(blockout_time_())));
   }
+  n_blocked_events_ = 0;
 }
 
 void EventFilter::Process(ProcessingContext &context) {

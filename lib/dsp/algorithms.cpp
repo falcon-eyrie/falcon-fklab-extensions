@@ -57,6 +57,7 @@ RunningStatistics::RunningStatistics(double alpha, uint64_t burn_in,
     : outlier_protection_(outlier_protection) {
 
   set_alpha(alpha);
+  burn_in_counter_ = burn_in;
   set_burn_in(burn_in);
 
   set_outlier_zscore(outlier_zscore);
@@ -65,7 +66,7 @@ RunningStatistics::RunningStatistics(double alpha, uint64_t burn_in,
   set_center(center);
   set_dispersion(dispersion);
 
-  burn_in_counter_ = burn_in_;
+
 }
 
 double RunningStatistics::alpha() const { return alpha_; }
