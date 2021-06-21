@@ -39,7 +39,7 @@ class IFilter {
  public:
   IFilter(std::string description) : description_(description) {}
 
-  ~IFilter();
+  virtual ~IFilter();
 
   std::string description() const;
 
@@ -72,10 +72,10 @@ class IFilter {
   // all channels, multiple samples
   virtual void process_by_channel(
       std::vector<std::vector<double>> &,
-      std::vector<std::vector<double>> &) = 0;  // samples<channels>
+          std::vector<std::vector<double>> &) = 0;  // samples<channels>
   virtual void process_by_sample(
       std::vector<std::vector<double>> &,
-      std::vector<std::vector<double>> &) = 0;  // channels<samples>
+          std::vector<std::vector<double>> &) = 0;  // channels<samples>
   virtual void process_by_channel(uint64_t nsamples, double **,
                                   double **) = 0;  // samples<channels>
   virtual void process_by_sample(uint64_t nsamples, double **,
@@ -89,7 +89,7 @@ class IFilter {
 
  protected:
   virtual bool realize_filter(unsigned int nchannels, double init) = 0;
-  virtual void unrealize_filter() = 0;
+  virtual void unrealize_filter() {};
 
  protected:
   std::string description_;
