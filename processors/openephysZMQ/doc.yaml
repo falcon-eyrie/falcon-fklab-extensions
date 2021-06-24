@@ -1,0 +1,30 @@
+Description: Read raw data from a Open-Ephys acquisition software and turns it into multiple MultiChannelData
+  output streams 
+
+Output port:
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1
+    description: the multichanneldata contains N channels (depend on nchannels) and N samples (depend on batch_size)
+
+Options:
+  - name: address
+    type: string
+    default: 127.0.0.1
+    description: IP address of Open-Ephys zmq communication.
+  - name: port
+    type: unsigned int
+    default: 50000
+    description: Port  of Open-Ephys zmq communication.
+  - name: npackets
+    type: uint64_t
+    default: 0
+    description: The total number of data packets to read (0 means continuous recording).
+  - name: batch size
+    type: unsigned int
+    default: 1
+    description: The number of data packets to concatenate into single multi-channel data bucket.
+  - name: nchannels
+    type: unsigned int
+    default: 128
+    description: The number of channels in the data packet sent by Open-Ephys.

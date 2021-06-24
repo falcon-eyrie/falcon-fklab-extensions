@@ -24,9 +24,9 @@
 
 
 OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
-    add_option("address", address_, "ZMQ network address to connect");
+    add_option("address", address_, "IP address of Open-Ephys zmq communication");
     add_option("port", port_,
-               "ZMQ network port to subscribe to the data stream");
+               "Port  of Open-Ephys zmq communication");
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
