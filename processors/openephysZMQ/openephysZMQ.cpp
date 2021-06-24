@@ -43,7 +43,6 @@ void OpenEphysZMQ::CreatePorts() {
           MultiChannelType<double>::Capabilities(ChannelRange(nchannels_())),
           MultiChannelType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
-
 }
 
 
@@ -57,16 +56,18 @@ void OpenEphysZMQ::CompleteStreamInfo() {
 
 void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
+  auto tcp_address = "tcp://" + address_() + ":" + std::to_string(port_());
   try {
-    data_socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
+    socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
     std::string source_id_ = "";
-    data_socket_.setsockopt(ZMQ_SUBSCRIBE, source_id_.c_str(),
-                            source_id_.length());
-    data_socket_.connect("tcp://" + address_() + ":" +
-                         std::to_string(port_()));
+
+    zmq_setsockopt(socket_, ZMQ_SUBSCRIBE,
+                   source_id_.c_str(),
+                   source_id_.length());
+
+    socket_.connect(tcp_address);
   } catch (...) {
-    LOG(INFO) << "Error when connecting the socket to the address "
-              << "tcp://" << address_() << ":" << std::to_string(port_());
+        throw ProcessingPreprocessingError("Error when connecting the socket to the address: "+ tcp_address );
   }
 
   LOG(INFO) << name() << ". Falcon is connected to the address tcp://"
@@ -81,16 +82,16 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
   MultiChannelType<double>::Data::sample_iterator data_iter;
   MultiChannelType<double>::Data* data_out;
+  zmq_msg_t message;
 
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
-
-      zmq::message_t msg_data;
-      if (data_socket_.recv(&msg_data, ZMQ_DONTWAIT)) {  //Receive data
+      zmq_msg_init (&message);
+      if (zmq_msg_recv(&message, socket_, ZMQ_DONTWAIT) != -1) {  //Receive data
 
           flatbuffers::FlatBufferBuilder fbb;
 
           ContinuousDataBuilder builder(fbb);
-          auto data = GetContinuousData(msg_data.data());
+          auto data = GetContinuousData(zmq_msg_data(&message));
 
           valid_packet_counter_++;
           uint64_t init_ts = data->timestamps();
@@ -140,7 +141,9 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               }
           }
       }
+
   }
+  zmq_msg_close(&message);
 }
 
 void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
@@ -158,7 +161,7 @@ void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
               << valid_packet_counter_ /
                      (static_cast<double>(runtime.count()) / 1000)
               << " packets/second.";
-  data_socket_.close();
+  socket_.close();
 }
 
 REGISTERPROCESSOR(OpenEphysZMQ)

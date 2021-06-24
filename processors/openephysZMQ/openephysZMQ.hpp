@@ -52,7 +52,7 @@ protected:
 
   // VARIABLES
 protected:
-  zmq::socket_t data_socket_;
+  zmq::socket_t socket_;
   int last_message_number;
   uint64_t valid_packet_counter_;
   TimePoint first_valid_packet_arrival_time_;
