@@ -86,11 +86,11 @@ void Data::YAMLDescription(YAML::Node &node,
   }
 }
 
-void Data::SerializeFlatBuffer(flexbuffers::Builder* fbb)
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder)
  {
-    Base::Data::SerializeFlatBuffer(fbb);
+    Base::Data::SerializeFlatBuffer(flex_builder);
 
-    fbb->Float("bin size", bin_size_);
-    fbb->UInt("mua", mua());
-    fbb->String("type", "mua");
+    flex_builder.Float("bin size", bin_size_);
+    flex_builder.UInt("mua", mua());
+    flex_builder.String("type", "mua");
 }

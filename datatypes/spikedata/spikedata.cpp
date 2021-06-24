@@ -170,19 +170,19 @@ void Data::YAMLDescription(YAML::Node &node,
   }
 }
 
-void Data::SerializeFlatBuffer(flexbuffers::Builder* fbb){
-    Base::Data::SerializeFlatBuffer(fbb);
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
+    Base::Data::SerializeFlatBuffer(flex_builder);
 
-    fbb->TypedVector("amplitude", [&]{
+    flex_builder.TypedVector("amplitude", [&]{
            for(auto samples: amplitudes_)
-               fbb->Add(samples);
+               flex_builder.Add(samples);
     });
 
-    fbb->TypedVector("timestamps", [&]{
+    flex_builder.TypedVector("timestamps", [&]{
            for(auto samples:  hw_ts_detected_spikes_)
-               fbb->Add(samples);
+               flex_builder.Add(samples);
     });
 
-    fbb->UInt("n_detected_spikes", n_detected_spikes_);
-    fbb->String("type", "spike");
+    flex_builder.UInt("n_detected_spikes", n_detected_spikes_);
+    flex_builder.String("type", "spike");
 }

@@ -63,7 +63,7 @@ class Data : public Base::Data {
                        Serialization::Format format =
                        Serialization::Format::FULL) const final;
 
-  void SerializeFlatBuffer(flexbuffers::Builder* fbb) final;
+  void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
 
  protected:
   double bin_size_;  // in ms

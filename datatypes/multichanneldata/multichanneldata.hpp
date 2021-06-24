@@ -251,21 +251,21 @@ template <typename T> class Data : public Base::Data {
     }
   }
 
-  void SerializeFlatBuffer(flexbuffers::Builder* fbb) override{
-      Base::Data::SerializeFlatBuffer(fbb);
-      fbb->TypedVector("data", [&]{
+  void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) override{
+      Base::Data::SerializeFlatBuffer(flex_builder);
+      flex_builder.TypedVector("data", [&]{
              for(auto samples: data_)
-                 fbb->Add(samples);
+                 flex_builder.Add(samples);
       });
 
-      fbb->TypedVector("timestamps", [&]{
+      flex_builder.TypedVector("timestamps", [&]{
              for(auto samples: timestamps_)
-                 fbb->Add(samples);
+                 flex_builder.Add(samples);
       });
 
-      fbb->UInt("nchannels", nchannels());
-      fbb->UInt("nsamples", nsamples());
-      fbb->String("type", "multichannel");
+      flex_builder.UInt("nchannels", nchannels());
+      flex_builder.UInt("nsamples", nsamples());
+      flex_builder.String("type", "multichannel");
   }
 
   void YAMLDescription(YAML::Node &node,
