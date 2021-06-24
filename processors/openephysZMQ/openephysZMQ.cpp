@@ -82,9 +82,10 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
   MultiChannelType<double>::Data::sample_iterator data_iter;
   MultiChannelType<double>::Data* data_out;
-  zmq_msg_t message;
+
 
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
+      zmq_msg_t message;
       zmq_msg_init (&message);
       if (zmq_msg_recv(&message, socket_, ZMQ_DONTWAIT) != -1) {  //Receive data
 
@@ -141,9 +142,11 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               }
           }
       }
+      zmq_msg_close(&message);
+
 
   }
-  zmq_msg_close(&message);
+
 }
 
 void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
