@@ -1,5 +1,4 @@
-Description: Read raw data from a Open-Ephys acquisition software and turns it into multiple MultiChannelData
-  output streams 
+Description: Reads raw data from Open-Ephys acquisition software and converts it to a single stream of multi-channel data
 
 Output port:
   - name: data
@@ -15,7 +14,7 @@ Options:
   - name: port
     type: unsigned int
     default: 50000
-    description: Port  of Open-Ephys zmq communication.
+    description: Port of Open-Ephys zmq communication.
   - name: npackets
     type: uint64_t
     default: 0
