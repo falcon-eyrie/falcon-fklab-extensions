@@ -92,5 +92,5 @@ void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder)
 
     flex_builder.Float("bin size", bin_size_);
     flex_builder.UInt("mua", mua());
-    flex_builder.String("type", "mua");
+    flex_builder.String("type", MUAType::datatype());
 }

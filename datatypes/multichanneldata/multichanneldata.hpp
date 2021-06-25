@@ -265,7 +265,7 @@ template <typename T> class Data : public Base::Data {
 
       flex_builder.UInt("nchannels", nchannels());
       flex_builder.UInt("nsamples", nsamples());
-      flex_builder.String("type", "multichannel");
+      flex_builder.String("type", MultiChannelType::datatype());
   }
 
   void YAMLDescription(YAML::Node &node,
