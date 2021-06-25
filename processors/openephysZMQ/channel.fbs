@@ -1,5 +1,6 @@
  
 // IDL file for one channel 
+namespace openephysflatbuffer;
 
 table ContinuousData {
     samples: [float];

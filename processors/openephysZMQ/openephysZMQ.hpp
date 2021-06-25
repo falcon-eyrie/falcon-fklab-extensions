@@ -52,10 +52,14 @@ protected:
   // VARIABLES
 protected:
   zmq::socket_t socket_;
+
   int last_message_number_;
-  uint64_t valid_packet_counter_;
+  uint64_t missing_packets_counter_;
+  uint64_t valid_packets_counter_;
+  uint64_t invalid_packets_counter_;
   TimePoint first_valid_packet_arrival_time_;
-  uint64_t data_corrupted_counter_;
+
   flatbuffers::FlatBufferBuilder flatbuilder_;
-  ContinuousDataBuilder builder_;
+  openephysflatbuffer::ContinuousDataBuilder builder_;
+
 };

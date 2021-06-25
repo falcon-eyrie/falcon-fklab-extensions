@@ -66,8 +66,9 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   LOG(INFO) << name() << ". Falcon is connected to the address: " << tcp_address
             << " and is ready to receive data from OpenEphys.";
 
-  data_corrupted_counter_ = 0;
-  valid_packet_counter_ = 0;
+  missing_packets_counter_ = 0;
+  valid_packets_counter_ = 0;
+  invalid_packets_counter_=0;
 }
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
@@ -75,14 +76,21 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
   MultiChannelType<double>::Data::sample_iterator data_out_iter;
   flatbuffers::VectorIterator<float, float> data_in_iter;
   MultiChannelType<double>::Data* data_out;
+  const openephysflatbuffer::ContinuousData* data;
 
-
-  while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
+  while (!context.terminated()  && valid_packets_counter_ < npackets_()) {
       zmq_msg_t message;
       zmq_msg_init (&message);
+
       if (zmq_msg_recv(&message, socket_, ZMQ_DONTWAIT) != -1) {
 
-          auto data = GetContinuousData(zmq_msg_data(&message));
+          try {
+              data = openephysflatbuffer::GetContinuousData(zmq_msg_data(&message));
+          } catch (...) {
+              LOG(DEBUG) << "Impossible to parse the packet received - skipping to the next.";
+              invalid_packets_counter_++;
+              continue;
+          }
 
           if(data->nbr_channels() != nchannels_()){
               throw ProcessingError("The number of channels (" + std::to_string(data->nbr_channels())
@@ -91,10 +99,10 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
                                     + std::to_string(nchannels_()) + ").", name());
           }
 
-          valid_packet_counter_++;
+          valid_packets_counter_++;
           uint64_t init_ts = data->timestamps();
 
-          if (valid_packet_counter_ == 1) {
+          if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
             LOG(INFO) << name() << ". Received first valid data packet"
                       << " (OE TS = " << data->timestamps() << ")";
@@ -103,7 +111,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
                      data->message_no()) {
             LOG(DEBUG) << name() << ". Message lost: "
                        <<  data->message_no() - last_message_number_;
-            data_corrupted_counter_++;
+            missing_packets_counter_++;
           }
 
 
@@ -139,20 +147,24 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 }
 
 void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
-  LOG_IF(UPDATE, (valid_packet_counter_ == npackets_()))
+  LOG_IF(UPDATE, (valid_packets_counter_ == npackets_()))
       << "Requested number of packets was read. You can now STOP processing.";
 
   std::chrono::milliseconds runtime(
       std::chrono::duration_cast<std::chrono::milliseconds>(
           Clock::now() - first_valid_packet_arrival_time_));
 
-  LOG(UPDATE) << name() << ". Finished reading : " << valid_packet_counter_
+  LOG(UPDATE) << name() << ". Finished reading : " << valid_packets_counter_
               << " packets received over "
               << static_cast<double>(runtime.count()) / 1000
               << " seconds at a rate of "
-              << valid_packet_counter_ /
+              << valid_packets_counter_ /
                      (static_cast<double>(runtime.count()) / 1000)
               << " packets/second.";
+
+  LOG(DEBUG)  << name() << ". " << invalid_packets_counter_ << " packets were detected as invalid and could not be parse.";
+  LOG(DEBUG)  << name() << ". " << missing_packets_counter_ << " packets were detected as missing.";
+
   socket_.close();
 }
 
