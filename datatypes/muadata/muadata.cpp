@@ -85,3 +85,12 @@ void Data::YAMLDescription(YAML::Node &node,
     node.push_back("bin_size " + get_type_string<double>() + " (1)");
   }
 }
+
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder)
+ {
+    Base::Data::SerializeFlatBuffer(flex_builder);
+
+    flex_builder.Float("bin size", bin_size_);
+    flex_builder.UInt("mua", mua());
+    flex_builder.String("type", "mua");
+}

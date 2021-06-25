@@ -75,6 +75,9 @@ class Data : public Base::Data {
   void SerializeYAML(YAML::Node &node,
                      Serialization::Format format =
                                  Serialization::Format::FULL) const override;
+
+  void SerializeFlatBuffer(flexbuffers::Builder& fbb) override;
+
   void YAMLDescription(YAML::Node &node,
                        Serialization::Format format =
                                    Serialization::Format::FULL) const override;

@@ -149,7 +149,10 @@ void FileSerializer::Process(ProcessingContext &context) {
         LOG_IF(WARNING, (nread > 0.5 * upstream_buffer_size_[k]))
             << name() << ": buffer is more than half full (stream " << k << ")";
         for (auto &it : data) {
-          serializer_->Serialize(*(streams_[k]), it, k, packetid_[k]++);
+          serializer_->Serialize(*(streams_[k]), it, k, packetid_[k]++,
+                                 data_port_->slot(k)->upstream_address().processor(),
+                                 data_port_->slot(k)->upstream_address().port(),
+                                 data_port_->slot(k)->upstream_address().slot());
         }
 
       } else {
@@ -165,7 +168,10 @@ void FileSerializer::Process(ProcessingContext &context) {
             (throttle_level_ < 0.5 && remainder > nread)) {
           // keep all
           for (auto &it : data) {
-            serializer_->Serialize(*(streams_[k]), it, k, packetid_[k]++);
+            serializer_->Serialize(*(streams_[k]), it, k, packetid_[k]++,
+                                   data_port_->slot(k)->upstream_address().processor(),
+                                   data_port_->slot(k)->upstream_address().port(),
+                                   data_port_->slot(k)->upstream_address().slot());
           }
         } else if (throttle_level_ < 0.5) {
           // skip small fraction
@@ -175,7 +181,10 @@ void FileSerializer::Process(ProcessingContext &context) {
               nskipped_[k]++;
               continue;
             }
-            serializer_->Serialize(*(streams_[k]), data[n], k, packetid_[k]++);
+            serializer_->Serialize(*(streams_[k]), data[n], k, packetid_[k]++,
+                                   data_port_->slot(k)->upstream_address().processor(),
+                                   data_port_->slot(k)->upstream_address().port(),
+                                   data_port_->slot(k)->upstream_address().slot());
           }
         } else if (throttle_level_ == 1 ||
                    (throttle_level_ >= 0.5 && remainder > nread)) {
@@ -190,7 +199,10 @@ void FileSerializer::Process(ProcessingContext &context) {
               nskipped_[k]++;
               continue;
             }
-            serializer_->Serialize(*(streams_[k]), data[n], k, packetid_[k]++);
+            serializer_->Serialize(*(streams_[k]), data[n], k, packetid_[k]++,
+                                   data_port_->slot(k)->upstream_address().processor(),
+                                   data_port_->slot(k)->upstream_address().port(),
+                                   data_port_->slot(k)->upstream_address().slot());
           }
         }
       }

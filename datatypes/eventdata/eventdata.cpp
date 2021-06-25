@@ -71,6 +71,12 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
   }
 }
 
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
+    Base::Data::SerializeFlatBuffer(flex_builder);
+    flex_builder.String("event", event_);
+    flex_builder.String("type", "events");
+}
+
 void Data::YAMLDescription(YAML::Node &node,
                            Serialization::Format format) const {
   Base::Data::YAMLDescription(node, format);

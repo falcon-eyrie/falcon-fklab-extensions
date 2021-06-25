@@ -51,14 +51,12 @@ void ZMQSerializer::Preprocess(ProcessingContext &context) {
   sockets_.clear();
 
   if (interleave_()) {
-    sockets_.push_back(std::move(std::unique_ptr<zmq::socket_t>(
-        new zmq::socket_t(context.run().global().zmq(), ZMQ_PUB))));
+    sockets_.push_back(std::make_unique<zmq::socket_t>(context.run().global().zmq(), ZMQ_PUB));
     address = "tcp://*:" + std::to_string(port_());
     sockets_.back()->bind(address.c_str());
   } else {
     for (int k = 0; k < data_port_->number_of_slots(); ++k) {
-      sockets_.push_back(std::move(std::unique_ptr<zmq::socket_t>(
-          new zmq::socket_t(context.run().global().zmq(), ZMQ_PUB))));
+      sockets_.push_back(std::make_unique<zmq::socket_t>(context.run().global().zmq(), ZMQ_PUB));
       address = "tcp://*:" + std::to_string(port_() + k);
       sockets_.back()->bind(address.c_str());
     }
@@ -87,7 +85,10 @@ void ZMQSerializer::Process(ProcessingContext &context) {
         buffer.str("");
         buffer.clear();
 
-        if (serializer_->Serialize(buffer, it, k, packetid_[k]++)) {
+        if (serializer_->Serialize(buffer, it, k, packetid_[k]++,
+                                   data_port_->slot(k)->upstream_address().processor(),
+                                   data_port_->slot(k)->upstream_address().port(),
+                                   data_port_->slot(k)->upstream_address().slot())) {
           if (!s_send(*(sockets_[idx]), buffer.str())) {
             LOG(DEBUG) << "failed to send zmq message.";
           }

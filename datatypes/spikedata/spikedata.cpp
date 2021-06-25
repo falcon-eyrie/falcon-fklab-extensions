@@ -169,3 +169,20 @@ void Data::YAMLDescription(YAML::Node &node,
                    std::to_string(n_channels_) + ")");
   }
 }
+
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
+    Base::Data::SerializeFlatBuffer(flex_builder);
+
+    flex_builder.TypedVector("amplitude", [&]{
+           for(auto samples: amplitudes_)
+               flex_builder.Add(samples);
+    });
+
+    flex_builder.TypedVector("timestamps", [&]{
+           for(auto samples:  hw_ts_detected_spikes_)
+               flex_builder.Add(samples);
+    });
+
+    flex_builder.UInt("n_detected_spikes", n_detected_spikes_);
+    flex_builder.String("type", "spike");
+}
