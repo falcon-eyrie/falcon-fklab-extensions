@@ -17,6 +17,7 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 #include "openephysZMQ.hpp"
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -47,7 +48,7 @@ void OpenEphysZMQ::CreatePorts() {
 void OpenEphysZMQ::CompleteStreamInfo() {
     data_port_->streaminfo(0).set_parameters(
           MultiChannelType<double>::Parameters(
-              nchannels_(), batch_size_(),30000));
+              nchannels_(), batch_size_()));
     data_port_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
 
 }

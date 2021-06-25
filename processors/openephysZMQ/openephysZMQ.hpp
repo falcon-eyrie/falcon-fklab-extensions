@@ -20,10 +20,12 @@
 #pragma once
 
 #include "iprocessor.hpp"
+#include "channel_generated.h"
+
 #include "multichanneldata/multichanneldata.hpp"
 #include "utilities/zmqutil.hpp"
 #include "flatbuffers/flatbuffers.h"
-#include "channel_generated.h"
+
 
 class OpenEphysZMQ : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
@@ -38,11 +40,8 @@ public:
 protected:
   // OPTIONS
   options::String address_{"127.0.0.1", options::notempty<std::string>()};
-  options::Value<unsigned int, false> port_{
-      5556, options::positive<unsigned int>(true)};
-  //options::Value<ChannelMap, false> channelmap_{{{"channels", {-1}}}};
-  options::Value<std::uint64_t, false> npackets_{
-      0, options::zeroismax<std::uint64_t>()};
+  options::Value<unsigned int, false> port_{5556, options::positive<unsigned int>(true)};
+  options::Value<std::uint64_t, false> npackets_{0, options::zeroismax<std::uint64_t>()};
   options::Value<unsigned int, false> batch_size_{1};
   options::Value<unsigned int, false> nchannels_{384, options::positive<unsigned int>(true)};
 
