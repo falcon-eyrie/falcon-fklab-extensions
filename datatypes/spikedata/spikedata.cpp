@@ -182,6 +182,7 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
     if (n_detected_spikes_ > 0) {
       node[TS_DETECTED_SPIKES] = hw_ts_detected_spikes_;
       node[SPIKE_AMPLITUDES] = amplitudes_;
+      node["channels"] = channels_;
     }
   }
 }
@@ -222,6 +223,11 @@ void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
 
     flex_builder.TypedVector("timestamps", [&]{
            for(auto samples:  hw_ts_detected_spikes_)
+               flex_builder.Add(samples);
+    });
+
+    flex_builder.TypedVector("channels", [&]{
+           for(auto samples:  channels_)
                flex_builder.Add(samples);
     });
 
