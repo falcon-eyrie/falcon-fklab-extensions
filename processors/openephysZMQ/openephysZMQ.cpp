@@ -57,11 +57,10 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   auto tcp_address = "tcp://" + address_() + ":" + std::to_string(port_());
   try {
     socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
-    std::string source_id_ = "";
 
     zmq_setsockopt(socket_, ZMQ_SUBSCRIBE,
-                   source_id_.c_str(),
-                   source_id_.length());
+                   nullptr,
+                   0);
 
     socket_.connect(tcp_address);
   } catch (...) {
