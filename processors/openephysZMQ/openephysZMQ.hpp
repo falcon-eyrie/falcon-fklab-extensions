@@ -23,6 +23,7 @@
 #include "multichanneldata/multichanneldata.hpp"
 #include "utilities/zmqutil.hpp"
 #include "flatbuffers/flatbuffers.h"
+#include "channel_generated.h"
 
 class OpenEphysZMQ : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
@@ -35,7 +36,7 @@ public:
   void Postprocess(ProcessingContext &context) override;
 
 protected:
-
+  // OPTIONS
   options::String address_{"127.0.0.1", options::notempty<std::string>()};
   options::Value<unsigned int, false> port_{
       5556, options::positive<unsigned int>(true)};
@@ -52,8 +53,10 @@ protected:
   // VARIABLES
 protected:
   zmq::socket_t socket_;
-  int last_message_number;
+  int last_message_number_;
   uint64_t valid_packet_counter_;
   TimePoint first_valid_packet_arrival_time_;
   uint64_t data_corrupted_counter_;
+  flatbuffers::FlatBufferBuilder flatbuilder_;
+  ContinuousDataBuilder builder_;
 };

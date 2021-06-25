@@ -20,10 +20,8 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include "channel_generated.h"
 
-
-OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH) {
+OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_) {
     add_option("address", address_, "IP address of Open-Ephys zmq communication");
     add_option("port", port_,
                "Port  of Open-Ephys zmq communication");
@@ -87,33 +85,30 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
   while (!context.terminated()  && valid_packet_counter_ < npackets_()) {
       zmq_msg_t message;
       zmq_msg_init (&message);
-      if (zmq_msg_recv(&message, socket_, ZMQ_DONTWAIT) != -1) {  //Receive data
+      if (zmq_msg_recv(&message, socket_, ZMQ_DONTWAIT) != -1) {
 
-          flatbuffers::FlatBufferBuilder fbb;
-
-          ContinuousDataBuilder builder(fbb);
           auto data = GetContinuousData(zmq_msg_data(&message));
 
           valid_packet_counter_++;
           uint64_t init_ts = data->timestamps();
 
-          if (valid_packet_counter_ == 1) { // first packet
+          if (valid_packet_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
-
             LOG(INFO) << name() << ". Received first valid data packet"
                       << " (OE TS = " << data->timestamps() << ")";
-          } else if (last_message_number + 1 !=
+
+          } else if (last_message_number_ + 1 !=
                      data->message_no()) { // Missed packet
             LOG(DEBUG) << name() << ". Message lost: "
-                       <<  data->message_no() - last_message_number;
+                       <<  data->message_no() - last_message_number_;
             data_corrupted_counter_++;
           }
 
-          last_message_number =  data->message_no();
+          last_message_number_ =  data->message_no();
 
           // Data
           int32_t n_samples = data->nbr_samples();
-          LOG(DEBUG) << name() << "number of data in the packet: " << n_samples;
+          LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
 
           // claim new data buckets
           for(int samples=0; samples<n_samples; samples++){
@@ -122,7 +117,6 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
                  // set data bucket metadata
                  data_out->set_hardware_timestamp(init_ts);
                  data_out->set_source_timestamp();
-
                  sample_counter_ = 0;
               }
 
@@ -143,10 +137,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           }
       }
       zmq_msg_close(&message);
-
-
   }
-
 }
 
 void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
