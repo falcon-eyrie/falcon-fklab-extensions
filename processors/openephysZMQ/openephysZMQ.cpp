@@ -57,14 +57,10 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   auto tcp_address = "tcp://" + address_() + ":" + std::to_string(port_());
   try {
     socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
-
-    zmq_setsockopt(socket_, ZMQ_SUBSCRIBE,
-                   nullptr,
-                   0);
-
+    zmq_setsockopt(socket_, ZMQ_SUBSCRIBE, nullptr, 0);
     socket_.connect(tcp_address);
   } catch (...) {
-        throw ProcessingPreprocessingError("Error when connecting the socket to the address: "+ tcp_address );
+        throw ProcessingPreprocessingError("Error when connecting the socket to the address: "+ tcp_address, name());
   }
 
   LOG(INFO) << name() << ". Falcon is connected to the address: " << tcp_address
@@ -88,6 +84,13 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
           auto data = GetContinuousData(zmq_msg_data(&message));
 
+          if(data->nbr_channels() != nchannels_()){
+              throw ProcessingError("The number of channels (" + std::to_string(data->nbr_channels())
+                                    + ") received in the Open-Ephys packet is different "
+                                    + "from the number of channels expected by Falcon ("
+                                    + std::to_string(nchannels_()) + ").", name());
+          }
+
           valid_packet_counter_++;
           uint64_t init_ts = data->timestamps();
 
@@ -102,6 +105,8 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
                        <<  data->message_no() - last_message_number_;
             data_corrupted_counter_++;
           }
+
+
 
           last_message_number_ =  data->message_no();
 
