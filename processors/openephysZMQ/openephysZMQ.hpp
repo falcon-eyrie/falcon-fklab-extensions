@@ -22,8 +22,7 @@
 #include "iprocessor.hpp"
 #include "multichanneldata/multichanneldata.hpp"
 #include "utilities/zmqutil.hpp"
-
-//typedef std::map<std::string, std::vector<int>> ChannelMap;
+#include "flatbuffers/flatbuffers.h"
 
 class OpenEphysZMQ : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
