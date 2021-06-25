@@ -24,8 +24,7 @@
 
 OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_) {
     add_option("address", address_, "IP address of Open-Ephys zmq communication");
-    add_option("port", port_,
-               "Port  of Open-Ephys zmq communication");
+    add_option("port", port_,"Port of Open-Ephys zmq communication");
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
@@ -69,8 +68,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
         throw ProcessingPreprocessingError("Error when connecting the socket to the address: "+ tcp_address );
   }
 
-  LOG(INFO) << name() << ". Falcon is connected to the address tcp://"
-            << address_() << ":" << std::to_string(port_())
+  LOG(INFO) << name() << ". Falcon is connected to the address: " << tcp_address
             << " and is ready to receive data from OpenEphys.";
 
   data_corrupted_counter_ = 0;
@@ -99,7 +97,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
                       << " (OE TS = " << data->timestamps() << ")";
 
           } else if (last_message_number_ + 1 !=
-                     data->message_no()) { // Missed packet
+                     data->message_no()) {
             LOG(DEBUG) << name() << ". Message lost: "
                        <<  data->message_no() - last_message_number_;
             data_corrupted_counter_++;
@@ -107,11 +105,9 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
           last_message_number_ =  data->message_no();
 
-          // Data
           int32_t n_samples = data->nbr_samples();
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
 
-          // claim new data buckets
           for(int samples=0; samples<n_samples; samples++){
               if (sample_counter_ == batch_size_()) {
                  data_out= data_port_->slot(0)->ClaimData(false);
@@ -121,7 +117,6 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
                  sample_counter_ = 0;
               }
 
-              // copy data onto buffers for each configured channel group
               data_out->set_sample_timestamp(sample_counter_, init_ts+samples);
               data_iter = data_out->begin_sample(sample_counter_);
 
