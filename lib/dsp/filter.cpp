@@ -156,9 +156,10 @@ IFilter *dsp::filter::construct_from_yaml(const YAML::Node &node) {
     return new FirFilter(coef, desc);
 
   } else if(filter_type == "slope"){
-       uint32_t windows_size = node["windows size"].as<unsigned int>();
-       std::vector<uint32_t> order = node["windows size"].as<std::vector<unsigned int>>();
-       return new SlopeFilter(windows_size, order[0],order[1]);
+       uint32_t windows_size = node["windows size"].as<unsigned int>(4);
+       uint8_t deriv_order = node["derivation order"].as<unsigned int>(1);
+       uint8_t int_order = node["integrale order"].as<unsigned int>(1);
+       return new SlopeFilter(windows_size, deriv_order,int_order);
 
   } else if (filter_type == "biquad") {
     double gain = node["gain"].as<double>();
