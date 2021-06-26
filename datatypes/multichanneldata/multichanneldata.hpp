@@ -30,6 +30,7 @@
 #include "utilities/string.hpp"
 
 typedef Range<size_t> SampleRange;
+template <typename T> class MultiChannelType;
 
 namespace nsMultiChannel {
 
@@ -265,7 +266,7 @@ template <typename T> class Data : public Base::Data {
 
       flex_builder.UInt("nchannels", nchannels());
       flex_builder.UInt("nsamples", nsamples());
-      flex_builder.String("type", MultiChannelType::datatype());
+      flex_builder.String("type", MultiChannelType<T>::datatype());
   }
 
   void YAMLDescription(YAML::Node &node,
