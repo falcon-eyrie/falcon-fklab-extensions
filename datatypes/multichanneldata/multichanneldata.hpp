@@ -211,7 +211,7 @@ template <typename T> class Data : public Base::Data {
   }
 
   stride_iter<T *> begin_channel(size_t channel) {
-    return stride_iter<T *>(&data[channel], nchannels_);
+    return stride_iter<T *>(&data_[channel], nchannels_);
   }
   stride_iter<T *> end_channel(size_t channel) {
     return begin_channel(channel) + nsamples_;
