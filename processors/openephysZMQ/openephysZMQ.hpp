@@ -53,7 +53,7 @@ protected:
 protected:
   zmq::socket_t socket_;
 
-  int last_message_number_;
+  uint64_t last_message_number_;
   uint64_t missing_packets_counter_;
   uint64_t valid_packets_counter_;
   uint64_t invalid_packets_counter_;

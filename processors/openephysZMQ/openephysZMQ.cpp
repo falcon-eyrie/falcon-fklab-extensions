@@ -74,7 +74,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
   MultiChannelType<double>::Data::sample_iterator data_out_iter;
-  flatbuffers::VectorIterator<float, float> data_in_iter;
+  flatbuffers::VectorIterator<double, double> data_in_iter;
   MultiChannelType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
 
@@ -92,33 +92,31 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               continue;
           }
 
-          if(data->nbr_channels() != nchannels_()){
-              throw ProcessingError("The number of channels (" + std::to_string(data->nbr_channels())
+          if(data->n_channels() != nchannels_()){
+              throw ProcessingError("The number of channels (" + std::to_string(data->n_channels())
                                     + ") received in the Open-Ephys packet is different "
                                     + "from the number of channels expected by Falcon ("
                                     + std::to_string(nchannels_()) + ").", name());
           }
 
           valid_packets_counter_++;
-          uint64_t init_ts = data->timestamps();
+          uint64_t init_ts = data->timestamp();
 
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
             LOG(INFO) << name() << ". Received first valid data packet"
-                      << " (OE TS = " << data->timestamps() << ")";
+                      << " (OE TS = " << data->timestamp() << ")";
 
           } else if (last_message_number_ + 1 !=
-                     data->message_no()) {
+                     data->message_id()) {
             LOG(DEBUG) << name() << ". Message lost: "
-                       <<  data->message_no() - last_message_number_;
+                       <<  data->message_id() - last_message_number_;
             missing_packets_counter_++;
           }
 
+          last_message_number_ =  data->message_id();
 
-
-          last_message_number_ =  data->message_no();
-
-          int32_t n_samples = data->nbr_samples();
+          int32_t n_samples = data->n_samples();
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
           data_in_iter = data->samples()->begin();
 
