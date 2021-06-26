@@ -27,7 +27,7 @@ Data::Data(std::string event) { set_event(event); }
 
 void Data::Initialize(std::string event) { set_event(event); }
 
-void Data::ClearData() { set_event("none"); }
+void Data::ClearData() { set_event(DEFAULT_EVENT); }
 
 std::string Data::event() const { return event_; }
 
@@ -74,7 +74,7 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
 void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
     Base::Data::SerializeFlatBuffer(flex_builder);
     flex_builder.String("event", event_);
-    flex_builder.String("type", "events");
+    flex_builder.String("type", EventType::datatype());
 }
 
 void Data::YAMLDescription(YAML::Node &node,
