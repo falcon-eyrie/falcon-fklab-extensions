@@ -74,7 +74,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
   MultiChannelType<double>::Data::sample_iterator data_out_iter;
-  flatbuffers::VectorIterator<double, double> data_in_iter;
+  flatbuffers::VectorIterator<float, float> data_in_iter;
   MultiChannelType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
 
@@ -116,11 +116,11 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
           last_message_number_ =  data->message_id();
 
-          int32_t n_samples = data->n_samples();
+          uint64_t n_samples = data->n_samples();
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
           data_in_iter = data->samples()->begin();
 
-          for(int sample=0; sample<n_samples; sample++){
+          for(uint64_t sample=0; sample<n_samples; sample++){
               if (sample_counter_ == batch_size_()) {
                  data_out= data_port_->slot(0)->ClaimData(false);
                  // set data bucket metadata
@@ -130,9 +130,15 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               }
 
               data_out->set_sample_timestamp(sample_counter_, init_ts+sample);
+
               data_out_iter = data_out->begin_sample(sample_counter_);
-              std::copy(data_in_iter, data_in_iter+nchannels_(), data_out_iter);
-              data_in_iter += nchannels_();
+
+              for(uint64_t channel=0; channel<nchannels_(); channel++){
+                  (*data_out_iter) = *(data_in_iter + n_samples*channel);
+                  ++data_out_iter;
+              }
+
+              ++data_in_iter;
               ++sample_counter_;
 
               if (sample_counter_ == batch_size_()) {
