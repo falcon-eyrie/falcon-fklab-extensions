@@ -127,6 +127,9 @@ IFilter *dsp::filter::construct_from_file(std::string file) {
   if (header["type"] == "fir") {
     return FirFilter::FromStream(stream, header["description"], binary);
 
+  } else if (header["type"] == "slope") {
+      return SlopeFilter::FromStream(stream, header["description"], binary);
+
   } else if (header["type"] == "biquad") {
     return BiquadFilter::FromStream(stream, header["description"], binary);
 
@@ -136,9 +139,12 @@ IFilter *dsp::filter::construct_from_file(std::string file) {
 }
 
 IFilter *dsp::filter::construct_from_yaml(const YAML::Node &node) {
-  // type: fir OR biquad
+  // type: fir OR biquad OR slope
   // gain: double (biquad only)
   // coefficients: list of doubles (fir) or list of lists of 6 doubles (biquad)
+  // window size : 1 uint (slope filter only)
+  // order : 1 uint (slope filter only)
+  // derivative order: 1 uint (slope filter only)
   // description: text
 
   if (node["file"]) {
@@ -146,11 +152,17 @@ IFilter *dsp::filter::construct_from_yaml(const YAML::Node &node) {
   }
 
   std::string filter_type = node["type"].as<std::string>("unknown");
+  std::string desc = node["description"].as<std::string>("");
 
   if (filter_type == "fir") {
     std::vector<double> coef = node["coefficients"].as<std::vector<double>>();
-    std::string desc = node["description"].as<std::string>("");
     return new FirFilter(coef, desc);
+
+  } else if(filter_type == "slope"){
+       uint32_t window_size = node["windows size"].as<unsigned int>(SlopeFilter::DEFAULT_WINDOW_SIZE);
+       uint8_t derivative_order = node["derivative order"].as<unsigned int>(SlopeFilter::DEFAULT_ORDER);
+       uint8_t order = node["order"].as<unsigned int>(SlopeFilter::DEFAULT_DERIVATIVE_ORDER);
+       return new SlopeFilter(window_size, order, derivative_order, desc);
 
   } else if (filter_type == "biquad") {
     double gain = node["gain"].as<double>();
@@ -158,7 +170,6 @@ IFilter *dsp::filter::construct_from_yaml(const YAML::Node &node) {
         node["coefficients"].as<std::vector<std::array<double, 6>>>();
     // std::vector<std::vector<double>> data =
     // node["coefficients"].as<std::vector<std::vector<double>>>();
-    std::string desc = node["description"].as<std::string>("");
     return new BiquadFilter(gain, coef, desc);
 
   } else {
@@ -166,14 +177,14 @@ IFilter *dsp::filter::construct_from_yaml(const YAML::Node &node) {
   }
 }
 
-FirFilter::FirFilter(std::vector<double> &coefficients, std::string description)
+FirFilter::FirFilter(const std::vector<double> &coefficients, std::string description)
     : IFilter(description), coefficients_(coefficients) {
 
-  ntaps_ = coefficients_.size();
-  if (ntaps_ < 1) {
-    throw std::runtime_error("Invalid number of filter taps.");
-  }
-  pcoefficients_ = coefficients_.data();
+    ntaps_ = coefficients_.size();
+    if (ntaps_ < 1) {
+        throw std::runtime_error("Invalid number of filter taps.");
+    }
+    pcoefficients_ = coefficients_.data();
 }
 
 IFilter *FirFilter::clone() {
@@ -398,6 +409,23 @@ void FirFilter::unrealize_filter() {
   pregisters_.clear();
   registers_.clear();
 }
+
+
+SlopeFilter *SlopeFilter::FromStream(std::istream &stream,
+                               std::string description,
+                               bool binary){
+    if (binary) {
+        throw std::runtime_error("Binary filter files are not yet supported.");
+    }
+
+    uint32_t window_size, order, derivative_order;
+
+    stream >> window_size;
+    stream >> order;
+    stream >> derivative_order;
+
+    return new SlopeFilter(window_size, order, derivative_order, description);
+};
 
 BiquadFilter::BiquadFilter(double gain,
                            std::vector<std::array<double, 6>> &coefficients,

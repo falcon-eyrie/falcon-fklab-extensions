@@ -40,12 +40,12 @@ void MultiChannelFilter::Configure(const GlobalContext &context) {
 
 void MultiChannelFilter::CreatePorts() {
   data_in_port_ = create_input_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
-      PortInPolicy(SlotRange(0, 256)));
+      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
+      PortInPolicy(SlotRange(0, MAX_NCHANNELS)));
 
   data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
-      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, 256)));
+      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
+      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
 }
 
 void MultiChannelFilter::CompleteStreamInfo() {
