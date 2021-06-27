@@ -156,10 +156,10 @@ IFilter *dsp::filter::construct_from_yaml(const YAML::Node &node) {
     return new FirFilter(coef, desc);
 
   } else if(filter_type == "slope"){
-       uint32_t windows_size = node["windows size"].as<unsigned int>(4);
-       uint8_t deriv_order = node["derivation order"].as<unsigned int>(1);
-       uint8_t int_order = node["integrale order"].as<unsigned int>(1);
-       return new SlopeFilter(windows_size, deriv_order,int_order);
+       uint32_t window_size = node["windows size"].as<unsigned int>(SlopeFilter::DEFAULT_WINDOW_SIZE);
+       uint8_t derivative_order = node["derivative order"].as<unsigned int>(SlopeFilter::DEFAULT_ORDER);
+       uint8_t order = node["order"].as<unsigned int>(SlopeFilter::DEFAULT_DERIVATIVE_ORDER);
+       return new SlopeFilter(window_size, order, derivative_order);
 
   } else if (filter_type == "biquad") {
     double gain = node["gain"].as<double>();
@@ -389,6 +389,9 @@ void FirFilter::process_by_sample(uint64_t nsamples, std::vector<double> &input,
 }
 
 bool FirFilter::realize_filter(unsigned int nchannels, double init) {
+   if(coefficients_.size() == 0){
+        throw std::runtime_error("Coefficients not set before realizing the filter.");
+   }
   // create and initialize register for each channel
   for (unsigned int k = 0; k < nchannels; ++k) {
     registers_.push_back(std::vector<double>(ntaps_, init));
@@ -402,6 +405,23 @@ void FirFilter::unrealize_filter() {
   pregisters_.clear();
   registers_.clear();
 }
+
+
+SlopeFilter *SlopeFilter::FromStream(std::istream &stream,
+                               std::string description,
+                               bool binary){
+    if (binary) {
+        throw std::runtime_error("Binary filter files are not yet supported.");
+    }
+
+    uint32_t window_size, order, derivative_order;
+
+    stream >> window_size;
+    stream >> order;
+    stream >> derivative_order;
+
+    return new SlopeFilter(window_size, order, derivative_order);
+};
 
 BiquadFilter::BiquadFilter(double gain,
                            std::vector<std::array<double, 6>> &coefficients,
