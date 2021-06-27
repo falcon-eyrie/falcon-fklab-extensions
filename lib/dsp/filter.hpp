@@ -18,6 +18,9 @@
 // ---------------------------------------------------------------------
 
 #pragma once
+
+#include "gram_savitzky_golay.hpp"
+
 #include <yaml-cpp/yaml.h>
 
 #include <array>
@@ -32,7 +35,7 @@
 #include <cctype>
 #include <exception>
 
-#include "gram_savitzky_golay.hpp"
+
 namespace dsp {
 namespace filter {
 
@@ -100,8 +103,7 @@ protected:
 
 class FirFilter : public IFilter {
 public:
-    FirFilter(std::string description = ""): IFilter(description){};
-    FirFilter(std::vector<double> &coefficients, std::string description = "");
+    FirFilter(const std::vector<double> &coefficients, std::string description = "");
     virtual IFilter *clone();
 
     static FirFilter *FromStream(std::istream &stream, std::string description,
@@ -109,14 +111,6 @@ public:
 
     unsigned int order() const final;
 
-    void set_coeff(std::vector<double> coeff){
-        coefficients_ = coeff;
-        ntaps_ = coefficients_.size();
-        if (ntaps_ < 1) {
-            throw std::runtime_error("Invalid number of filter taps.");
-        }
-        pcoefficients_ = coefficients_.data();
-    }
     std::size_t group_delay() const;
 
     // single channel, single sample
@@ -175,13 +169,12 @@ class SlopeFilter : public FirFilter {
 public:
 
     SlopeFilter(uint32_t window_size, uint32_t order, uint32_t derivative_order, std::string description=""):
-        FirFilter(description), window_size_(window_size), order_(order), derivative_order_(derivative_order)
-    {
-        set_coeff(gram_sg::ComputeWeights(2*window_size+1,
+        FirFilter(gram_sg::ComputeWeights(2*window_size+1,
                                           2*window_size+1,
                                           order,
-                                          derivative_order));
-    }
+                                          derivative_order),
+                  description),
+        window_size_(window_size), order_(order), derivative_order_(derivative_order){};
 
     static SlopeFilter *FromStream(std::istream &stream,
                                    std::string description,
