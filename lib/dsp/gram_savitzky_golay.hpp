@@ -1,188 +1,88 @@
-
-/*
- * Copyright 2017-2018 CNRS-UM LIRMM
- * Copyright 2019-2021 CNRS-UM LIRMM, CNRS-AIST JRL
- */
+// ---------------------------------------------------------------------
+// BSD 2-Clause License
+//
+// Copyright (c) 2012-2019, CNRS-UM LIRMM, CNRS-AIST JRL
+// All rights reserved.
+// reference: https://github.com/arntanguy/gram_savitzky_golay
+//
+// Modified in 2021 by Neuro-Electronics Research Flanders
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 #pragma once
 
-#include <sstream>
 #include <vector>
 #include <cassert>
+#include <cmath>
 
 namespace gram_sg
 {
-/*!
- * @brief Calculates the Gram Polynomial (s=0) or its sth derivative
- *  evaluated at i, order k, over 2m+1 points
- */
-double GramPoly(const int i, const int m, const int k, const int s);
 
-/*!
- * @brief Calculates the generalized factorial \f$ (a)(a-1)(a-2)...(a-b+1) \f$
- */
-double GenFact(const int a, const int b);
-
-/*!
- * Weight Calculates the weight of the ith data point for the t'th
- * Least-Square point of the s'th derivative, over `2m+1` points, order n
- */
-double Weight(const int i, const int t, const int m, const int n, const int s);
-
-/*!
- * Computes the weights for each data point over the window of size `2*m+1`,
- * evaluated at time t, with order n and derivative s
- */
-std::vector<double> ComputeWeights(const int m, const int t, const int n, const int s);
-
-struct SavitzkyGolayFilterConfig
-{
-  //! Window size is 2*m+1
-  unsigned m = 5;
-  //! Time at which the filter is applied
-  // For real-time, should be t=m
-  int t = 5;
-  //! Polynomial order
-  unsigned n = 3;
-  //! Derivation order (0 for no derivation)
-  unsigned s = 0;
-  //! Time step
-  double dt = 1;
-
-  /**
-   * @brief Construct a filter with default weights
-   */
-  SavitzkyGolayFilterConfig() {}
-
-  /**
-   * @brief Construct a filter with the specified configuration
-   *
-   * @param m Window size is `2*m+1`
-   * @param t Time at which the filter is applied
-   * - `t=m` for real-time filtering.
-   *   This uses only past information to determine the filter value and thus
-   *   does not introduce delay. However, this comes at the cost of filtering
-   *   accuracy as no future information is available.
-   * - `t=0` for smoothing. Uses both past and future information to determine the optimal
-   *   filtered value
-   * @param n Polynamial order
-   * @param s Derivation order
-   * - `0`: No derivation
-   * - `1`: First order derivative
-   * - `2`: Second order derivative
-   * @param dt Time step
-   */
-  SavitzkyGolayFilterConfig(unsigned m, int t, unsigned n, unsigned s, double dt = 1.) : m(m), t(t), n(n), s(s), dt(dt)
-  {
-  }
-
-  /**
-   * @brief Time at which the filter is evaluated
-   */
-  int data_point() const
-  {
-    return t;
-  }
-
-  /**
-   * @brief Derivation order
-   */
-  unsigned derivation_order() const
-  {
-    return s;
-  }
-
-  /**
-   * @brief Polynomial order
-   */
-  unsigned order() const
-  {
-    return n;
-  }
-
-  /**
-   * @brief Full size of the filter's window `2*m+1`
-   */
-  unsigned window_size() const
-  {
-    return 2 * m + 1;
-  }
-
-  /**
-   * @brief Time step
-   */
-  double time_step() const
-  {
-    return dt;
-  }
-
-  friend std::ostream & operator<<(std::ostream & os, const SavitzkyGolayFilterConfig & conf);
-};
-
-struct SavitzkyGolayFilter
-{
-  SavitzkyGolayFilter(unsigned m, int t, unsigned n, unsigned s, double dt = 1.) : conf_(m, t, n, s, dt)
-  {
-    init();
-  }
-
-  SavitzkyGolayFilter(const SavitzkyGolayFilterConfig & conf) : conf_(conf)
-  {
-    init();
-  }
-
-  SavitzkyGolayFilter()
-  {
-    init();
-  }
-
-  void configure(const SavitzkyGolayFilterConfig & conf)
-  {
-    conf_ = conf;
-    init();
-  }
-
-  /**
-   * @brief Apply Savitzky-Golay convolution to the data x should have size 2*m+1
-   * As the function only applies a convolution, it runs in O(2m+1), and should
-   * be rather fast.
-   *
-   * @param v Container with the data to be filtered.
-   * Should have 2*m+1 elements
-   * Type of elements needs to be compatible with multiplication by a scalar,
-   * and addition with itself
-   * Common types would be std::vector<double>, std::vector<Eigen::VectorXd>, boost::circular_buffer<Eigen::Vector3d>...
-   *
-   * @return Filtered value according to the precomputed filter weights.
-   */
-  template<typename ContainerT>
-  typename ContainerT::value_type filter(const ContainerT & v) const
-  {
-    assert(v.size() == weights_.size() && v.size() > 0);
-    using T = typename ContainerT::value_type;
-    T res = weights_[0] * v[0];
-    for(size_t i = 1; i < v.size(); ++i)
+inline double compute_gram_polynomial(const int i, const int m, const int k, const int s){
+    if(k>0)
     {
-      res += weights_[i] * v[i];
+        return (4.*k-2.) / (k*(2.*m - k+1.)) * (i * compute_gram_polynomial(i, m, k - 1, s) + s * compute_gram_polynomial(i, m, k-1, s-1))
+                - ((k-1.) * (2.*m + k)) / (k * (2.*m - k+1.)) * compute_gram_polynomial(i, m, k-2, s);
     }
-    return res / dt_;
-  }
 
-  std::vector<double> weights() const
-  {
-    return weights_;
-  }
+    if(k == 0 && s == 0){
+        return 1.;
+    }else{
+        return 0.;
+    }
 
-  SavitzkyGolayFilterConfig config() const
-  {
-    return conf_;
-  }
-
-private:
-  SavitzkyGolayFilterConfig conf_;
-  std::vector<double> weights_;
-  void init();
-  double dt_;
 };
 
+
+inline double compute_generalized_factorial(const int a, const int b){
+    double gf = 1.;
+
+    for(int j=(a-b)+1; j<=a; j++)
+    {
+        gf*=j;
+    }
+    return gf;
+};
+
+
+inline double compute_weight(const int i, const int t, const int m, const int n, const int s){
+    double w = 0;
+    for(int k = 0; k <= n; ++k)
+    {
+        w = w + (2*k+1) * (compute_generalized_factorial(2*m, k)/compute_generalized_factorial(2*m+k+1, k+1))
+                * compute_gram_polynomial(i, m, k, 0)* compute_gram_polynomial(t, m, k, s);
+    }
+    return w;
+};
+
+
+inline std::vector<double> compute_weights(const int m, const int t, const int n, const int s){
+    std::vector<double> weights(2*static_cast<size_t>(m)+1);
+
+    for(int i=0; i<2*m+1; ++i)
+    {
+        weights[static_cast<size_t>(i)] = compute_weight(i - m, t, m, n, s);
+    }
+    return weights;
+};
 } // namespace gram_sg

@@ -169,11 +169,7 @@ class SlopeFilter : public FirFilter {
 public:
 
     SlopeFilter(uint32_t window_size, uint32_t order, uint32_t derivative_order, std::string description=""):
-        FirFilter(gram_sg::ComputeWeights(2*window_size+1,
-                                          2*window_size+1,
-                                          order,
-                                          derivative_order),
-                  description),
+        FirFilter(gram_sg::compute_weights(window_size, window_size, order, derivative_order), description),
         window_size_(window_size), order_(order), derivative_order_(derivative_order){};
 
     static SlopeFilter *FromStream(std::istream &stream,
