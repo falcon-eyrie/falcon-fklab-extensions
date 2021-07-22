@@ -25,9 +25,10 @@
 
 #include "iprocessor.hpp"
 #include "multichanneldata/multichanneldata.hpp"
+#include "recording_utilities/channelist.hpp"
 #include "options/options.hpp"
 
-typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
+typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
 
 class Distributor : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS

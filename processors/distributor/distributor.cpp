@@ -33,7 +33,7 @@ void Distributor::CreatePorts() {
   for (auto &it : channelmap_()) {
     data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
         it.first,
-        MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
+        MultiChannelType<double>::Capabilities(ChannelRange(it.second.channels_.size())),
         MultiChannelType<double>::Parameters(),
         PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY));
   }
@@ -49,7 +49,7 @@ void Distributor::CompleteStreamInfo() {
   for (auto &it : data_ports_) {
     it.second->streaminfo(0).set_parameters(
         MultiChannelType<double>::Parameters(
-            channelmap_().at(it.first).size(), incoming_batch_size_,
+            channelmap_().at(it.first).channels_.size(), incoming_batch_size_,
             input_port_->streaminfo(0)
                 .parameters()
                 .sample_rate));
@@ -62,12 +62,12 @@ void Distributor::CompleteStreamInfo() {
 void Distributor::Prepare(GlobalContext &context) {
   // check channel map
   for (auto const &it : channelmap_()) {
-    if (it.second.size() == 0) {
+    if (it.second.channels_.size() == 0) {
       throw ProcessingPrepareError(
           "Channel map entry " + it.first + " has zero channels.", name());
     }
 
-    for (auto const &ch : it.second) {
+    for (auto const &ch : it.second.channels_) {
       if (ch >= max_n_channels_) {
         throw ProcessingPrepareError(
             "Channel " + std::to_string(static_cast<int>(ch)) + " is invalid",
@@ -108,10 +108,10 @@ void Distributor::Process(ProcessingContext &context) {
       data_out_vector[port_index]->set_sample_timestamps(
           data_in->sample_timestamps());
 
-      for (ch = 0; ch < it_chmap.second.size(); ch++) {
+      for (ch = 0; ch < it_chmap.second.channels_.size(); ch++) {
         for (s = 0; s < incoming_batch_size_; s++) {
           data_out_vector[port_index]->set_data_sample(
-              s, ch, data_in->data_sample(s, it_chmap.second[ch]));
+              s, ch, data_in->data_sample(s, it_chmap.second.channels_[ch]));
         }
       }
       port_index++;
