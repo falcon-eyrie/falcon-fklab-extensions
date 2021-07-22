@@ -19,16 +19,30 @@
 
 #pragma once
 
+#include "utilities/string.hpp"
+#include <regex>
+
 template <typename T> class ChannelList{
 public:
     ChannelList(){};
-    void fromVector(std::vector<T> channels){
-        channels_ = channels;
-    };
-    void fromRange(double range_min, double range_max){
-        std::vector<T> tmp(range_max-range_min);
-        std::iota(tmp.begin(), tmp.end(), range_min);
-        channels_ = tmp;
+
+    void add_channels(std::vector<std::string> channels){
+        for(auto part: channels){
+            part = std::regex_replace(part, std::regex(" "), "");
+            if (std::regex_match(part, std::regex("^\\d+(\\-\\d+)?$"))) {
+                auto range = split(part, '-');
+                if(range.size()==1){
+                    channels_.push_back(atoi(range[0].c_str()));
+                }
+                else{
+                    for(T channel = atoi(range[0].c_str()); channel <= (T)atoi(range[1].c_str()); channel++){
+                        channels_.push_back(channel);
+                    }
+                }
+            } else {
+              throw std::runtime_error(part + " is not a valid list specification.");
+            }
+        }
     };
 
 
@@ -45,12 +59,9 @@ template <typename T> struct convert<ChannelList<T>> {
   }
 
   static bool decode(const Node &node, ChannelList<T> &rhs) {
-    if(node.IsMap() and node["range"] and node["range"].size()==2){
-        rhs.fromRange(node["range"].as<std::vector<T>>()[0], node["range"].as<std::vector<T>>()[1]);
-    }else if(node.IsSequence()){
-        rhs.fromVector(node.as<std::vector<T>>());
-    }else{
-        return false;
+
+    if(node.IsSequence()){
+        rhs.add_channels(node.as<std::vector<std::string>>());
     }
 
     return true;
