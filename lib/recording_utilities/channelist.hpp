@@ -35,9 +35,7 @@ public:
                     channels_.push_back(atoi(range[0].c_str()));
                 }
                 else{
-                    for(T channel = atoi(range[0].c_str()); channel <= (T)atoi(range[1].c_str()); channel++){
-                        channels_.push_back(channel);
-                    }
+                    add_channels(atoi(range[0].c_str()), atoi(range[1].c_str()));
                 }
             } else {
               throw std::runtime_error(part + " is not a valid list specification.");
@@ -45,6 +43,42 @@ public:
         }
     };
 
+    void add_channels(std::vector<T> channels){
+        channels_.insert(channels_.end(), channels.begin(), channels.end());
+    };
+
+    void add_channels(T range_min, T range_max){
+        for(T channel = range_min; channel <= range_max; channel++){
+            channels_.push_back(channel);
+        }
+    }
+
+    void remove_channels(double range_min, double range_max){
+        for(T channel = range_min; channel <= range_max; channel++){
+            channels_.erase(channels_.at(channel));
+        }
+    }
+
+    void remove_channels(std::vector<T> channels){
+        for(auto channel : channels){
+            channels_.erase(channels_.at(channel));
+        }
+
+    }
+
+    auto size() const{
+        return channels_.size();
+    };
+
+    T &operator()(size_t index) { return channels_[index]; };
+    const T &operator()(size_t index) const { return channels_[index]; };
+
+    auto begin() const {
+        return channels_.begin();
+    };
+    auto end() const {
+        return channels_.end();
+    };
 
     std::vector<T> channels_;
 };
