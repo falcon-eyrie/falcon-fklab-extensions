@@ -70,8 +70,8 @@ public:
         return channels_.size();
     };
 
-    T &operator()(size_t index) { return channels_[index]; };
-    const T &operator()(size_t index) const { return channels_[index]; };
+    T &operator[](size_t index) { return channels_[index]; };
+    const T &operator[](size_t index) const { return channels_[index]; };
 
     auto begin() const {
         return channels_.begin();
@@ -79,7 +79,7 @@ public:
     auto end() const {
         return channels_.end();
     };
-
+private:
     std::vector<T> channels_;
 };
 

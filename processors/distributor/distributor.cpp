@@ -67,7 +67,7 @@ void Distributor::Prepare(GlobalContext &context) {
           "Channel map entry " + it.first + " has zero channels.", name());
     }
 
-    for (auto const &ch : it.second.channels_) {
+    for (auto const &ch : it.second) {
       if (ch >= max_n_channels_) {
         throw ProcessingPrepareError(
             "Channel " + std::to_string(static_cast<int>(ch)) + " is invalid",
@@ -111,7 +111,7 @@ void Distributor::Process(ProcessingContext &context) {
       for (ch = 0; ch < it_chmap.second.size(); ch++) {
         for (s = 0; s < incoming_batch_size_; s++) {
           data_out_vector[port_index]->set_data_sample(
-              s, ch, data_in->data_sample(s, it_chmap.second.channels_[ch]));
+              s, ch, data_in->data_sample(s, it_chmap.second[ch]));
         }
       }
       port_index++;
