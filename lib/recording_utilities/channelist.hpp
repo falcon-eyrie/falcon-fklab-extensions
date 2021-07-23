@@ -26,21 +26,12 @@ template <typename T> class ChannelList{
 public:
     ChannelList(){};
 
-    void add_channels(std::vector<std::string> channels){
-        for(auto part: channels){
-            part = std::regex_replace(part, std::regex(" "), "");
-            if (std::regex_match(part, std::regex("^\\d+(\\-\\d+)?$"))) {
-                auto range = split(part, '-');
-                if(range.size()==1){
-                    channels_.push_back(atoi(range[0].c_str()));
-                }
-                else{
-                    add_channels(atoi(range[0].c_str()), atoi(range[1].c_str()));
-                }
-            } else {
-              throw std::runtime_error(part + " is not a valid list specification.");
-            }
-        }
+    std::vector<T> get_channels() const{
+        return channels_;
+    }
+
+    void add_channels(T channel){
+        channels_.push_back(channel);
     };
 
     void add_channels(std::vector<T> channels){
@@ -79,6 +70,33 @@ public:
     auto end() const {
         return channels_.end();
     };
+
+    auto begin() {
+        return channels_.begin();
+    };
+    auto end() {
+        return channels_.end();
+    };
+
+    bool is_sorted() const {
+        return std::is_sorted(channels_.begin(), channels_.end());
+    }
+
+    bool is_unique() const {
+        std::vector<T> sorted_vector = channels_;
+        std::sort(sorted_vector.begin(), sorted_vector.end());
+        return std::adjacent_find(sorted_vector.begin(), sorted_vector.end()) != sorted_vector.end();
+    }
+
+    void sort() {
+        std::sort(channels_.begin(), channels_.end());
+    }
+
+    void unique() {
+        std::sort(channels_.begin(), channels_.end());
+        auto it = std::unique(channels_.begin(), channels_.end());
+        channels_.resize( std::distance(channels_.begin(),it) );
+    }
 private:
     std::vector<T> channels_;
 };
@@ -88,14 +106,29 @@ namespace YAML {
 template <typename T> struct convert<ChannelList<T>> {
   static Node encode(const ChannelList<T> &rhs) {
     Node node;
-    node = rhs.channels_;
+    node = rhs.get_channels();
     return node;
   }
 
   static bool decode(const Node &node, ChannelList<T> &rhs) {
 
     if(node.IsSequence()){
-        rhs.add_channels(node.as<std::vector<std::string>>());
+        auto channels = node.as<std::vector<std::string>>();
+
+        for(auto part: channels){
+            part = std::regex_replace(part, std::regex(" "), "");
+            if (std::regex_match(part, std::regex("^\\d+(\\-\\d+)?$"))) {
+                auto range = split(part, '-');
+                if(range.size()==1){
+                    rhs.add_channels(atoi(range[0].c_str()));
+                }
+                else{
+                    rhs.add_channels(atoi(range[0].c_str()), atoi(range[1].c_str()));
+                }
+            } else {
+              throw std::runtime_error(part + " is not a valid list specification.");
+            }
+        }
     }
 
     return true;
