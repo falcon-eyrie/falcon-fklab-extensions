@@ -21,6 +21,9 @@
 
 #include "utilities/string.hpp"
 #include <regex>
+#include <vector>
+#include <numeric>
+#include "yaml-cpp/yaml.h"
 
 template <typename T> class ChannelList{
 public:
@@ -46,13 +49,15 @@ public:
 
     void remove_channels(double range_min, double range_max){
         for(T channel = range_min; channel <= range_max; channel++){
-            channels_.erase(channels_.at(channel));
+            channels_.erase(std::remove(channels_.begin(), channels_.end(), channel),
+                            channels_.end());
         }
     }
 
     void remove_channels(std::vector<T> channels){
         for(auto channel : channels){
-            channels_.erase(channels_.at(channel));
+            channels_.erase(std::remove(channels_.begin(), channels_.end(), channel),
+                            channels_.end());
         }
 
     }
@@ -105,7 +110,7 @@ public:
     bool is_unique() const {
         std::vector<T> sorted_vector = channels_;
         std::sort(sorted_vector.begin(), sorted_vector.end());
-        return std::adjacent_find(sorted_vector.begin(), sorted_vector.end()) != sorted_vector.end();
+        return std::adjacent_find(sorted_vector.begin(), sorted_vector.end()) == sorted_vector.end();
     }
 
     void sort() {
