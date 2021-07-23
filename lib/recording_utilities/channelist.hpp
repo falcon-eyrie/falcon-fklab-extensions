@@ -64,6 +64,17 @@ public:
     T &operator[](size_t index) { return channels_[index]; };
     const T &operator[](size_t index) const { return channels_[index]; };
 
+    std::string to_string() const
+    {
+      std::string output;
+      output = "[";
+      for (auto const &ch : channels_) {
+          output += std::to_string(ch) + ", ";
+      }
+      output += "]";
+      return output;
+    }
+
     auto begin() const {
         return channels_.begin();
     };
@@ -77,6 +88,15 @@ public:
     auto end() {
         return channels_.end();
     };
+
+    bool in_range(T range_min, T range_max) const {
+        for (auto const &ch : channels_) {
+          if (ch >= range_max or ch < range_min) {
+            return false;
+          }
+        }
+        return true;
+    }
 
     bool is_sorted() const {
         return std::is_sorted(channels_.begin(), channels_.end());
@@ -100,6 +120,7 @@ public:
 private:
     std::vector<T> channels_;
 };
+
 
 namespace YAML {
 
