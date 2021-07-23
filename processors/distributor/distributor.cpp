@@ -67,7 +67,7 @@ void Distributor::Prepare(GlobalContext &context) {
           "Channel map entry " + it.first + " has zero channels.", name());
     }
 
-    if(!it.second.in_range(0, max_n_channels_)){
+    if(!it.second.all_in_range(0, max_n_channels_)){
         throw ProcessingPrepareError(
             "Channel list " + it.first + ": " + it.second.to_string() + " is invalid",
             name());

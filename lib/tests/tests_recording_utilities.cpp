@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // This file is part of falcon-core.
 //
-// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+// Copyright (C) 2021-present Neuro-Electronics Research Flanders
 //
 // Falcon-server is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "../recording_utilities/channelist.hpp"
 #include "gtest/gtest.h"
+#include "yaml-cpp/yaml.h"
 
 namespace {
 
@@ -99,12 +100,12 @@ TEST(RemoveChannels, fromrange) {
     EXPECT_EQ(result, expected_output);
 }
 
-TEST(InspectChannels, inrange) {
+TEST(InspectChannels, allinrange) {
     auto channelist = ChannelList<int>();
     channelist.add_channels(1, 9);
 
-    EXPECT_FALSE(channelist.in_range(0, 2));
-    EXPECT_TRUE(channelist.in_range(0, 10));
+    EXPECT_FALSE(channelist.all_in_range(0, 2));
+    EXPECT_TRUE(channelist.all_in_range(0, 10));
 }
 
 TEST(InspectChannels, isunique) {
@@ -115,6 +116,48 @@ TEST(InspectChannels, isunique) {
     channelist.add_channels(1, 9);
     EXPECT_FALSE(channelist.is_unique());
 }
+
+TEST(InspectChannels, printrangelist) {
+    auto channelist = ChannelList<int>();
+    channelist.add_channels(1, 3);
+    EXPECT_EQ(channelist.to_string(), "[1-3]");
+}
+
+TEST(InspectChannels, printmixlist) {
+    auto channelist = ChannelList<int>();
+    channelist.add_channels(1, 3);
+    channelist.add_channels(7);
+    channelist.add_channels(4, 6);
+    EXPECT_EQ(channelist.to_string(), "[1-3, 7, 4-6]");
+}
+
+TEST(DecodeYaml, simplelist) {
+    YAML::Node node = YAML::Load("[1,2,3]");
+    auto channelist = node.as<ChannelList<int>>();
+    EXPECT_EQ(channelist.size(), 3);
+
+    std::vector<int> expected_output = {1,2,3};
+    EXPECT_EQ(channelist.get_channels(), expected_output);
+}
+
+TEST(DecodeYaml, withrange) {
+    YAML::Node node = YAML::Load("[1-3]");
+    auto channelist = node.as<ChannelList<int>>();
+    EXPECT_EQ(channelist.size(), 3);
+
+    std::vector<int> expected_output = {1,2,3};
+    EXPECT_EQ(channelist.get_channels(), expected_output);
+}
+
+TEST(DecodeYaml, withmixt) {
+    YAML::Node node = YAML::Load("[1-3, 7, 1 - 3]");
+    auto channelist = node.as<ChannelList<int>>();
+    EXPECT_EQ(channelist.size(), 7);
+
+    std::vector<int> expected_output = {1,2,3, 7, 1,2, 3};
+    EXPECT_EQ(channelist.get_channels(), expected_output);
+}
+
 }
 
 int main(int argc, char **argv) {

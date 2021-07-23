@@ -11,8 +11,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-MESSAGE("Add test from fklab extension: recording utilities lib test")
+MESSAGE("Add tests for fklab extension: recording utilities lib test")
 add_executable(recording_lib_test tests_recording_utilities.cpp )
-target_link_libraries(recording_lib_test gtest gmock)
+target_link_libraries(recording_lib_test gtest gmock yaml-cpp utilities)
 add_test(NAME recording_lib_test COMMAND recording_lib_test)
 

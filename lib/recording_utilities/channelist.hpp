@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // This file is part of falcon-core.
 //
-// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+// Copyright (C) 2021-present Neuro-Electronics Research Flanders
 //
 // Falcon-server is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "utilities/string.hpp"
 #include <regex>
 #include <vector>
-#include <numeric>
+#include <iostream>
 #include "yaml-cpp/yaml.h"
+#include "utilities/string.hpp"
 
 template <typename T> class ChannelList{
 public:
@@ -48,18 +48,21 @@ public:
     }
 
     void remove_channels(double range_min, double range_max){
-        for(T channel = range_min; channel <= range_max; channel++){
-            channels_.erase(std::remove(channels_.begin(), channels_.end(), channel),
-                            channels_.end());
-        }
+        channels_.erase(std::remove_if(
+                            channels_.begin(), channels_.end(),
+                            [range_min, range_max](T x) {
+                                return x >= range_min and x <= range_max;
+                            }
+                            ),channels_.end());
     }
 
     void remove_channels(std::vector<T> channels){
-        for(auto channel : channels){
-            channels_.erase(std::remove(channels_.begin(), channels_.end(), channel),
-                            channels_.end());
-        }
-
+        channels_.erase(std::remove_if(
+                            channels_.begin(), channels_.end(),
+                            [channels](T x) {
+                                return std::find(channels.begin(), channels.end(), x)!= channels.end();
+                            }
+                            ),channels_.end());
     }
 
     auto size() const{
@@ -71,13 +74,25 @@ public:
 
     std::string to_string() const
     {
-      std::string output;
-      output = "[";
-      for (auto const &ch : channels_) {
-          output += std::to_string(ch) + ", ";
-      }
-      output += "]";
-      return output;
+        std::string str="[";
+        unsigned int index=0;
+        bool inrange = false;
+        while( index < channels_.size()-1 ){
+            if(channels_[index]+1 == channels_[index+1]){
+                if(!inrange){
+                    str += std::to_string(channels_[index])+"-";
+                }
+                inrange = true;
+            }else{
+                str += std::to_string(channels_[index]) + ", ";
+                inrange = false;
+            }
+            index++;
+
+        }
+        str += std::to_string(channels_[index])+"]";
+        return str;
+
     }
 
     auto begin() const {
@@ -94,11 +109,11 @@ public:
         return channels_.end();
     };
 
-    bool in_range(T range_min, T range_max) const {
+    bool all_in_range(T range_min, T range_max) const {
         for (auto const &ch : channels_) {
-          if (ch >= range_max or ch < range_min) {
-            return false;
-          }
+            if (ch >= range_max or ch < range_min) {
+                return false;
+            }
         }
         return true;
     }
@@ -130,34 +145,34 @@ private:
 namespace YAML {
 
 template <typename T> struct convert<ChannelList<T>> {
-  static Node encode(const ChannelList<T> &rhs) {
-    Node node;
-    node = rhs.get_channels();
-    return node;
-  }
+    static Node encode(const ChannelList<T> &rhs) {
+        Node node;
+        node = rhs.get_channels();
+        return node;
+    }
 
-  static bool decode(const Node &node, ChannelList<T> &rhs) {
+    static bool decode(const Node &node, ChannelList<T> &rhs) {
 
-    if(node.IsSequence()){
-        auto channels = node.as<std::vector<std::string>>();
-
-        for(auto part: channels){
-            part = std::regex_replace(part, std::regex(" "), "");
-            if (std::regex_match(part, std::regex("^\\d+(\\-\\d+)?$"))) {
+        if(node.IsSequence()){
+            auto channels = node.as<std::vector<std::string>>();
+            std::smatch submatch;
+            for(auto part: channels){
+                part = std::regex_replace(part, std::regex(" "), "");
                 auto range = split(part, '-');
                 if(range.size()==1){
                     rhs.add_channels(atoi(range[0].c_str()));
                 }
-                else{
+                else if (range.size()==2){
                     rhs.add_channels(atoi(range[0].c_str()), atoi(range[1].c_str()));
+                } else {
+                    throw std::runtime_error(part + " is not a valid list specification.");
                 }
-            } else {
-              throw std::runtime_error(part + " is not a valid list specification.");
             }
+        }else{
+            return false;
         }
-    }
 
-    return true;
-  }
+        return true;
+    }
 };
 }
