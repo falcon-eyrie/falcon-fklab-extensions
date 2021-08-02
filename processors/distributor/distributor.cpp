@@ -67,12 +67,16 @@ void Distributor::Prepare(GlobalContext &context) {
           "Channel map entry " + it.first + " has zero channels.", name());
     }
 
-    for (auto const &ch : it.second) {
-      if (ch >= max_n_channels_) {
+    if(!it.second.all_in_range(0, max_n_channels_)){
         throw ProcessingPrepareError(
-            "Channel " + std::to_string(static_cast<int>(ch)) + " is invalid",
+            "Channel list " + it.first + ": " + it.second.to_string() + " is invalid",
             name());
-      }
+    }
+
+    if (!it.second.is_unique()){
+        throw ProcessingPrepareError(
+            "Channel list " + it.first + ": " + it.second.to_string() + " cannot have duplicate channels",
+            name());
     }
   }
 }
