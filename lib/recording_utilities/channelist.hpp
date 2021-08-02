@@ -75,22 +75,28 @@ public:
     std::string to_string() const
     {
         std::string str="[";
-        unsigned int index=0;
-        bool inrange = false;
-        while( index < channels_.size()-1 ){
-            if(channels_[index]+1 == channels_[index+1]){
-                if(!inrange){
-                    str += std::to_string(channels_[index])+"-";
+        if(!channels_.empty()){
+
+            unsigned int index=0;
+            bool inrange = false;
+
+            while( index < channels_.size()-1 ){
+                if(channels_[index]+1 == channels_[index+1]){
+                    if(!inrange){
+                        str += std::to_string(channels_[index])+"-";
+                    }
+                    inrange = true;
+                }else{
+                    str += std::to_string(channels_[index]) + ", ";
+                    inrange = false;
                 }
-                inrange = true;
-            }else{
-                str += std::to_string(channels_[index]) + ", ";
-                inrange = false;
+                index++;
+
             }
-            index++;
+            str += std::to_string(channels_[index]);
 
         }
-        str += std::to_string(channels_[index])+"]";
+        str += "]";
         return str;
 
     }
@@ -155,7 +161,6 @@ template <typename T> struct convert<ChannelList<T>> {
 
         if(node.IsSequence()){
             auto channels = node.as<std::vector<std::string>>();
-            std::smatch submatch;
             for(auto part: channels){
                 part = std::regex_replace(part, std::regex(" "), "");
                 auto range = split(part, '-');

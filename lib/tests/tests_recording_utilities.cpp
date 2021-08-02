@@ -123,6 +123,11 @@ TEST(InspectChannels, printrangelist) {
     EXPECT_EQ(channelist.to_string(), "[1-3]");
 }
 
+TEST(InspectChannels, printemptylist) {
+    auto channelist = ChannelList<int>();
+    EXPECT_EQ(channelist.to_string(), "[]");
+}
+
 TEST(InspectChannels, printmixlist) {
     auto channelist = ChannelList<int>();
     channelist.add_channels(1, 3);
