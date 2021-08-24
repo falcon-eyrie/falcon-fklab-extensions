@@ -43,18 +43,16 @@ RippleDetector::RippleDetector() : IProcessor()
 
 void RippleDetector::CreatePorts()
 {
-    data_in_port_ = create_input_port<MultiChannelType<double>>(
-        "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
+    data_in_port_ = create_input_port<TimeSeriesType<double>>(
+        "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
         PortInPolicy(SlotRange(1)));
 
     event_out_port_ = create_output_port<EventType>(
-        EVENTDATA,
-        EventType::Parameters("ripple"),
+        EVENTDATA, EventType::Parameters("ripple"),
         PortOutPolicy(SlotRange(1)));
 
-    stats_out_port_ = create_output_port<MultiChannelType<double>>(
-        "statistics",
-        MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
+    stats_out_port_ = create_output_port<TimeSeriesType<double>>(
+        "statistics", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
 
     threshold_ = create_producer_state("threshold", 0.0, false, Permission::READ);
 
@@ -92,8 +90,8 @@ void RippleDetector::CompleteStreamInfo()
     stats_nsamples_ = std::max(stats_nsamples_, 1UL);
 
     stats_out_port_->streaminfo(0).set_parameters(
-        MultiChannelType<double>::Parameters(
-            N_STATS_OUT, stats_nsamples_,
+        TimeSeriesType<double>::Parameters(
+            STATS_LABEL, stats_nsamples_,
             data_in_port_->prototype(0).sample_rate() /
                 stats_downsample_factor_()));
     stats_out_port_->streaminfo(0).set_stream_rate(data_in_port_->streaminfo(0));
@@ -117,9 +115,9 @@ void RippleDetector::Preprocess(ProcessingContext &context)
 
 void RippleDetector::Process(ProcessingContext &context)
 {
-    MultiChannelType<double>::Data *data_in = nullptr;
+    TimeSeriesType<double>::Data *data_in = nullptr;
     EventType::Data *event_out = nullptr;
-    MultiChannelType<double>::Data *stats_out = nullptr;
+    TimeSeriesType<double>::Data *stats_out = nullptr;
     double value, test_value;
     auto stats_nsamples_counter = stats_nsamples_;
     unsigned int stats_skip_counter = 0;
@@ -192,8 +190,8 @@ void RippleDetector::Process(ProcessingContext &context)
 
                 if (stats_skip_counter == 0)
                 {
-                    stats_out->set_data_sample(stats_nsamples_counter, 0, test_value);
-                    stats_out->set_data_sample(stats_nsamples_counter, 1,
+                    stats_out->set_data_sample(stats_nsamples_counter, "statistics", test_value);
+                    stats_out->set_data_sample(stats_nsamples_counter, "threshold",
                                                threshold_detector_->threshold());
                     stats_out->set_sample_timestamp(stats_nsamples_counter,
                                                     data_in->sample_timestamp(sample));
@@ -245,7 +243,7 @@ void RippleDetector::Postprocess(ProcessingContext &context)
 }
 
 inline double
-RippleDetector::compute_value(MultiChannelType<double>::Data *data_in,
+RippleDetector::compute_value(TimeSeriesType<double>::Data *data_in,
                               unsigned int sample)
 {
     if (use_power_())
@@ -256,7 +254,7 @@ RippleDetector::compute_value(MultiChannelType<double>::Data *data_in,
         {
             acc_ += std::pow(*c, 2);
         }
-        return acc_ / data_in->nchannels();
+        return acc_ / data_in->ncolumns();
     }
     return data_in->mean_sample(sample);
 }

@@ -34,19 +34,16 @@ SpikeDetector::SpikeDetector() : IProcessor() {
 }
 
 void SpikeDetector::CreatePorts() {
-  data_in_port_ = create_input_port<MultiChannelType<double>>(
-      "data",
-      MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
+  data_in_port_ = create_input_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
       PortInPolicy(SlotRange(1)));
 
   data_out_port_spikes_ = create_output_port<SpikeType>(
-      SPIKEDATA,
-      SpikeType::Parameters(buffer_size_()),
+      SPIKEDATA, SpikeType::Parameters(buffer_size_()),
       PortOutPolicy(SlotRange(1), RINGBUFFER_SIZE));
 
   data_out_port_events_ = create_output_port<EventType>(
-      EVENTDATA,
-      EventType::Parameters(),
+      EVENTDATA, EventType::Parameters(),
       PortOutPolicy(SlotRange(1)));
 
   threshold_ = create_static_state(THRESHOLD, initial_threshold_(), true,
@@ -73,7 +70,7 @@ void SpikeDetector::CompleteStreamInfo() {
     throw ProcessingStreamInfoError(error.what(), name());
   }
 
-  n_channels_ = data_in_port_->prototype(0).nchannels();
+  n_channels_ = data_in_port_->prototype(0).ncolumns();
   auto parms = data_out_port_spikes_->streaminfo(0).parameters();
   parms.nchannels = n_channels_;
   parms.sample_rate = incoming_stream_rate;
@@ -88,16 +85,17 @@ void SpikeDetector::Prepare(GlobalContext &context) {
       n_channels_, initial_threshold_(), initial_peak_lifetime_()));
 
   if (invert_signal_()) {
-    inverted_signals_.reset(
-      new MultiChannelType<double>::Data(
-        n_channels_, incoming_buffer_size_samples_,
-        data_in_port_->prototype(0).sample_rate()));
+    inverted_signals_.reset(new TimeSeriesType<double>::Data(
+         data_in_port_->prototype(0).labels(),
+         incoming_buffer_size_samples_,
+         data_in_port_->prototype(0).sample_rate()));
+
   }
 }
 
 void SpikeDetector::Process(ProcessingContext &context) {
-  MultiChannelType<double>::Data *data_in_;
-  MultiChannelType<double>::Data *signals = nullptr;
+  TimeSeriesType<double>::Data *data_in_;
+  TimeSeriesType<double>::Data *signals = nullptr;
 
   size_t sample_buffer_counter = 0;
   decltype(data_in_->hardware_timestamp()) hw_timestamp = 0;

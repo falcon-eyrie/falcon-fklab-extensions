@@ -31,12 +31,13 @@
 #include <vector>
 
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
+#include "recording_utilities/channellist.hpp"
 #include "neuralynx/nlx.hpp"
 #include "options/options.hpp"
 #include "utilities/time.hpp"
 
-typedef std::map<std::string, std::vector<unsigned int>> ChannelMap;
+typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
 
 class NlxReader : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
@@ -60,7 +61,7 @@ class NlxReader : public IProcessor {
 
   // PORT
  protected:
-  std::map<std::string, PortOut<MultiChannelType<double>> *> data_ports_;
+  std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
 
   // CONSTANTS
  public:

@@ -76,13 +76,11 @@ void NlxParser::CreatePorts() {
   data_in_port_ = create_input_port<VectorType<uint32_t>>(
       "udp", VectorType<uint32_t>::Capabilities(), PortInPolicy(SlotRange(1)));
 
-  output_port_signal_ = create_output_port<MultiChannelType<double>>(
-      "data",
-      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1), 500));
+  output_port_signal_ = create_output_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(1), 500));
 
-  output_port_ttl_ = create_output_port<MultiChannelType<uint32_t>>(
-      "ttl",
-      MultiChannelType<uint32_t>::Parameters(),
+  output_port_ttl_ = create_output_port<TimeSeriesType<uint32_t>>(
+      "ttl", TimeSeriesType<uint32_t>::Parameters(),
       PortOutPolicy(SlotRange(1), 500));
 
   n_invalid_ = create_broadcaster_state<uint64_t>(
@@ -100,7 +98,7 @@ void NlxParser::CompleteStreamInfo() {
   nlxrecord_.set_nchannels(nchannels_);
 
   output_port_signal_->streaminfo(0).set_parameters(
-      MultiChannelType<double>::Parameters(
+      TimeSeriesType<double>::Parameters(
           nchannels_, batch_size_(),
           data_in_port_->slot(0)->streaminfo().stream_rate()));
 
@@ -108,7 +106,7 @@ void NlxParser::CompleteStreamInfo() {
       data_in_port_->slot(0)->streaminfo().stream_rate() / batch_size_());
 
   output_port_ttl_->streaminfo(0).set_parameters(
-      MultiChannelType<uint32_t>::Parameters(
+      TimeSeriesType<uint32_t>::Parameters(
           1, batch_size_(),
           data_in_port_->slot(0)->streaminfo().stream_rate()));
 
@@ -140,9 +138,9 @@ void NlxParser::Process(ProcessingContext &context) {
   decltype(n_filling_packets_) packets_lag = 0;
 
   VectorType<uint32_t>::Data *data_in = nullptr;
-  MultiChannelType<double>::Data::sample_iterator data_iter;
-  MultiChannelType<double>::Data *data_out = nullptr;
-  MultiChannelType<uint32_t>::Data *ttl_data_out = nullptr;
+  TimeSeriesType<double>::Data::sample_iterator data_iter;
+  TimeSeriesType<double>::Data *data_out = nullptr;
+  TimeSeriesType<uint32_t>::Data *ttl_data_out = nullptr;
 
   while (!context.terminated()) {
     if (!data_in_port_->slot(0)->RetrieveData(data_in)) {

@@ -33,36 +33,86 @@ public:
         return channels_;
     }
 
-    void add_channels(T channel){
+    std::vector<std::string> get_channels_as_label() const{
+        /*std::vector<std::string> labels = {};
+        for(auto c: channels_){
+          labels.push_back(std::to_string(c));
+        }*/
+        return labels_;
+    }
+
+
+    void add_channels(T channel, std::string label=""){
         channels_.push_back(channel);
+
+        if(label == ""){
+            label = std::to_string(channel);
+        }
+        add_label(label);
     };
 
-    void add_channels(std::vector<T> channels){
+    void add_channels(std::vector<T> channels, std::vector<std::string> labels={}){
         channels_.insert(channels_.end(), channels.begin(), channels.end());
+
+        if (labels.size() == 0) {
+            for(auto c : channels){
+                add_label(std::to_string(c));
+            }
+        }
+        else if(labels.size() != channels.size()){
+            throw std::length_error(". channels and labels should have the same size.");
+        }
+        else{
+            for(auto l : labels){
+                add_label(l);
+            }
+
+        }
+
     };
 
     void add_channels(T range_min, T range_max){
         for(T channel = range_min; channel <= range_max; channel++){
-            channels_.push_back(channel);
+            add_channels(channel);
         }
     }
 
     void remove_channels(double range_min, double range_max){
-        channels_.erase(std::remove_if(
+
+       auto to_remove = std::remove_if(
                             channels_.begin(), channels_.end(),
                             [range_min, range_max](T x) {
                                 return x >= range_min and x <= range_max;
                             }
-                            ),channels_.end());
+                            );
+
+       channels_.erase(to_remove, channels_.end());
+       labels_.erase(to_remove, labels_.end());
     }
 
     void remove_channels(std::vector<T> channels){
-        channels_.erase(std::remove_if(
-                            channels_.begin(), channels_.end(),
-                            [channels](T x) {
-                                return std::find(channels.begin(), channels.end(), x)!= channels.end();
-                            }
-                            ),channels_.end());
+
+        auto to_remove = std::remove_if(
+                    channels_.begin(), channels_.end(),
+                    [channels](T x) {
+                        return std::find(channels.begin(), channels.end(), x)!= channels.end();
+                    }
+                    );
+
+        channels_.erase(to_remove ,channels_.end());
+        labels_.erase(to_remove, labels_.end());
+    }
+
+    void remove_channels(std::vector<std::string> labels){
+        auto to_remove = std::remove_if(
+                    labels_.begin(), labels_.end(),
+                    [labels](T x) {
+                        return std::find(labels.begin(), labels.end(), x)!= labels.end();
+                    }
+                    );
+
+        channels_.erase(to_remove ,channels_.end());
+        labels_.erase(to_remove, labels_.end());
     }
 
     auto size() const{
@@ -124,6 +174,17 @@ public:
         return true;
     }
 
+    bool is_subset(std::vector<T> channels) const {
+        const auto subset = get_channels();
+        return std::includes(channels.begin(), channels.end(), subset.begin(), subset.end());
+    }
+
+    bool is_subset(std::vector<std::string> labels) const {
+        const auto subset = get_channels_as_label();
+        return std::includes(labels.begin(), labels.end(), subset.begin(), subset.end());
+
+    }
+
     bool is_sorted() const {
         return std::is_sorted(channels_.begin(), channels_.end());
     }
@@ -134,17 +195,33 @@ public:
         return std::adjacent_find(sorted_vector.begin(), sorted_vector.end()) == sorted_vector.end();
     }
 
-    void sort() {
+    /**void sort() {   TODO later - not straighforward argsort or way to sort labels_ in the same new order as channels_
         std::sort(channels_.begin(), channels_.end());
     }
 
-    void unique() {
+    void unique() {  Same now unique became complicated - which label should we remove ?
+
         std::sort(channels_.begin(), channels_.end());
         auto it = std::unique(channels_.begin(), channels_.end());
         channels_.resize( std::distance(channels_.begin(),it) );
+
+    }**/
+
+
+private :
+    void add_label(std::string label){
+        auto existing_labels = get_channels_as_label();
+
+        if(std::find(existing_labels.begin(), existing_labels.end(), label) != existing_labels.end()){
+            throw std::invalid_argument(". This label " + label + " already exist in this channel list and should be unique");
+        }
+
+        labels_.push_back(label);
     }
+
 private:
     std::vector<T> channels_;
+    std::vector<std::string> labels_;
 };
 
 

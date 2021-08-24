@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 
 #include "options/options.hpp"
 #include "options/units.hpp"
@@ -39,8 +39,8 @@ class Rebuffer : public IProcessor {
 
   // DATA PORTS
  protected:
-  PortIn<MultiChannelType<double>> *data_in_port_;
-  PortOut<MultiChannelType<double>> *data_out_port_;
+  PortIn<TimeSeriesType<double>> *data_in_port_;
+  PortOut<TimeSeriesType<double>> *data_out_port_;
 
   // VARIABLES
  protected:

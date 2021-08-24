@@ -54,9 +54,8 @@ void NlxReader::Configure(const GlobalContext &context) {
 
 void NlxReader::CreatePorts() {
   for (auto &it : channelmap_()) {
-    data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
-        it.first,
-        MultiChannelType<double>::Parameters(),
+    data_ports_[it.first] = create_output_port<TimeSeriesType<double>>(
+        it.first, TimeSeriesType<double>::Parameters(),
         PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
   }
 }
@@ -66,8 +65,8 @@ void NlxReader::CompleteStreamInfo() {
     // finalize data type with nsamples == batch_size and nchannels taken from
     // channel map
     it.second->streaminfo(0).set_parameters(
-        MultiChannelType<double>::Parameters(
-            channelmap_().at(it.first).size(), batch_size_(),
+        TimeSeriesType<double>::Parameters(
+            channelmap_().at(it.first).get_channels_as_label(), batch_size_(),
             nlx::NLX_SIGNAL_SAMPLING_FREQUENCY));
     it.second->streaminfo(0).set_stream_rate(
         nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_());
@@ -113,8 +112,8 @@ void NlxReader::Preprocess(ProcessingContext &context) {
 void NlxReader::Process(ProcessingContext &context) {
   bool update_time = false;
   int data_index = 0;
-  MultiChannelType<double>::Data::sample_iterator data_iter;
-  std::vector<MultiChannelType<double>::Data *> data_vector(data_ports_.size());
+  TimeSeriesType<double>::Data::sample_iterator data_iter;
+  std::vector<TimeSeriesType<double>::Data *> data_vector(data_ports_.size());
 
   while (!context.terminated() && valid_packet_counter_ < npackets_()) {
     // check if packets have arrived (with time-out)
@@ -206,7 +205,7 @@ void NlxReader::Process(ProcessingContext &context) {
         data_vector[data_index]->set_sample_timestamp(sample_counter_,
                                                       nlxrecord_.timestamp());
         data_iter = data_vector[data_index]->begin_sample(sample_counter_);
-        for (auto &channel : it.second) {
+        for (auto &channel : it.second.get_channels()) {
           (*data_iter) = nlxrecord_.sample_microvolt(channel);
           ++data_iter;
         }

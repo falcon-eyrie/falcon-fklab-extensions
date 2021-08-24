@@ -38,19 +38,19 @@ RunningStats::RunningStats() : IProcessor() {
 }
 
 void RunningStats::CreatePorts() {
-  data_in_port_ = create_input_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
+  data_in_port_ = create_input_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
       PortInPolicy(SlotRange(1)));
 
-  data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data",
-      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
+  data_out_port_ = create_output_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
+
 }
 
 void RunningStats::CompleteStreamInfo() {
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     data_out_port_->streaminfo(k).set_parameters(
-        data_in_port_->streaminfo(k).parameters<const typename MultiChannelType<double>::Parameters &>());
+        data_in_port_->streaminfo(k).parameters<const typename TimeSeriesType<double>::Parameters &>());
     data_out_port_->streaminfo(k).set_stream_rate(data_in_port_->streaminfo(k));
   }
 }
@@ -66,8 +66,8 @@ void RunningStats::Preprocess(ProcessingContext &context) {
 }
 
 void RunningStats::Process(ProcessingContext &context) {
-  MultiChannelType<double>::Data *data_in;
-  MultiChannelType<double>::Data *data_out;
+  TimeSeriesType<double>::Data *data_in;
+  TimeSeriesType<double>::Data *data_out;
   unsigned N = 100;
 
   while (!context.terminated()) {

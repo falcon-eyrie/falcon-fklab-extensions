@@ -22,7 +22,7 @@
 #include "iprocessor.hpp"
 #include "channel_generated.h"
 
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 #include "utilities/zmqutil.hpp"
 #include "flatbuffers/flatbuffers.h"
 
@@ -47,7 +47,7 @@ protected:
 
   // PORT
 protected:
-  PortOut<MultiChannelType<double>>* data_port_;
+  PortOut<TimeSeriesType<double>>* data_port_;
 
   // VARIABLES
 protected:
