@@ -77,8 +77,11 @@ protected:
   options::Bool default_disabled_{false};
   options::Measurement<double, false> initial_stop_detection_period_{
       50, "ms", options::positive<double>(false)};
+  options::Value<std::vector<int>, true> when_stop_detection_period_{{0, 0}};
   options::Measurement<double, false> initial_stop_analysis_period_{
       50., "ms", options::positive<double>(false)};
+  options::Bool start_after_detection_{false};
+  options::Bool start_after_stimulation_{true};
   options::Bool initial_delayed_event_{false};
   options::Bool save_events_{true};
   options::String prefix_{"stim_"};
@@ -86,7 +89,6 @@ protected:
   options::String msg_detection_{"r"};
   options::String msg_ontime_{"o"};
   options::Value<std::vector<long int>, true> initial_delayed_range_{{150, 200}};
-
 
 private:
   void send_event(EventType::Data *data_in, std::string type);

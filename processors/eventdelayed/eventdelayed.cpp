@@ -37,11 +37,22 @@ EventDelayed::EventDelayed() : delayed_range_(150, 200) {
                "Message to send on ontime mode.");
 
     // Lock-out time 
-    add_option(STOP_DETECTION_TIME_S, initial_stop_detection_period_,
+    add_option(STOP_DETECTION_TIME_S+"/period", initial_stop_detection_period_,
                "Lock out time for sending new detection/stimulation after a stimulation.");
+    // Lock-out time
+    add_option(STOP_DETECTION_TIME_S+"/starting_times", when_stop_detection_period_,
+               "when to start stopping detection after a stimulation.");
+    // - time
+    // - time to start the lockout [..,..,]
 
-    add_option(STOP_ANALYSIS_TIME_S, initial_stop_analysis_period_,
+    add_option(STOP_ANALYSIS_TIME_S+"/period", initial_stop_analysis_period_,
                "Lock out time for detecting pattern after a stimulation");
+
+    add_option(STOP_ANALYSIS_TIME_S+"/detection", start_after_detection_,
+               "Start stopping for detecting pattern after a detection");
+
+    add_option(STOP_ANALYSIS_TIME_S+"/stimulation", start_after_stimulation_,
+               "Start stopping for detecting pattern after a stimulatio");
 
     // saving feature
     add_option("enable saving", save_events_,
@@ -174,7 +185,7 @@ void EventDelayed::Process(ProcessingContext &context) {
                 auto delay =
                         data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
 
-                if (not to_lock_out_in_future(delay)) {
+                if ((not start_after_stimulation_() or not to_lock_out_in_future(delay)) and ( not start_after_detection_() or not to_lock_out())) {
                     Delayed event(delay, data_in);
                     event_queue_.push(event);
                     send_event(event_queue_.top().data_in, msg_detection_());
@@ -194,7 +205,7 @@ void EventDelayed::Process(ProcessingContext &context) {
             }
         } else {
             ++ontime_received_event_;
-            if (not to_lock_out()) {
+            if (not(start_after_detection_() and start_after_stimulation_()) or not to_lock_out()) {
                 send_event(data_in, msg_detection_());
             } else {
                 LOG(DEBUG) << name() << data_in->event() << " has been locked-out in disable mode";
@@ -257,6 +268,7 @@ bool EventDelayed::to_lock_out_in_future(TimePoint start_event) {
     previous_TS_nostim_ = last_future_event;
     return false;
 }
+
 
 bool EventDelayed::to_lock_out() {
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - previous_TS_nostim_).count();
