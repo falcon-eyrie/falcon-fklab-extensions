@@ -40,7 +40,7 @@ EventDelayed::EventDelayed() : delayed_range_(150, 200) {
     add_option(STOP_DETECTION_TIME_S+"/period", initial_stop_detection_period_,
                "Lock out time for sending new detection/stimulation after a stimulation.");
     // Lock-out time
-    add_option(STOP_DETECTION_TIME_S+"/starting_times", when_stop_detection_period_,
+    add_option(STOP_DETECTION_TIME_S+"/starting time", when_stop_detection_period_,
                "when to start stopping detection after a stimulation.");
     // - time
     // - time to start the lockout [..,..,]
@@ -52,7 +52,7 @@ EventDelayed::EventDelayed() : delayed_range_(150, 200) {
                "Start stopping for detecting pattern after a detection");
 
     add_option(STOP_ANALYSIS_TIME_S+"/stimulation", start_after_stimulation_,
-               "Start stopping for detecting pattern after a stimulatio");
+               "Start stopping for detecting pattern after a stimulation");
 
     // saving feature
     add_option("enable saving", save_events_,

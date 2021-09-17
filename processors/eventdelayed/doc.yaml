@@ -51,16 +51,31 @@ Options:
     description: Message to send on the detection port when an event is received
 
   - &detection_lockout
-    name: event trigger lockout time
+    name: event trigger lockout time/period
     type: double
     default: 50 ms
     description: Lock out time for sending new detection/stimulation after a stimulation.
 
+  - name: event trigger lockout time/stimulation
+    type: bool
+    default: true
+    description: Start stopping for detecting pattern after a stimulation.
+
+  - name: event trigger lockout time/detection
+    type: bool
+    default: false
+    description: Start stopping for detecting pattern after a detection.
+
   - &analysis_lockout
-    name: analysis lockout time
+    name: analysis lockout time/period
     type: double
     default: 50 ms
     description: Lock out time for detecting pattern after a stimulation 
+
+  - name: analysis lockout time/start time
+    type: list(double)
+    default: [0,0]
+    description: when to start stopping detection after a stimulation.
 
   - name: enabled saving
     type: bool
