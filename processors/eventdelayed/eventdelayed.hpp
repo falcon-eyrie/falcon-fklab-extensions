@@ -77,7 +77,7 @@ protected:
   options::Bool default_disabled_{false};
   options::Measurement<double, false> initial_stop_detection_period_{
       50, "ms", options::positive<double>(false)};
-  options::Value<std::vector<int>, true> when_stop_detection_period_{{0, 0}};
+  options::Value<std::vector<int>, true> when_stop_analysis_period_{{0, 0}};
   options::Measurement<double, false> initial_stop_analysis_period_{
       50., "ms", options::positive<double>(false)};
   options::Bool start_after_detection_{false};
@@ -112,6 +112,6 @@ protected:
 protected:
   const std::string DISABLED_S = "detection only mode";
   const std::string DELAYED_S = "delayed mode";
-  const std::string STOP_DETECTION_TIME_S = "analysis lockout time";
-  const std::string STOP_ANALYSIS_TIME_S = "event trigger lockout time";
+  const std::string STOP_DETECTION_TIME_S = "event trigger lockout time";
+  const std::string STOP_ANALYSIS_TIME_S = "analysis lockout time" ;
 };
