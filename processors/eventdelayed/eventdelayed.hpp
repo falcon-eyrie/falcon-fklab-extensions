@@ -104,6 +104,10 @@ protected:
   std::priority_queue<Delayed, std::vector<Delayed>, std::greater<Delayed>>
       event_queue_;
 
+  std::priority_queue<Delayed, std::vector<Delayed>, std::greater<Delayed>>
+      lockout_queue_;
+
+
   // CONSTANT
 protected:
   const std::string DISABLED_S = "detection only mode";
