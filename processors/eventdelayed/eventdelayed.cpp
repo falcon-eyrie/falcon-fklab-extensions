@@ -175,7 +175,7 @@ void EventDelayed::Process(ProcessingContext &context) {
             lockout_queue_.pop();
 
             while (!event_queue_.empty() and event_queue_.top().ts < Clock::now()) { //Remove any stimulations which would have happened during the detection/stimulation lockout
-                LOG(DEBUG) << name() << "The stimulation of this " << data_in->event() << " has been locked-out due to the detection lockout after stimulation.";
+                LOG(DEBUG) << name() << "The stimulation of this " << event_queue_.top().data_in->event() << " has been locked-out due to the detection lockout after stimulation.";
                 event_queue_.pop();
             }
         }
