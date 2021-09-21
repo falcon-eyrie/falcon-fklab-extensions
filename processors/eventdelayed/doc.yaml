@@ -1,6 +1,6 @@
 Description: Divide an event in two events -> detection (send ontime event if not locked out) and stimulations (send an event depending
   depending on 3 modes (disabled, ontime or with a delay randomly chosen in a range) if not locked out)
-  There is also a lockout period to remove too close events and an option file logging of these events.
+  There is also a lockout period to remove events and an option file logging of these events.
 
 Long description :
     - Enabled state: enabled=true =  Only one detection event is sent ontime if not locked-out.
@@ -74,7 +74,7 @@ Options:
 
   - name: analysis lockout time/start time
     type: list(double)
-    default: [0,0]
+    default: [0]
     description: when to start stopping detection after a stimulation.
 
   - name: enabled saving
