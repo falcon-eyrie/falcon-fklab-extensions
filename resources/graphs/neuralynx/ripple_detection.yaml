@@ -28,7 +28,7 @@ processors:
             statistics buffer size: 1.0 # sec
             statistics downsample factor: 4
             use power: true
-    CORTEX_detector :
+    CORTEX_detector:
         class: RippleDetector
         options:
             threshold dev: 12
@@ -84,12 +84,14 @@ connections:
     - ripple_filter1.data=HIPPOCAMPUS_detector.data
     - ripple_filter2.data=CORTEX_detector.data
     - HIPPOCAMPUS_detector.events=eventfilter.events
-    - CORTEX_detector.events=eventfilter.blocking_events
-    - HIPPOCAMPUS_detector.statistics=networksink.data
-    - eventfilter.events=stimulation_trigger.events
     - HIPPOCAMPUS_detector.events=eventsink.events
     - eventfilter.events=datasink_ev.data
+    - stimulation_trigger.events=networksink.data
     - HIPPOCAMPUS_detector.statistics=datasink_ripplestats.data
+    - HIPPOCAMPUS_detector.statistics=networksink.data
+    - CORTEX_detector.statistics=networksink.data
+    - CORTEX_detector.events=eventfilter.blocking_events
+    - eventfilter.events=stimulation_trigger.events
     - stimulation_trigger.events=ttl_output.events
 
 states:
