@@ -47,7 +47,7 @@ FileSerializer::FileSerializer() : IProcessor() {
 void FileSerializer::CreatePorts() {
   data_port_ =
       create_input_port<AnyType>("data", AnyType::Capabilities(),
-                                 PortInPolicy(SlotRange(1, 256), false, 0));
+                                 PortInPolicy(SlotRange(1, 256), false));
 }
 
 void FileSerializer::Configure(const GlobalContext &context) {
@@ -134,7 +134,7 @@ void FileSerializer::Process(ProcessingContext &context) {
 
   while (!context.terminated()) {
     for (int k = 0; k < nslots; ++k) {
-      if (!data_port_->slot(k)->RetrieveDataAll(data)) {
+      if (!data_port_->slot(k)->RetrieveDataAll(data, 0)) {
         break;
       }
 

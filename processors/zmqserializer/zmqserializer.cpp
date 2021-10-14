@@ -43,7 +43,7 @@ ZMQSerializer::ZMQSerializer() : IProcessor() {
 void ZMQSerializer::CreatePorts() {
   data_port_ =
       create_input_port<AnyType>("data", AnyType::Capabilities(),
-                                 PortInPolicy(SlotRange(1, 256), false, 0));
+                                 PortInPolicy(SlotRange(1, 256), false));
 }
 
 void ZMQSerializer::Preprocess(ProcessingContext &context) {
@@ -73,7 +73,7 @@ void ZMQSerializer::Process(ProcessingContext &context) {
 
   while (!context.terminated()) {
     for (int k = 0; k < data_port_->number_of_slots(); ++k) {
-      if (!data_port_->slot(k)->RetrieveDataAll(data)) {
+      if (!data_port_->slot(k)->RetrieveDataAll(data, 0)) {
         break;
       }
 

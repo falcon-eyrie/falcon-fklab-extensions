@@ -66,11 +66,11 @@ EventFilter::EventFilter() : EventSync() {
 void EventFilter::CreatePorts() {
   data_in_port_ =
       create_input_port<EventType>(EVENTDATA, EventType::Capabilities(),
-                                   PortInPolicy(SlotRange(1, 256), false, 0));
+                                   PortInPolicy(SlotRange(1, 256), false));
 
   block_in_port_ =
       create_input_port<EventType>("blocking events", EventType::Capabilities(),
-                                   PortInPolicy(SlotRange(1, 256), false, 0));
+                                   PortInPolicy(SlotRange(1, 256), false));
 
   data_out_port_ = create_output_port<EventType>(
       EVENTDATA, EventType::Capabilities(),
@@ -250,7 +250,7 @@ EventFilter::is_there_target(PortIn<EventType> *input_port,
   for (decltype(input_port->number_of_slots()) s = 0;
        s < input_port->number_of_slots(); ++s) {
     // check if processor is still alive
-    if (!input_port->slot(s)->RetrieveDataAll(data_in)) {
+    if (!input_port->slot(s)->RetrieveDataAll(data_in, 0)) {
       return std::make_tuple(false, false, NULL_TIMESTAMP);
     }
 

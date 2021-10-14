@@ -30,7 +30,7 @@ SerialOutput::SerialOutput() {
 void SerialOutput::CreatePorts() {
 
   data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
-                                               PortInPolicy(SlotRange(1, 10), false, 1));
+                                               PortInPolicy(SlotRange(1, 10), false));
 }
 
 void SerialOutput::Preprocess(ProcessingContext &context) {
@@ -53,7 +53,7 @@ void SerialOutput::Process(ProcessingContext &context) {
 
           for (int k = 0; k < nslots; ++k) {
               // retrieve new data
-              if (!data_in_port_->slot(k)->RetrieveData(data_in))
+              if (!data_in_port_->slot(k)->RetrieveData(data_in, 1))
                 {
                   break;
                 }
