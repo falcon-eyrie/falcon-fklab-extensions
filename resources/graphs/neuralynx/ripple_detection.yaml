@@ -72,8 +72,15 @@ processors:
         options:
             detection only mode: false
             delayed mode: false # switch for true if you want delayed events
-            event trigger lockout time: 250
-            analysis lockout time: 50
+            event trigger lockout time:     # Stop the trigger of events but still are counted in the statistics of the ripple detector
+               period:  250
+               detection: false
+               stimulation: true
+   
+            analysis lockout time: # Stop the detection in the ripple detector after a stimulation
+               period: 50
+               starting time: [0]
+
             delayed range: [150, 200]
     ttl_output:
         class: SerialOutput

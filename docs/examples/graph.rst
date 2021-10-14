@@ -35,7 +35,7 @@ The graph below is an example :
             options:
                 threshold dev: 12
                 smooth time: 8 # in seconds
-                analysis lockout time: 40 #ms
+                analysis lockout time: 40 #ms  # Stop multiple detections of ripples
 
         eventfilter:
             options:
@@ -47,8 +47,14 @@ The graph below is an example :
         stimulation_trigger:
             options:
                 delayed: true
-                event trigger lockout time: 150  # Post-stimulation lock-out - remove all stimulation events / keep detections
-                analysis lockout time: 60  # Post-stimulation detection lock-out - remove all detections
+                event trigger lockout time:   # Stop the trigger of events but still are counted in the statistics of the ripple detector
+                    period:  250
+                    detection: false    # Remove duplicate stimulations
+                    stimulation: true   #  Avoid overstimulation lock-out -
+
+                analysis lockout time:   # Stop artefacts lock-out - Stop the detection in the ripple detector after a stimulation
+                    period: 50
+                    starting time: [0]
                 delay range:
                 - 30
                 - 50

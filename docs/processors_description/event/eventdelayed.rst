@@ -2,8 +2,8 @@
 
 EventDelayed
 ------------
-Transfer event ontime or with a delay randomly chosen in a range. There is also a lockout period to remove
-too close events and an option file logging of these events.
+Transfer event ontime or with a delay randomly chosen in a range. There is also a lockout period to filter events
+and an option file logging of these events.
 
 There is three different states:
 
@@ -50,14 +50,26 @@ This 3 messages can be personalized in the options.
      - bool
      - false
      - Disabled the processing of incoming events.
-   * - **analysis lockout period**
+   * - **analysis lockout period/period**
      - double
      - 50.0 ms
-     - Disable time for ripple detection after stimulation
-   * - **event trigger lockout period**
+     - Lock out time for detecting pattern after a stimulation
+   * - **analysis lockout period/start time**
+     - list(double)
+     - [0] ms
+     - when to start stopping detection after a stimulation.
+   * - **event trigger lockout period/period**
      - double
      - 50.0 ms
-     - Disable time for sending trigger event after stimulation
+     - Lock out time for sending new detection/stimulation after a stimulation.
+   * - **event trigger lockout period/stimulation**
+     - bool
+     - true
+     - Start stopping for detecting pattern after a stimulation.
+   * - **event trigger lockout period/detection**
+     - bool
+     - false
+     - Start stopping for detecting pattern after a detection.
    * - **delayed mode**
      - bool
      - false
@@ -98,7 +110,7 @@ This 3 messages can be personalized in the options.
      - read-only
      - read/write
      -
-    * - **event trigger lockout time**
+   * - **event trigger lockout time**
      - double
      - option: event trigger lockout time
      - read-only
