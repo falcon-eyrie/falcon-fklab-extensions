@@ -1,11 +1,7 @@
-Description: Divide an event in two events -> detection (send ontime event if not locked out) and stimulations (send an event depending
-  depending on 3 modes (disabled, ontime or with a delay randomly chosen in a range) if not locked out)
-  There is also a lockout period to remove events and an option file logging of these events.
+Description: The processor will convert incoming events into a detection event and a stimulation event with optional delay.
 
 Long description :
-    - Enabled state: enabled=true =  Only one detection event is sent ontime if not locked-out.
-    - Ontime state:  delayed=false = A detection event + a stimulation event is sent ontime if not locked-out.
-    - Delayed state: delayed=true = A detection event is sent immediatly + a stimulation event is sent once the delayed time is reached.
+    This processor will convert each incoming event into two events; a detection event that is sent out immediately, and a stimulation event that is sent out with an optional delay. Incoming events are ignored if they arrive within a configurable lock-out time window after a previous event. Stimulation events are either sent out immediately (“on-time”), with a (random) delay or may be disabled.
 
 
 Input ports:
