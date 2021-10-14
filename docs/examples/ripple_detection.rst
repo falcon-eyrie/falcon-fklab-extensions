@@ -66,6 +66,11 @@ Algorithm
 Event filtering
 ...............
 
+- **Avoid multiple detections of a single ripple using a post-detection analysis lock-out**: Usually set to 50ms in ripple
+  detector, it ensures once a ripple has been detected, that no new detections or statistics update of the threshold is done. 
+  - processor: hippocampus detector / cortex detector [RippleDetector]
+  - options : analysis lockout time
+
 - **Artefact removal using a cortical recording**: as the rat is moving through the environment, 
   some actions like chewing and bumping lead to artefacts in the neural signal. 
   Luckily, they are largely spread in the brain, which means we can detect them outside hippocampus. 
@@ -76,19 +81,16 @@ Event filtering
 
 
 - **Avoid overstimulation using a post-stimulation lock-out**: to limit the output stimulation frequency and avoid overstimulation,
-  stimulations are not triggered in a post-stimulation window defined by the user (see config file: stimulation_trigger/event trigger
-  lockout time/duration and stimulation=True). Usually the output stimulation frequency is limited to 2 Hz which means
+  stimulations are not triggered in a post-stimulation window defined by the user. Usually the output stimulation frequency is limited to 2 Hz which means
   an event trigger lock-out period of 250 ms
+  - processor: stimulation_trigger [EventDelayed]
+  - options : event trigger lockout time/period and stimulation=True
 
 - **Remove duplicate stimulations using a post-detection lock-out**: During a long stimulation (for example with optogenetics),
   register detection is still interesting but this lockout will be useful to avoid sending duplicate stimulation trigger
   for a stimulation already happening.
-  (see config file: stimulation_trigger/event trigger lockout time/duration and detection=True)
-
-- **Avoid multiple detections of a single ripple using a post-detection analysis lock-out**: Usually set to 50ms in ripple
-  detector, it ensures once a ripple has been detected, that no new detections or statistics update of the threshold is done. 
-  This value can be set before the experimentation via the option called "analysis lockout time" in the ripple detector.
-  
+  - processor: stimulation_trigger [EventDelayed]
+  - options: event trigger lockout time/period and detection=True)
 
 - **Avoid detection of a stimulation artefact using a post-stimulation analysis lock-out**: The stimulation can add one
   or more artefacts.
@@ -100,18 +102,14 @@ Event filtering
 
   To avoid to assimilate it to a new ripple, an analysis lockout time, where the ripple detection is stopped in the ripple
   detector is triggered after each possible artefact times.
-  These times can be set before the  experimentation via the option called "analysis lockout time" in the stimulation trigger
-  by giving both the duration and a list of times (starting to +0 equal the start of the stimulation) where the lockout
-  should occurs.
 
-
+  - processor: stimulation_trigger [EventDelayed]
+  - options: analysis lockout time/period and start_time (starting to +0 equal the start of the stimulation)
 
 Ripple detection schema in delayed mode:
 
 .. image:: ../images/ripple_lockout.png
    :width: 80%
-
-
 
 .. note:: 
   

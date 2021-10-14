@@ -150,23 +150,27 @@ void EventDelayed::Process(ProcessingContext &context) {
 
     while (!context.terminated()) {
 
-        while (!event_queue_.empty() and event_queue_.top().ts < Clock::now()) {
+
+        // This part is about sending out delayed events
+        while (!delayed_event_queue_.empty() and delayed_event_queue_.top().ts < Clock::now()) {
             auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    Clock::now() - event_queue_.top().ts)
+                    Clock::now() - delayed_event_queue_.top().ts)
                     .count();
 
             LOG(DEBUG) << name() << ". Time to sent a delayed event ("
-                       << event_queue_.top().data_in->event() << ") with " << millis
+                       << delayed_event_queue_.top().data_in->event() << ") with " << millis
                        << "ms late.";
 
-            send_event(event_queue_.top().data_in,  msg_delayed_());
-            event_queue_.pop();
+            send_event(delayed_event_queue_.top().data_in,  msg_delayed_());
+            delayed_event_queue_.pop();
         }
 
+        // This part is about triggering delayed lock-out
         while(!lockout_queue_.empty() and lockout_queue_.top().ts < Clock::now()){
 
 
             LOG(DEBUG) << name() << ". Start a lockout after stimulation for " + std::to_string((long int)stop_analysis_period_->get() ) + " ms.";
+            // stop detecting in the ripple detector
             analysis_unlocked_->set(false);
 
             // buzy sleep has no detections should be received and not stimulation should be sent during this time.
@@ -174,9 +178,9 @@ void EventDelayed::Process(ProcessingContext &context) {
             analysis_unlocked_->set(true);
             lockout_queue_.pop();
 
-            while (!event_queue_.empty() and event_queue_.top().ts < Clock::now()) { //Remove any stimulations which would have happened during the detection/stimulation lockout
-                LOG(DEBUG) << name() << "The stimulation of this " << event_queue_.top().data_in->event() << " has been locked-out due to the detection lockout after stimulation.";
-                event_queue_.pop();
+            while (!delayed_event_queue_.empty() and delayed_event_queue_.top().ts < Clock::now()) { //Remove any stimulations which would have happened during the detection/stimulation lockout
+                LOG(DEBUG) << name() << "The stimulation of this " << delayed_event_queue_.top().data_in->event() << " has been locked-out due to the detection lockout after stimulation.";
+                delayed_event_queue_.pop();
             }
         }
 
@@ -190,9 +194,10 @@ void EventDelayed::Process(ProcessingContext &context) {
             data_in_port_->slot(0)->ReleaseData();
             continue;
         }
-
+        // If not stimulation disabled
         if (!disabled_->get()) {
             int wait_time = distrib(generator_);
+            // If stimulation is delayed
             if (delayed_event_->get()) {
                 ++delayed_received_event_;
                 LOG(INFO) << name() << ". Save an event (" << data_in->event() << ") to send later with " << wait_time
@@ -202,8 +207,8 @@ void EventDelayed::Process(ProcessingContext &context) {
 
                 if ((not start_after_stimulation_() or not to_lock_out_in_future(delay)) and ( not start_after_detection_() or not to_lock_out())) {
                     Delayed event(delay, data_in);
-                    event_queue_.push(event);
-                    send_event(event_queue_.top().data_in, msg_detection_());
+                    delayed_event_queue_.push(event);
+                    send_event(data_in, msg_detection_());
                     for(auto time_to_start:  when_stop_analysis_period_()){
                         Delayed event_lockout(delay+ std::chrono::milliseconds(time_to_start), data_in);
                         lockout_queue_.push(event_lockout);
@@ -213,6 +218,7 @@ void EventDelayed::Process(ProcessingContext &context) {
                     LOG(DEBUG) << name() << data_in->event() << " has been locked-out in delayed mode";
                     ++event_lockout_;
                 }
+            // If stimulation is sent at the same time as detection = ontime mode
             } else {
                 ++ontime_received_event_;
                 if (not(start_after_detection_() and start_after_stimulation_()) or not to_lock_out()) {
@@ -226,6 +232,7 @@ void EventDelayed::Process(ProcessingContext &context) {
                     ++event_lockout_;
                 }
             }
+        // Stimulation event is disable - detection is still sent
         } else {
             ++ontime_received_event_;
             if (not start_after_detection_() or not to_lock_out()) {
@@ -273,10 +280,10 @@ void EventDelayed::Postprocess(ProcessingContext &context) {
 
 bool EventDelayed::to_lock_out_in_future(TimePoint start_event) {
     TimePoint last_future_event;
-    if (event_queue_.empty())
+    if (delayed_event_queue_.empty())
         last_future_event = previous_TS_nostim_;
     else
-        last_future_event = event_queue_.top().ts;
+        last_future_event = delayed_event_queue_.top().ts;
 
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_event - last_future_event).count();
 

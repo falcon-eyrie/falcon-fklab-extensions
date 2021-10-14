@@ -102,7 +102,7 @@ protected:
   TimePoint previous_TS_nostim_;
 
   std::priority_queue<Delayed, std::vector<Delayed>, std::greater<Delayed>>
-      event_queue_;
+      delayed_event_queue_;
 
   std::priority_queue<Delayed, std::vector<Delayed>, std::greater<Delayed>>
       lockout_queue_;

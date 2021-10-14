@@ -110,7 +110,7 @@ This 3 messages can be personalized in the options.
      - read-only
      - read/write
      -
-    * - **event trigger lockout time**
+   * - **event trigger lockout time**
      - double
      - option: event trigger lockout time
      - read-only
