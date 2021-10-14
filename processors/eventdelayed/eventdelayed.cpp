@@ -37,11 +37,21 @@ EventDelayed::EventDelayed() : delayed_range_(150, 200) {
                "Message to send on ontime mode.");
 
     // Lock-out time 
-    add_option(STOP_DETECTION_TIME_S, initial_stop_detection_period_,
+
+    add_option(STOP_ANALYSIS_TIME_S+"/starting time", when_stop_analysis_period_,
+               "when to start stopping detection after a stimulation.");
+
+    add_option(STOP_ANALYSIS_TIME_S+"/period", initial_stop_analysis_period_,
+               "Lock out time for detecting pattern after a stimulation");
+
+    add_option(STOP_DETECTION_TIME_S+"/period", initial_stop_detection_period_,
                "Lock out time for sending new detection/stimulation after a stimulation.");
 
-    add_option(STOP_ANALYSIS_TIME_S, initial_stop_analysis_period_,
-               "Lock out time for detecting pattern after a stimulation");
+    add_option(STOP_DETECTION_TIME_S+"/detection", start_after_detection_,
+               "Start stopping for detecting pattern after a detection");
+
+    add_option(STOP_DETECTION_TIME_S+"/stimulation", start_after_stimulation_,
+               "Start stopping for detecting pattern after a stimulation");
 
     // saving feature
     add_option("enable saving", save_events_,
@@ -140,18 +150,38 @@ void EventDelayed::Process(ProcessingContext &context) {
 
     while (!context.terminated()) {
 
-        while (!event_queue_.empty() and event_queue_.top().ts < Clock::now()) {
+
+        // This part is about sending out delayed events
+        while (!delayed_event_queue_.empty() and delayed_event_queue_.top().ts < Clock::now()) {
             auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    Clock::now() - event_queue_.top().ts)
+                    Clock::now() - delayed_event_queue_.top().ts)
                     .count();
 
             LOG(DEBUG) << name() << ". Time to sent a delayed event ("
-                       << event_queue_.top().data_in->event() << ") with " << millis
+                       << delayed_event_queue_.top().data_in->event() << ") with " << millis
                        << "ms late.";
 
-            send_event(event_queue_.top().data_in,  msg_delayed_());
-            event_queue_.pop();
+            send_event(delayed_event_queue_.top().data_in,  msg_delayed_());
+            delayed_event_queue_.pop();
+        }
 
+        // This part is about triggering delayed lock-out
+        while(!lockout_queue_.empty() and lockout_queue_.top().ts < Clock::now()){
+
+
+            LOG(DEBUG) << name() << ". Start a lockout after stimulation for " + std::to_string((long int)stop_analysis_period_->get() ) + " ms.";
+            // stop detecting in the ripple detector
+            analysis_unlocked_->set(false);
+
+            // buzy sleep has no detections should be received and not stimulation should be sent during this time.
+            std::this_thread::sleep_for(std::chrono::milliseconds((long int)stop_analysis_period_->get() ));
+            analysis_unlocked_->set(true);
+            lockout_queue_.pop();
+
+            while (!delayed_event_queue_.empty() and delayed_event_queue_.top().ts < Clock::now()) { //Remove any stimulations which would have happened during the detection/stimulation lockout
+                LOG(DEBUG) << name() << "The stimulation of this " << delayed_event_queue_.top().data_in->event() << " has been locked-out due to the detection lockout after stimulation.";
+                delayed_event_queue_.pop();
+            }
         }
 
         if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
@@ -164,9 +194,10 @@ void EventDelayed::Process(ProcessingContext &context) {
             data_in_port_->slot(0)->ReleaseData();
             continue;
         }
-
+        // If not stimulation disabled
         if (!disabled_->get()) {
             int wait_time = distrib(generator_);
+            // If stimulation is delayed
             if (delayed_event_->get()) {
                 ++delayed_received_event_;
                 LOG(INFO) << name() << ". Save an event (" << data_in->event() << ") to send later with " << wait_time
@@ -174,27 +205,37 @@ void EventDelayed::Process(ProcessingContext &context) {
                 auto delay =
                         data_in->source_timestamp() + std::chrono::milliseconds(wait_time);
 
-                if (not to_lock_out_in_future(delay)) {
+                if ((not start_after_stimulation_() or not to_lock_out_in_future(delay)) and ( not start_after_detection_() or not to_lock_out())) {
                     Delayed event(delay, data_in);
-                    event_queue_.push(event);
-                    send_event(event_queue_.top().data_in, msg_detection_());
+                    delayed_event_queue_.push(event);
+                    send_event(data_in, msg_detection_());
+                    for(auto time_to_start:  when_stop_analysis_period_()){
+                        Delayed event_lockout(delay+ std::chrono::milliseconds(time_to_start), data_in);
+                        lockout_queue_.push(event_lockout);
+                    }
 
                 } else {
                     LOG(DEBUG) << name() << data_in->event() << " has been locked-out in delayed mode";
                     ++event_lockout_;
                 }
+            // If stimulation is sent at the same time as detection = ontime mode
             } else {
                 ++ontime_received_event_;
-                if (not to_lock_out()) {
+                if (not(start_after_detection_() and start_after_stimulation_()) or not to_lock_out()) {
                     send_event(data_in, msg_ontime_());
+                    for(auto time_to_start:  when_stop_analysis_period_()){
+                        Delayed event_lockout(data_in->source_timestamp() + std::chrono::milliseconds(time_to_start), data_in);
+                        lockout_queue_.push(event_lockout);
+                    }
                 } else {
                     LOG(DEBUG) << name() << data_in->event() << " has been locked-out in ontime mode";
                     ++event_lockout_;
                 }
             }
+        // Stimulation event is disable - detection is still sent
         } else {
             ++ontime_received_event_;
-            if (not to_lock_out()) {
+            if (not start_after_detection_() or not to_lock_out()) {
                 send_event(data_in, msg_detection_());
             } else {
                 LOG(DEBUG) << name() << data_in->event() << " has been locked-out in disable mode";
@@ -215,11 +256,6 @@ void EventDelayed::send_event(EventType::Data *data_in, std::string type) {
     data_out->set_event(type);
     data_out->set_source_timestamp();
     output_port_->slot(0)->PublishData();
-
-    analysis_unlocked_->set(false);
-    // buzy sleep has no detections should be received and not stimulation should be sent during this time.
-    std::this_thread::sleep_for(std::chrono::milliseconds((long int)stop_analysis_period_->get()));
-    analysis_unlocked_->set(true);
 
     if (save_events_()) { // save stim events to disk
         uint64_t serial_number = data_in->serial_number();
@@ -244,25 +280,31 @@ void EventDelayed::Postprocess(ProcessingContext &context) {
 
 bool EventDelayed::to_lock_out_in_future(TimePoint start_event) {
     TimePoint last_future_event;
-    if (event_queue_.empty())
+    if (delayed_event_queue_.empty())
         last_future_event = previous_TS_nostim_;
     else
-        last_future_event = event_queue_.top().ts;
+        last_future_event = delayed_event_queue_.top().ts;
 
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_event - last_future_event).count();
 
-    if (millis <= stop_detection_period_->get())
+    if (millis <= stop_detection_period_->get()){
+        LOG(DEBUG) << name() << ". Start a stimulation lockout after stimulation for " + std::to_string(stop_detection_period_->get()) + " secs.";
         return true;
+    }
 
     previous_TS_nostim_ = last_future_event;
     return false;
 }
 
+
 bool EventDelayed::to_lock_out() {
+
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - previous_TS_nostim_).count();
 
-    if (millis <= stop_detection_period_->get())
+    if (millis <= stop_detection_period_->get()){
+        LOG(DEBUG) << name() << ". Start a stimulation lockout after detection for " + std::to_string(stop_detection_period_->get()) + " secs.";
         return true;
+    }
 
     previous_TS_nostim_ = Clock::now();
     return false;
