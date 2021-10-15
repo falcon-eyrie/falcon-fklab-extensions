@@ -98,7 +98,7 @@ void EventDelayed::Configure(const GlobalContext &context) {
 void EventDelayed::CreatePorts() {
     data_in_port_ =
             create_input_port<EventType>(EventType::Capabilities(),
-                                         PortInPolicy(SlotRange(1), false, 1));
+                                         PortInPolicy(SlotRange(1), false));
 
     output_port_ = create_output_port<EventType>(EventType::Capabilities(),
                                                         EventType::Parameters(DEFAULT_EVENT),
@@ -182,9 +182,11 @@ void EventDelayed::Process(ProcessingContext &context) {
                 LOG(DEBUG) << name() << "The stimulation of this " << delayed_event_queue_.top().data_in->event() << " has been locked-out due to the detection lockout after stimulation.";
                 delayed_event_queue_.pop();
             }
+
+            data_in_port_->slot(0)->FlushData();
         }
 
-        if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
+        if (!data_in_port_->slot(0)->RetrieveData(data_in,1)) {
             break;
         }
 
