@@ -1,0 +1,10 @@
+##
+# format = text
+# type = biquad
+# description = 4th order bessel bandpass filter with cutoffs at 300 and 6000 Hz (of signal with sampling frequency = 30000 Hz)
+#
+# Header automatically added
+##
+0.175014382674721
+1.0 2.0 1.0 1.0 -0.4116456379943422 0.1208387236075018
+1.0 -2.0 1.0 1.0 -1.888701220483925 0.8929613419279413

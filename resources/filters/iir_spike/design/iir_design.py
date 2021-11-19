@@ -4,7 +4,7 @@ Created on Fri Mar 14 16:01:18 2014
 
 @author: davide
 """
-from __future__ import division
+#from __future__ import division
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import iirfilter, freqz, zpk2sos
@@ -35,15 +35,15 @@ sos[0, :3] /= sos[0][0]
 
 # compute order and check stability
 order = max([len(a) - 1, len(b) - 1])
-print "filter order is: " + str(order)
+print("filter order is: " + str(order))
 if (np.all(np.abs(np.roots(a)) < 1)):
-    print "the designed IIR filter is stable"
+    print("the designed IIR filter is stable")
 else:
-    print "the designed IIR filter is NOT stable"
+    print("the designed IIR filter is NOT stable")
 
 # plot frequency responses
-npoints = nyq_hz/20
-w, h = freqz(b, a, worN = np.linspace(0, nyq_hz, npoints)/config.sample_rate*2*np.pi)
+npoints = int(nyq_hz/20)
+w, h = freqz(b, a, worN = np.linspace(0, int(nyq_hz), int(npoints))/config.sample_rate*2*np.pi)
 plt.figure()
 plt.plot(w/np.pi*nyq_hz, 20*np.log10(np.abs(h)), 'b')
 plt.title('Digital filter frequency response')
@@ -70,9 +70,16 @@ plt.grid(b=True, which='major', linestyle='-')
 
 # save filter coefficients in formats that Falcon and Python understands easily
 with open(config.filepath_sos, "w") as f:
-    f.write("\n".join(" ".join(map(str, x)) for x in ([gain], sos[0], sos[1])))
-print "Filter SOS coefficients saved in " + config.filepath_sos
+    
+    print(" ".join(str(x) for x in [gain]))
+    print(" ".join(str(x) for x in sos[0]))
+    print(" ".join(str(x) for x in sos[1]))
+  #  f.write(" ".join(str(x) for x in [gain]))
+  #  f.write(" ".join(str(x) for x in sos[0]))
+  #  f.write(" ".join(str(x) for x in sos[1]))
+    
+print("Filter SOS coefficients saved in " + config.filepath_sos)
 np.save( open( config.filepath_ba, "w" ), (b, a))
-print "Filter ba coefficients saved in " + config.filepath_ba
+print("Filter ba coefficients saved in " + config.filepath_ba)
 
 plt.show()
