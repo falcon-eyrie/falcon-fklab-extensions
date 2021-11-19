@@ -172,11 +172,12 @@ class ExponentialSmoother {
 };
 
 enum class SpikeDetectionMode { PEAK = 0, THRESHOLD };
+enum class SpikeDetectionSign { UP = 1, DOWN=-1 };
 
 class SpikeDetector {
  public:
   SpikeDetector(unsigned int nchannels, double threshold,
-                unsigned int peak_life_time);
+                unsigned int peak_life_time, SpikeDetectionSign sign=SpikeDetectionSign::UP);
 
   ~SpikeDetector() {}
 
@@ -197,8 +198,8 @@ class SpikeDetector {
    * Spike detection algorithm:
    *
    * - operates sample by sample
-   * - looks for upwards deflections in at least one of the channels above
-   * a certain threshold
+   * - looks for upwards or downward (depending of the sign mode selected)
+   * deflections in at least one of the channels above a certain threshold
    * - a spike is detected if the signal of at least one channel crosses the
    * threshold and a local maxima is found in at least one channel (not
    * necessarily the same of that of threshold crossing) within a certain
@@ -216,13 +217,17 @@ class SpikeDetector {
     unsigned int c;
     auto spike_found = false;
     auto it = sample;
+    double current_sample;
+    double previous_sample;
 
     if (detection_mode_ == SpikeDetectionMode::THRESHOLD) {
       // is threshold crossed on any of the channels?
       for (c = 0; c < nchannels_; ++c) {
-        if (previous_sample_[c] <= threshold_ && *it > threshold_) {
-          // std::cout << ". Threshold crossed at timestamp: " << timestamp <<
-          // std::endl;
+
+        current_sample = int(sign_)*(*it);
+        previous_sample = int(sign_)*previous_sample_[c];
+
+        if (previous_sample <= threshold_ && current_sample > threshold_){
           detection_mode_ = SpikeDetectionMode::PEAK;
           prepare_peak_detection(timestamp, sample);
           break;
@@ -233,8 +238,12 @@ class SpikeDetector {
     } else if (detection_mode_ == SpikeDetectionMode::PEAK) {
       // look for peaks
       for (c = 0; c < nchannels_; ++c) {
+
+        current_sample = int(sign_)*(*it);
+        previous_sample = int(sign_)*previous_sample_[c];
+
         if (!peak_found_[c]) {
-          if (slope_[c] > 0 && *it < previous_sample_[c]) {
+           if (int(sign_)*slope_[c] > 0 && current_sample < previous_sample){
             peak_found_[c] = true;
             ++npeaks_found_;
             peak_amplitudes_[c] = previous_sample_[c];
@@ -258,9 +267,7 @@ class SpikeDetector {
           ++nspikes_found_;
           spike_found = true;
         }
-
         detection_mode_ = SpikeDetectionMode::THRESHOLD;
-
       } else {
         update_slope(sample);
       }
@@ -290,13 +297,10 @@ class SpikeDetector {
   void prepare_peak_detection(const uint64_t timestamp,
                               const ForwardIterator sample) {
     spike_timestamp_ = timestamp;
-
     peak_countdown_ = peak_life_time_;
     npeaks_found_ = 0;
     peak_found_.assign(nchannels_, false);
     peak_amplitudes_ = previous_sample_;
-    // if no peak found, we will return the detection sample
-
     update_slope(sample);
   }
 
@@ -315,6 +319,7 @@ class SpikeDetector {
   std::vector<bool> peak_found_;
   unsigned int npeaks_found_;
   std::vector<double> peak_amplitudes_;
+  SpikeDetectionSign sign_;
 };
 
 }  // namespace algorithms
