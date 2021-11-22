@@ -232,9 +232,9 @@ double ExponentialSmoother::value() const { return value_; }
 void ExponentialSmoother::set_value(double value) { value_ = value; }
 
 SpikeDetector::SpikeDetector(unsigned int nchannels, double threshold,
-                             unsigned int peak_life_time)
+                             unsigned int peak_life_time, SpikeDetectionSign sign)
     : nchannels_(nchannels), threshold_(threshold),
-      peak_life_time_(peak_life_time) {
+      peak_life_time_(peak_life_time), sign_(sign) {
 
   reset();
 }
@@ -271,7 +271,6 @@ void SpikeDetector::reset() {
   peak_countdown_ = 0;
   slope_.assign(nchannels_, 0.0);
   spike_timestamp_ = 0;
-
   nspikes_found_ = 0;
 
   peak_found_.assign(nchannels_, false);
