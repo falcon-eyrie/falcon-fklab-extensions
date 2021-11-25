@@ -26,18 +26,9 @@ namespace nsMUAType {
 
 using Base = AnyType;
 
-struct Parameters : Base::Parameters {
-  Parameters(double bin = 0) : Base::Parameters(), bin_size(bin) {}
+struct Parameters { //} : Base::Parameters {
+  Parameters(double bin = 0) : bin_size(bin) {}
   double bin_size;
-};
-
-class Capabilities : public Base::Capabilities {
- public:
-  virtual void Validate(const Parameters &parameters) const {
-    if (parameters.bin_size <= 0) {
-      throw std::runtime_error("Bin size cannot be smaller or equal to zero.");
-    }
-  }
 };
 
 class Data : public Base::Data {
@@ -48,7 +39,7 @@ class Data : public Base::Data {
   void set_n_spikes(unsigned int n_spikes);
   double mua() const;
   void set_bin_size(double bin_size);
-  double bin_size();
+  double bin_size() const;
   unsigned int n_spikes();
 
   void SerializeBinary(std::ostream &stream,
@@ -68,6 +59,15 @@ class Data : public Base::Data {
  protected:
   double bin_size_;  // in ms
   unsigned int n_spikes_;
+};
+
+class Capabilities { //} : public Base::Capabilities {
+ public:
+  virtual void Validate(const Data & prototype) const {
+    //if (parameters.bin_size <= 0) {
+    //  throw std::runtime_error("Bin size cannot be smaller or equal to zero.");
+    //}
+  }
 };
 
 }  // namespace nsMUAType

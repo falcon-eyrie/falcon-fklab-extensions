@@ -36,7 +36,7 @@ void Rebuffer::CreatePorts() {
       PortInPolicy(SlotRange(0, 256)));
 
   data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
+      "data", //MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, 256)));
 }
 
@@ -65,7 +65,7 @@ void Rebuffer::CompleteStreamInfo() {
     for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
       sample_buffer_[k] = time2samples<unsigned int>(
           buffer_size_(),
-          data_in_port_->streaminfo(k).parameters().sample_rate /
+          data_in_port_->prototype(k).sample_rate() /
               downsample_factor_());
       if (sample_buffer_[k] == 0) {
         throw ProcessingStreamInfoError("Buffer duration is zero.", name());
@@ -75,7 +75,7 @@ void Rebuffer::CompleteStreamInfo() {
     for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
       sample_buffer_[k] =
           std::max(1u, static_cast<unsigned int>(std::floor(
-                           data_in_port_->streaminfo(k).parameters().nsamples /
+                           data_in_port_->prototype(k).nsamples() /
                            downsample_factor_())));
     }
   }
@@ -84,13 +84,13 @@ void Rebuffer::CompleteStreamInfo() {
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     data_out_port_->streaminfo(k).set_parameters(
         MultiChannelType<double>::Parameters(
-            data_in_port_->streaminfo(k).parameters().nchannels,
+            data_in_port_->prototype(k).nchannels(),
             sample_buffer_[k],
-            data_in_port_->streaminfo(k).parameters().sample_rate /
+            data_in_port_->prototype(k).sample_rate() /
                 downsample_factor_()));
     data_out_port_->streaminfo(k).set_stream_rate(
         data_in_port_->streaminfo(k).stream_rate() *
-        data_in_port_->streaminfo(k).parameters().nsamples / sample_buffer_[k]);
+        data_in_port_->prototype(k).nsamples() / sample_buffer_[k]);
   }
 }
 

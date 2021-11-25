@@ -28,20 +28,12 @@
 namespace nsVectorType {
 using Base = AnyType;
 
-struct Parameters : Base::Parameters {
-  Parameters(unsigned int n) : Base::Parameters(), size(n) {}
+struct Parameters { // : Base::Parameters {
+  Parameters(unsigned int n) : size(n) {}
 
   unsigned int size;
 };
 
-class Capabilities : public Base::Capabilities {
- public:
-  void Validate(const Parameters &parameters) {
-    if (parameters.size == 0) {
-      throw std::runtime_error("Vector size cannot be zero.");
-    }
-  }
-};
 
 template <typename TYPE> class Data : public Base::Data {
  public:
@@ -97,6 +89,17 @@ template <typename TYPE> class Data : public Base::Data {
  protected:
   std::vector<TYPE> data_;
 };
+
+class Capabilities { //: public Base::Capabilities {
+ public:
+ template <class T>
+  void Validate(const Data<T> & prototype) {
+    //if (parameters.size == 0) {
+    //  throw std::runtime_error("Vector size cannot be zero.");
+    //}
+  }
+};
+
 }  // namespace nsVectorType
 
 template <class TYPE> class VectorType {

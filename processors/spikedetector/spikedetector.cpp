@@ -40,12 +40,13 @@ void SpikeDetector::CreatePorts() {
       PortInPolicy(SlotRange(1)));
 
   data_out_port_spikes_ = create_output_port<SpikeType>(
-      SPIKEDATA, SpikeType::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
+      SPIKEDATA, //SpikeType::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
       SpikeType::Parameters(buffer_size_()),
       PortOutPolicy(SlotRange(1), RINGBUFFER_SIZE));
 
   data_out_port_events_ = create_output_port<EventType>(
-      EVENTDATA, EventType::Capabilities(), EventType::Parameters(),
+      EVENTDATA, //EventType::Capabilities(), 
+      EventType::Parameters(),
       PortOutPolicy(SlotRange(1)));
 
   threshold_ = create_static_state(THRESHOLD, initial_threshold_(), true,
@@ -58,10 +59,10 @@ void SpikeDetector::CreatePorts() {
 void SpikeDetector::CompleteStreamInfo() {
   double incoming_stream_rate = data_in_port_->streaminfo(0).stream_rate();
   incoming_buffer_size_samples_ =
-      data_in_port_->slot(0)->streaminfo().parameters().nsamples;
+      data_in_port_->prototype(0).nsamples();
   double incoming_buffer_size_ms =
       incoming_buffer_size_samples_ /
-      data_in_port_->slot(0)->streaminfo().parameters().sample_rate * 1000;
+      data_in_port_->prototype(0).sample_rate() * 1000;
 
   try {
     double tmp = buffer_size_();
@@ -72,7 +73,7 @@ void SpikeDetector::CompleteStreamInfo() {
     throw ProcessingStreamInfoError(error.what(), name());
   }
 
-  n_channels_ = data_in_port_->slot(0)->streaminfo().parameters().nchannels;
+  n_channels_ = data_in_port_->prototype(0).nchannels();
   auto parms = data_out_port_spikes_->streaminfo(0).parameters();
   parms.nchannels = n_channels_;
   parms.sample_rate = incoming_stream_rate;
@@ -90,7 +91,7 @@ void SpikeDetector::Prepare(GlobalContext &context) {
     inverted_signals_.reset(new MultiChannelType<double>::Data());
     inverted_signals_->Initialize(
         n_channels_, incoming_buffer_size_samples_,
-        data_in_port_->slot(0)->streaminfo().parameters().sample_rate);
+        data_in_port_->prototype(0).sample_rate());
   }
 }
 

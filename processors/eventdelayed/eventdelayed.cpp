@@ -100,7 +100,7 @@ void EventDelayed::CreatePorts() {
             create_input_port<EventType>(EventType::Capabilities(),
                                          PortInPolicy(SlotRange(1), false));
 
-    output_port_ = create_output_port<EventType>(EventType::Capabilities(),
+    output_port_ = create_output_port<EventType>(//EventType::Capabilities(),
                                                         EventType::Parameters(DEFAULT_EVENT),
                                                         PortOutPolicy(SlotRange(1)));
     // -----  Mode state --- //

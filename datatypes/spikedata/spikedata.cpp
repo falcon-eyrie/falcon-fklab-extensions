@@ -28,11 +28,12 @@
 
 using namespace nsSpikeType;
 
-void Data::Initialize(unsigned int nchannels, size_t max_nspikes,
-                      double sample_rate) {
+void Data::Initialize(unsigned int nchannels, double buffer_size,
+                      double sample_rate, size_t max_nspikes) {
   n_channels_ = nchannels;
   n_detected_spikes_ = 0;
   sample_rate_ = sample_rate;
+  buffer_size_ = buffer_size;
 
   // overestimates the maximum number of spike features in a buffer and
   // reserve enough space so that no memory allocation will take place during

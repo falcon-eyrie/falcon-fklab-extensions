@@ -31,7 +31,8 @@ void EventConverter::CreatePorts() {
                                                PortInPolicy(SlotRange(1)));
 
   data_out_port_ = create_output_port<EventType>(
-      EventType::Capabilities(), EventType::Parameters(DEFAULT_EVENT),
+      //EventType::Capabilities(),
+      EventType::Parameters(DEFAULT_EVENT),
       PortOutPolicy(SlotRange(1)));
 }
 

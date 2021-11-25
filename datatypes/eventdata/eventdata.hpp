@@ -41,15 +41,6 @@ struct Parameters : Base::Parameters {
   std::string default_event;
 };
 
-class Capabilities : public Base::Capabilities {
- public:
-  virtual void Validate(const Parameters &parameters) const {
-    if (parameters.default_event.size() == 0) {
-      throw std::runtime_error("Default event string cannot be empty.");
-    }
-  }
-};
-
 class Data : public Base::Data {
  public:
   Data(std::string event = DEFAULT_EVENT);
@@ -87,6 +78,15 @@ class Data : public Base::Data {
   size_t hash_;
 
   static const unsigned int EVENT_STRING_LENGTH = 128;
+};
+
+class Capabilities : public Base::Capabilities {
+ public:
+  virtual void Validate(const Data &prototype) const {
+    if (prototype.event().size() == 0) {
+      throw std::runtime_error("Default event string cannot be empty.");
+    }
+  }
 };
 
 }  // namespace nsEventType

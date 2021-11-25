@@ -40,7 +40,8 @@ void LevelCrossingDetector::CreatePorts() {
       PortInPolicy(SlotRange(1)));
 
   data_out_port_ = create_output_port<EventType>(
-      EVENTDATA, EventType::Capabilities(), EventType::Parameters(),
+      EVENTDATA, //EventType::Capabilities(), 
+      EventType::Parameters(),
       PortOutPolicy(SlotRange(1)));
 
   threshold_ = create_static_state(THRESHOLD, initial_threshold_(), true,
@@ -63,7 +64,7 @@ void LevelCrossingDetector::Preprocess(ProcessingContext &context) {
     init_value = std::numeric_limits<int>::min();
   }
 
-  previous_sample_.assign(data_in_port_->streaminfo(0).parameters().nchannels,
+  previous_sample_.assign(data_in_port_->prototype(0).nchannels(),
                           init_value);
 }
 
@@ -159,7 +160,7 @@ void LevelCrossingDetector::post_detection_block_update(
     unsigned int post_detection_block) {
   double post_detection_block_us =
       post_detection_block /
-      data_in_port_->streaminfo(0).parameters().sample_rate * 1e6;
+      data_in_port_->prototype(0).sample_rate() * 1e6;
 
   LOG(INFO) << name() << ". Post-detection block is set to "
             << post_detection_block_us << " microseconds.";

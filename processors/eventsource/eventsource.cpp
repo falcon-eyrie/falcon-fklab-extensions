@@ -39,7 +39,7 @@ void EventSource::Configure(const GlobalContext &context) {
 
 void EventSource::CreatePorts() {
   event_port_ = create_output_port<EventType>(
-      EVENTDATA, EventType::Capabilities(),
+      EVENTDATA, //EventType::Capabilities(),
       EventType::Parameters(DEFAULT_EVENT), PortOutPolicy(SlotRange(1)));
 }
 
