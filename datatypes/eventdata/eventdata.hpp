@@ -24,8 +24,6 @@
 #include "idata.hpp"
 #include "yaml-cpp/yaml.h"
 
-typedef unsigned int EventIDType;
-
 const std::string DEFAULT_EVENT = "none";
 // to be used for port names using event data
 const std::string EVENTDATA = "events";
@@ -34,9 +32,9 @@ namespace nsEventType {
 
 using Base = AnyType;
 
-struct Parameters : Base::Parameters {
+struct Parameters {
   Parameters(std::string event = DEFAULT_EVENT)
-      : Base::Parameters(), default_event(event) {}
+      : default_event(event) {}
 
   std::string default_event;
 };
@@ -44,10 +42,10 @@ struct Parameters : Base::Parameters {
 class Data : public Base::Data {
  public:
   Data(std::string event = DEFAULT_EVENT);
+  Data(const Parameters & parameters) : Data(parameters.default_event) {}
 
-  void Initialize(std::string event = DEFAULT_EVENT);
-  void Initialize(const Parameters &parameters) {
-    set_event(parameters.default_event);
+  Parameters parameters() const {
+    return Parameters(default_event_);
   }
 
   void ClearData() override;
@@ -74,20 +72,14 @@ class Data : public Base::Data {
                                    Serialization::Format::FULL) const override;
 
  protected:
+  std::string default_event_;
   std::string event_;
   size_t hash_;
 
   static const unsigned int EVENT_STRING_LENGTH = 128;
 };
 
-class Capabilities : public Base::Capabilities {
- public:
-  virtual void Validate(const Data &prototype) const {
-    if (prototype.event().size() == 0) {
-      throw std::runtime_error("Default event string cannot be empty.");
-    }
-  }
-};
+using Capabilities = Base::Capabilities;
 
 }  // namespace nsEventType
 

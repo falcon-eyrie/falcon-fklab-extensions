@@ -31,7 +31,7 @@ namespace nsSpikeType {
 
 using Base = AnyType;
 
-struct Parameters { //}: Base::Parameters {
+struct Parameters {
   Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
       : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
 
@@ -43,13 +43,14 @@ struct Parameters { //}: Base::Parameters {
 
 class Data : public Base::Data {
  public:
-  void Initialize(unsigned int nchannels, double buffer_size,
-                  double sample_rate, size_t max_nspikes=0);
+  Data(unsigned int nchannels, double buffer_size,
+            double sample_rate, size_t max_nspikes=0);
 
-  void Initialize(const Parameters &parameters) {
-    unsigned int max_nspikes =
-        round(parameters.buffer_size * parameters.sample_rate / 1000) / 2;
-    Initialize(parameters.nchannels, parameters.buffer_size, parameters.sample_rate, max_nspikes);
+  Data(const Parameters &parameters)
+  : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {}
+
+  Parameters parameters() const {
+    return Parameters(buffer_size_, n_channels_, sample_rate_);
   }
 
   void ClearData() override;
@@ -98,8 +99,8 @@ class Data : public Base::Data {
   std::vector<double> amplitudes_;
   // std::vector<double> widths_;
   std::vector<uint64_t> hw_ts_detected_spikes_;
-  double sample_rate_;
   double buffer_size_;
+  double sample_rate_;
   ChannelValidityMask validity_mask_;
   ChannelValidityMask
       default_validity_mask_;  // independent of spike detection outcome
@@ -116,7 +117,7 @@ class Data : public Base::Data {
   const std::string SPIKE_AMPLITUDES = "spike_amplitudes";
 };
 
-class Capabilities { //}: public Base::Capabilities {
+class Capabilities {
  public:
   Capabilities(ChannelRange channel_range =
                    ChannelRange(1, MAX_N_CHANNELS_SPIKE_DETECTION))
@@ -124,29 +125,12 @@ class Capabilities { //}: public Base::Capabilities {
 
   ChannelRange channel_range() const { return channel_range_; }
 
-//  virtual void VerifyCompatibility(const Capabilities &capabilities) const {
-//    Base::Capabilities::VerifyCompatibility(capabilities);
-//    if (!channel_range_.overlapping(capabilities.channel_range())) {
-//      throw std::runtime_error("Channel ranges do not overlap (" +
-//                               channel_range_.to_string() + " and " +
-//                               capabilities.channel_range().to_string() + ")");
-//    }
-//  }
   void Validate(const Data &prototype) const {
-    //Base::Capabilities::Validate(prototype);
     if (!channel_range_.inrange(prototype.n_channels())) {
       throw std::runtime_error(
           "Number of channels cannot be zero and needs to be in range " +
           channel_range_.to_string());
     }
-//    if (prototype.buffer_size <= 0) {
-//      throw std::runtime_error(
-//          "Buffer size cannot be smaller than or equal to zero.");
-//    }
-//    if (prototype.sample_rate() <= 0) {
-//      throw std::runtime_error(
-//          "Sample rate cannot be smaller than or equal to zero.");
-//    }
   }
 
  protected:

@@ -31,23 +31,27 @@ namespace nsScalarType {
 
 using Base = AnyType;
 
-template <typename TYPE> struct Parameters : Base::Parameters {
-  Parameters(TYPE value) : Base::Parameters(), default_value(value) {}
+template <typename TYPE>
+struct Parameters {
+  Parameters(TYPE value) : default_value(value) {}
   TYPE default_value;
 };
 
-class Capabilities : public Base::Capabilities {};
-
 template <typenameTYPE> class Data : public Base::Data {
  public:
-  ScalarData(TYPE data = DEFAULT_SCALAR_VALUE) : data_(data) {}
+  ScalarData(TYPE data = DEFAULT_SCALAR_VALUE)
+  : default_value_(data), data_(data) {}
+  ScalarData(const Parameters<TYPE> &parameters) : ScalarData(parameters.default_value) {}
 
-  void Initialize(const Parameters<TYPE> &parameters) {
-    data_ = parameters.default_value;
+  Parameters parameters() const {
+    return Parameters(default_value_);
   }
 
-  void ClearData() override {}
+  void ClearData() override {
+    data_ = default_value_;
+  }
 
+  TYPE const &default_value() const { return default_value_; }
   TYPE const &data() const { return data_; }
 
   void set_data(const TYPE &data) { data_ = data; }
@@ -93,8 +97,12 @@ template <typenameTYPE> class Data : public Base::Data {
   }
 
  protected:
+  TYPE default_value_;
   TYPE data_;
 };
+
+using Capabilities = Base::Capabilities;
+
 }   // namespace nsScalarType
 
 template <class TYPE> class ScalarType {

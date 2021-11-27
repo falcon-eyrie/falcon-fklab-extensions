@@ -88,10 +88,10 @@ void SpikeDetector::Prepare(GlobalContext &context) {
       n_channels_, initial_threshold_(), initial_peak_lifetime_()));
 
   if (invert_signal_()) {
-    inverted_signals_.reset(new MultiChannelType<double>::Data());
-    inverted_signals_->Initialize(
+    inverted_signals_.reset(
+      new MultiChannelType<double>::Data(
         n_channels_, incoming_buffer_size_samples_,
-        data_in_port_->prototype(0).sample_rate());
+        data_in_port_->prototype(0).sample_rate()));
   }
 }
 

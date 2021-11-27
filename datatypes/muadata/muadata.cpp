@@ -23,13 +23,16 @@
 
 using namespace nsMUAType;
 
-void Data::Initialize(double bin_size) { bin_size_ = bin_size; }
-
-void Data::Initialize(const Parameters &parameters) {
-  Initialize(parameters.bin_size);
+Data::Data(double bin_size) {
+  set_bin_size(bin_size);
 }
 
+Data::Data(const Parameters &parameters) : Data(parameters.bin_size) {}
+
 void Data::ClearData() {
+  // 0 is not a valid bin size.
+  // Should we rather leave bin size unchanged?
+  // Or set to default value (which we currently don't save)
   bin_size_ = 0;
   n_spikes_ = 0;
 }
@@ -38,7 +41,12 @@ void Data::set_n_spikes(unsigned int n_spikes) { n_spikes_ = n_spikes; }
 
 double Data::mua() const { return n_spikes_ / bin_size_ * 1e3; }
 
-void Data::set_bin_size(double bin_size) { bin_size_ = bin_size; }
+void Data::set_bin_size(double bin_size) {
+  if (bin_size<=0) {
+    throw std::runtime_error("Bin size cannot be smaller or equal to zero.");
+  }
+  bin_size_ = bin_size;
+}
 
 double Data::bin_size() const { return bin_size_; }
 

@@ -28,12 +28,25 @@
 
 using namespace nsSpikeType;
 
-void Data::Initialize(unsigned int nchannels, double buffer_size,
-                      double sample_rate, size_t max_nspikes) {
-  n_channels_ = nchannels;
+Data::Data(unsigned int nchannels, double buffer_size,
+                double sample_rate, size_t max_nspikes)
+  : n_channels_(nchannels), buffer_size_(buffer_size), sample_rate_(sample_rate) {
+
+  if (buffer_size <= 0) {
+    throw std::runtime_error(
+      "Buffer size cannot be smaller than or equal to zero.");
+  }
+  
+  if (sample_rate <= 0) {
+    throw std::runtime_error(
+      "Sample rate cannot be smaller than or equal to zero.");
+  }
+
+  if (max_nspikes==0) {
+    max_nspikes = round(buffer_size * sample_rate / 1000) / 2;
+  }
+
   n_detected_spikes_ = 0;
-  sample_rate_ = sample_rate;
-  buffer_size_ = buffer_size;
 
   // overestimates the maximum number of spike features in a buffer and
   // reserve enough space so that no memory allocation will take place during

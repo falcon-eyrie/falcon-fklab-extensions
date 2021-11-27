@@ -36,7 +36,7 @@ namespace nsMultiChannel {
 
 using Base = AnyType;
 
-struct Parameters { //}: Base::Parameters {
+struct Parameters {
   Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0)
       : nchannels(nchan), nsamples(nsamp),
         sample_rate(rate) {}
@@ -52,23 +52,7 @@ template <typename T> class Data : public Base::Data {
   typedef stride_iter<T *> channel_iterator;
   typedef T *sample_iterator;
 
-  Data() {}
-
   Data(size_t nchannels, size_t nsamples, double sample_rate) {
-    Initialize(nchannels, nchannels, sample_rate);
-  }
-
-  void ClearData() override {
-    std::fill(data_.begin(), data_.end(), 0);
-    std::fill(timestamps_.begin(), timestamps_.end(), 0);
-  }
-
-  void Initialize(const Parameters &parameters) {
-    Initialize(parameters.nchannels, parameters.nsamples,
-               parameters.sample_rate);
-  }
-
-  void Initialize(size_t nchannels, size_t nsamples, double sample_rate) {
     if (nchannels == 0 || nsamples == 0) {
       throw std::runtime_error(". MultiChannelData::Initialize - number of "
                                "channels/samples needs to be larger than 0.");
@@ -86,6 +70,19 @@ template <typename T> class Data : public Base::Data {
     data_.resize(nchannels_ * nsamples_);
 
     timestamps_.resize(nsamples_);
+  }
+
+  Data(const Parameters &parameters)
+  : Data(parameters.nchannels, parameters.nsamples,
+         parameters.sample_rate) {}
+
+  void ClearData() override {
+    std::fill(data_.begin(), data_.end(), 0);
+    std::fill(timestamps_.begin(), timestamps_.end(), 0);
+  }
+
+  Parameters parameters() const {
+    return Parameters(nchannels_, nsamples_, sample_rate_);
   }
 
   size_t nchannels() const { return nchannels_; }
@@ -271,7 +268,7 @@ template <typename T> class Data : public Base::Data {
   std::vector<uint64_t> timestamps_;
 };
 
-class Capabilities { //}: public Base::Capabilities {
+class Capabilities {
  public:
   Capabilities(ChannelRange channel_range,
                SampleRange sample_range =
@@ -282,23 +279,8 @@ class Capabilities { //}: public Base::Capabilities {
   ChannelRange channel_range() const { return channel_range_; }
   SampleRange sample_range() const { return sample_range_; }
 
-//  virtual void VerifyCompatibility(const Capabilities &capabilities) const {
-//    Base::Capabilities::VerifyCompatibility(capabilities);
-//    if (!channel_range_.overlapping(capabilities.channel_range())) {
-//      throw std::runtime_error("Channel ranges do not overlap (" +
-//                               channel_range_.to_string() + " and " +
-//                               capabilities.channel_range().to_string() + ")");
-//    }
-//    if (!sample_range_.overlapping(capabilities.sample_range())) {
-//      throw std::runtime_error("Sample ranges do not overlap (" +
-//                               sample_range_.to_string() + " and " +
-//                               capabilities.sample_range().to_string() + ")");
-//    }
-//  }
-//  virtual void Validate(const Parameters &parameters) const {
   template <class T>
   void Validate(const Data<T> & prototype) {
-    //Base::Capabilities::Validate(parameters);
     if (!sample_range_.inrange(prototype.nsamples())) {
       throw std::runtime_error(
           "Number of samples cannot be zero and needs to be in range " +

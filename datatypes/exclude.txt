@@ -1,3 +1,0 @@
-scalardata
-vectordata
-videotrackdata

@@ -64,7 +64,7 @@ void MultiChannelFilter::CompleteStreamInfo() {
     data_out_port_->streaminfo(k).set_stream_rate(
         data_in_port_->streaminfo(k).stream_rate());
     data_out_port_->streaminfo(k).set_parameters(
-        dynamic_cast<const StreamInfo<MultiChannelType<double>> &>(data_in_port_->streaminfo(k)).parameters());
+        data_in_port_->prototype(k).parameters());
   }
 }
 

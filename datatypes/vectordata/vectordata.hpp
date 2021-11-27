@@ -28,25 +28,38 @@
 namespace nsVectorType {
 using Base = AnyType;
 
-struct Parameters { // : Base::Parameters {
+struct Parameters {
   Parameters(unsigned int n) : size(n) {}
-
   unsigned int size;
 };
 
 
-template <typename TYPE> class Data : public Base::Data {
+template <typename TYPE>
+class Data : public Base::Data {
  public:
-  void Initialize(const Parameters &parameters) {
-    data_.resize(parameters.size);
+  Data(unsigned int n) {
+    if (n==0) {
+      throw std::runtime_error("Vector size cannot be zero.");
+    }
+    data_.resize(n);
+  }
+  Data(const Parameters &parameters) : Data(parameters.size) {}
+  
+  Parameters parameters() const {
+    return Parameters(data_.size());
   }
 
   void setData(const std::vector<TYPE> &data) {
+    if (data.size() != data_.size()) {
+      throw std::runtime_error("Setting vector data from wrong size source vector");
+    }
     data_ = data;  // copy
   }
 
   void setData(const TYPE *data, int len) {
-    // assert( len == _data.size() );
+    if (len != data_.size()) {
+      throw std::runtime_error("Setting vector data from wrong size source data");
+    }
     std::copy(data, data + len, data_.begin());
   }
 
@@ -90,15 +103,7 @@ template <typename TYPE> class Data : public Base::Data {
   std::vector<TYPE> data_;
 };
 
-class Capabilities { //: public Base::Capabilities {
- public:
- template <class T>
-  void Validate(const Data<T> & prototype) {
-    //if (parameters.size == 0) {
-    //  throw std::runtime_error("Vector size cannot be zero.");
-    //}
-  }
-};
+using Capabilities = Base::Capabilities;
 
 }  // namespace nsVectorType
 
