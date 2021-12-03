@@ -47,7 +47,6 @@ void DummySink::Process(ProcessingContext &context) {
 
   LOG(DEBUG) << "slot is connected to " << address.string();
 
-  bool eos = false;
   auto start = Clock::now();
   bool tickling = false;
 
@@ -55,18 +54,6 @@ void DummySink::Process(ProcessingContext &context) {
     if (!data_port_->slot(0)->RetrieveDataAll(data)) {
       LOG(DEBUG) << name()
                  << " : received finish signal while waiting for data!";
-      break;
-    }
-
-    for (auto &it : data) {
-      if (it->eos()) {
-        LOG(DEBUG) << name() << " received end of stream signal.";
-        eos = true;
-        break;
-      }
-    }
-
-    if (eos) {
       break;
     }
 
