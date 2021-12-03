@@ -30,10 +30,6 @@ Data::Data(double bin_size) {
 Data::Data(const Parameters &parameters) : Data(parameters.bin_size) {}
 
 void Data::ClearData() {
-  // 0 is not a valid bin size.
-  // Should we rather leave bin size unchanged?
-  // Or set to default value (which we currently don't save)
-  bin_size_ = 0;
   n_spikes_ = 0;
 }
 

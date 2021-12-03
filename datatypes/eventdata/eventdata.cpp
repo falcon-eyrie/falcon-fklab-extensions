@@ -23,7 +23,7 @@
 
 using namespace nsEventType;
 
-Data::Data(std::string event) { set_event(event); }
+Data::Data(std::string event): default_event_(event) { set_event(event); }
 
 void Data::ClearData() { set_event(default_event_); }
 
