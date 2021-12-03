@@ -38,7 +38,6 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
 void OpenEphysZMQ::CreatePorts() {
     data_port_= create_output_port<MultiChannelType<double>>(
           "data",
-          //MultiChannelType<double>::Capabilities(ChannelRange(nchannels_())),
           MultiChannelType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
 }

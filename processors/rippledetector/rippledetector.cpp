@@ -48,13 +48,12 @@ void RippleDetector::CreatePorts()
         PortInPolicy(SlotRange(1)));
 
     event_out_port_ = create_output_port<EventType>(
-        EVENTDATA, //EventType::Capabilities(),
+        EVENTDATA,
         EventType::Parameters("ripple"),
         PortOutPolicy(SlotRange(1)));
 
     stats_out_port_ = create_output_port<MultiChannelType<double>>(
         "statistics",
-        //MultiChannelType<double>::Capabilities(ChannelRange(N_STATS_OUT)),
         MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
 
     threshold_ = create_producer_state("threshold", 0.0, false, Permission::READ);

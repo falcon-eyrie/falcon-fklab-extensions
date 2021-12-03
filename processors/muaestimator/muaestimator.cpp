@@ -30,7 +30,7 @@ void MUAEstimator::CreatePorts() {
   data_in_port_ = create_input_port<SpikeType>(
       SPIKEDATA, SpikeType::Capabilities(), PortInPolicy(SlotRange(1, 64)));
 
-  data_out_port_ = create_output_port<MUAType>("mua", //MUAType::Capabilities(),
+  data_out_port_ = create_output_port<MUAType>("mua",
                                                MUAType::Parameters(),
                                                PortOutPolicy(SlotRange(1)));
 
@@ -48,7 +48,6 @@ void MUAEstimator::CompleteStreamInfo() {
 
 void MUAEstimator::Prepare(GlobalContext &context) {
   // check that all incoming SpikeData have the same buffer size
-  //spike_buffer_size_ = data_in_port_->streaminfo(0).parameters().buffer_size;
   spike_buffer_size_ = data_in_port_->prototype(0).buffer_size();
   if (data_in_port_->number_of_slots() > 1) {
     for (SlotType s = 1; s < data_in_port_->number_of_slots(); ++s) {

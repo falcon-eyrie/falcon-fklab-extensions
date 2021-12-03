@@ -44,7 +44,7 @@ void MultiChannelFilter::CreatePorts() {
       PortInPolicy(SlotRange(0, MAX_NCHANNELS)));
 
   data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data", //MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
+      "data",
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
 }
 

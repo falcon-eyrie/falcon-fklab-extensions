@@ -40,12 +40,12 @@ void SpikeDetector::CreatePorts() {
       PortInPolicy(SlotRange(1)));
 
   data_out_port_spikes_ = create_output_port<SpikeType>(
-      SPIKEDATA, //SpikeType::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
+      SPIKEDATA,
       SpikeType::Parameters(buffer_size_()),
       PortOutPolicy(SlotRange(1), RINGBUFFER_SIZE));
 
   data_out_port_events_ = create_output_port<EventType>(
-      EVENTDATA, //EventType::Capabilities(), 
+      EVENTDATA,
       EventType::Parameters(),
       PortOutPolicy(SlotRange(1)));
 

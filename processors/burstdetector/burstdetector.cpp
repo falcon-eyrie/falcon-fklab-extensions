@@ -40,13 +40,12 @@ void BurstDetector::CreatePorts() {
                                              PortInPolicy(SlotRange(1)));
 
   data_out_port_ = create_output_port<EventType>(
-      EVENTDATA, //EventType::Capabilities(), 
+      EVENTDATA,
       EventType::Parameters("burst"),
       PortOutPolicy(SlotRange(1)));
 
   stats_out_port_ = create_output_port<MultiChannelType<double>>(
       "statistics",
-      //MultiChannelType<double>::Capabilities(ChannelRange(N_STATS_OUT)),
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
 
   threshold_ = create_broadcaster_state("threshold", 0.0, Permission::READ);
@@ -79,7 +78,6 @@ void BurstDetector::CreatePorts() {
 void BurstDetector::CompleteStreamInfo() {
   stats_nsamples_ = stats_buffer_size_() * 1e3 /
                     data_in_port_->prototype(0).bin_size();
-                    //data_in_port_->streaminfo(0).parameters().bin_size;
   if (stats_nsamples_ == 0) {
     throw ProcessingCreatePortsError(
         "Stats buffersize is smaller than MUA bin size.", name());
@@ -103,7 +101,6 @@ void BurstDetector::Preprocess(ProcessingContext &context) {
 
   sample_rate_ =
       1. / data_in_port_->prototype(0).bin_size() * 1e3;
-      // data_in_port_->slot(0)->streaminfo().parameters().bin_size * 1e3;
 
   LOG(UPDATE) << name() << ". Incoming Sample rate: " << sample_rate_;
 

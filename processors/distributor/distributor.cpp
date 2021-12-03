@@ -33,16 +33,12 @@ void Distributor::CreatePorts() {
   for (auto &it : channelmap_()) {
     data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
         it.first,
-        //MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
         MultiChannelType<double>::Parameters(),
         PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY));
   }
 }
 
 void Distributor::CompleteStreamInfo() {
-  //incoming_batch_size_ = input_port_->streaminfo(0).parameters().nsamples;
-  //max_n_channels_ = input_port_->streaminfo(0).parameters().nchannels;
-  
   incoming_batch_size_ = input_port_->prototype(0).nsamples();
   max_n_channels_ = input_port_->prototype(0).nchannels();
 

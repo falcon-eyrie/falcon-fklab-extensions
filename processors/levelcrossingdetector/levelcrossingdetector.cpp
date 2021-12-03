@@ -40,7 +40,7 @@ void LevelCrossingDetector::CreatePorts() {
       PortInPolicy(SlotRange(1)));
 
   data_out_port_ = create_output_port<EventType>(
-      EVENTDATA, //EventType::Capabilities(), 
+      EVENTDATA,
       EventType::Parameters(),
       PortOutPolicy(SlotRange(1)));
 

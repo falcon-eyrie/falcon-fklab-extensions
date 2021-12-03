@@ -78,12 +78,10 @@ void NlxParser::CreatePorts() {
 
   output_port_signal_ = create_output_port<MultiChannelType<double>>(
       "data",
-      //MultiChannelType<double>::Capabilities(
-      //    ChannelRange(1, nlx::NLX_MAX_NCHANNELS)),
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1), 500));
 
   output_port_ttl_ = create_output_port<MultiChannelType<uint32_t>>(
-      "ttl", //MultiChannelType<uint32_t>::Capabilities(ChannelRange(1)),
+      "ttl",
       MultiChannelType<uint32_t>::Parameters(),
       PortOutPolicy(SlotRange(1), 500));
 
