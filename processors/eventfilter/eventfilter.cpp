@@ -73,7 +73,7 @@ void EventFilter::CreatePorts() {
                                    PortInPolicy(SlotRange(1, 256), false));
 
   data_out_port_ = create_output_port<EventType>(
-      EVENTDATA, EventType::Capabilities(),
+      EVENTDATA,
       EventType::Parameters(target_event_().event()),
       PortOutPolicy(SlotRange(1)));
 }

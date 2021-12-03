@@ -44,7 +44,7 @@ void MultiChannelFilter::CreatePorts() {
       PortInPolicy(SlotRange(0, MAX_NCHANNELS)));
 
   data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
+      "data",
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
 }
 
@@ -64,7 +64,7 @@ void MultiChannelFilter::CompleteStreamInfo() {
     data_out_port_->streaminfo(k).set_stream_rate(
         data_in_port_->streaminfo(k).stream_rate());
     data_out_port_->streaminfo(k).set_parameters(
-        data_in_port_->streaminfo(k).parameters());
+        data_in_port_->prototype(k).parameters());
   }
 }
 
@@ -76,7 +76,7 @@ void MultiChannelFilter::Prepare(GlobalContext &context) {
     filters_.push_back(std::move(
         std::unique_ptr<dsp::filter::IFilter>(filter_template_->clone())));
     filters_.back()->realize(
-        data_in_port_->streaminfo(k).parameters().nchannels);
+        data_in_port_->prototype(k).nchannels());
   }
 }
 

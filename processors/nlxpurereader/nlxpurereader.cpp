@@ -35,7 +35,7 @@ NlxPureReader::NlxPureReader() : IProcessor(PRIORITY_HIGH) {
 
 void NlxPureReader::CreatePorts() {
   output_port_ = create_output_port<VectorType<uint32_t>>(
-      "udp", VectorType<uint32_t>::Capabilities(),
+      "udp",
       VectorType<uint32_t>::Parameters(nlx::NLX_NFIELDS(nchannels_())),
       PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
 

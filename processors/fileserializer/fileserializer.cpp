@@ -117,7 +117,7 @@ void FileSerializer::create_preamble(std::ostream &out, int slot) {
   node["encoding"] = encoding_.to_yaml();
   node["stream"] = slot;
   node["data"] =
-      serializer_->DataDescription(data_port_->slot(slot)->GetDataPrototype());
+      serializer_->DataDescription(data_port_->prototype(slot));
 
   YAML::Emitter emit(out);
   emit << YAML::BeginDoc;

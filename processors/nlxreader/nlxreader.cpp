@@ -56,7 +56,6 @@ void NlxReader::CreatePorts() {
   for (auto &it : channelmap_()) {
     data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
         it.first,
-        MultiChannelType<double>::Capabilities(ChannelRange(it.second.size())),
         MultiChannelType<double>::Parameters(),
         PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
   }

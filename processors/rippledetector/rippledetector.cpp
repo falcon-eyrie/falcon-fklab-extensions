@@ -48,12 +48,12 @@ void RippleDetector::CreatePorts()
         PortInPolicy(SlotRange(1)));
 
     event_out_port_ = create_output_port<EventType>(
-        EVENTDATA, EventType::Capabilities(), EventType::Parameters("ripple"),
+        EVENTDATA,
+        EventType::Parameters("ripple"),
         PortOutPolicy(SlotRange(1)));
 
     stats_out_port_ = create_output_port<MultiChannelType<double>>(
         "statistics",
-        MultiChannelType<double>::Capabilities(ChannelRange(N_STATS_OUT)),
         MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
 
     threshold_ = create_producer_state("threshold", 0.0, false, Permission::READ);
@@ -87,14 +87,14 @@ void RippleDetector::CreatePorts()
 void RippleDetector::CompleteStreamInfo()
 {
     stats_nsamples_ = stats_buffer_size_() *
-                      data_in_port_->streaminfo(0).parameters().sample_rate /
+                      data_in_port_->prototype(0).sample_rate() /
                       stats_downsample_factor_();
     stats_nsamples_ = std::max(stats_nsamples_, 1UL);
 
     stats_out_port_->streaminfo(0).set_parameters(
         MultiChannelType<double>::Parameters(
             N_STATS_OUT, stats_nsamples_,
-            data_in_port_->streaminfo(0).parameters().sample_rate /
+            data_in_port_->prototype(0).sample_rate() /
                 stats_downsample_factor_()));
     stats_out_port_->streaminfo(0).set_stream_rate(data_in_port_->streaminfo(0));
 }
@@ -106,7 +106,7 @@ void RippleDetector::Preprocess(ProcessingContext &context)
     signal_dev_->set(0);
     threshold_->set(0);
     block_ = 0;
-    sample_rate_ = data_in_port_->slot(0)->streaminfo().parameters().sample_rate;
+    sample_rate_ = data_in_port_->prototype(0).sample_rate();
     burn_in_ = initial_smooth_time_() * sample_rate_;
     double alpha = 1.0 / burn_in_;
 

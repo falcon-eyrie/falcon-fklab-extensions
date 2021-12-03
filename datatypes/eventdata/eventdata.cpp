@@ -23,11 +23,9 @@
 
 using namespace nsEventType;
 
-Data::Data(std::string event) { set_event(event); }
+Data::Data(std::string event): default_event_(event) { set_event(event); }
 
-void Data::Initialize(std::string event) { set_event(event); }
-
-void Data::ClearData() { set_event(DEFAULT_EVENT); }
+void Data::ClearData() { set_event(default_event_); }
 
 std::string Data::event() const { return event_; }
 
@@ -36,6 +34,11 @@ size_t Data::hash() const { return hash_; }
 size_t Data::size() const { return event_.size(); }
 
 void Data::set_event(std::string event) {
+
+  if (event.size() == 0) {
+      throw std::runtime_error("Event string cannot be empty.");
+  }
+
   event_ = event;
   hash_ = std::hash<std::string>()(event_);
 }

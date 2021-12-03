@@ -36,9 +36,9 @@ namespace nsMultiChannel {
 
 using Base = AnyType;
 
-struct Parameters : Base::Parameters {
+struct Parameters {
   Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0)
-      : Base::Parameters(), nchannels(nchan), nsamples(nsamp),
+      : nchannels(nchan), nsamples(nsamp),
         sample_rate(rate) {}
 
   size_t nchannels;
@@ -46,74 +46,13 @@ struct Parameters : Base::Parameters {
   double sample_rate;
 };
 
-class Capabilities : public Base::Capabilities {
- public:
-  Capabilities(ChannelRange channel_range,
-               SampleRange sample_range =
-                   SampleRange(1, std::numeric_limits<uint32_t>::max()))
-      : Base::Capabilities(), channel_range_(channel_range),
-        sample_range_(sample_range) {}
-
-  ChannelRange channel_range() const { return channel_range_; }
-  SampleRange sample_range() const { return sample_range_; }
-
-  virtual void VerifyCompatibility(const Capabilities &capabilities) const {
-    Base::Capabilities::VerifyCompatibility(capabilities);
-    if (!channel_range_.overlapping(capabilities.channel_range())) {
-      throw std::runtime_error("Channel ranges do not overlap (" +
-                               channel_range_.to_string() + " and " +
-                               capabilities.channel_range().to_string() + ")");
-    }
-    if (!sample_range_.overlapping(capabilities.sample_range())) {
-      throw std::runtime_error("Sample ranges do not overlap (" +
-                               sample_range_.to_string() + " and " +
-                               capabilities.sample_range().to_string() + ")");
-    }
-  }
-  virtual void Validate(const Parameters &parameters) const {
-    Base::Capabilities::Validate(parameters);
-    if (parameters.nsamples == 0 ||
-        !sample_range_.inrange(parameters.nsamples)) {
-      throw std::runtime_error(
-          "Number of samples cannot be zero and needs to be in range " +
-          sample_range_.to_string());
-    }
-
-    if (parameters.nchannels == 0 ||
-        !channel_range_.inrange(parameters.nchannels)) {
-      throw std::runtime_error(
-          "Number of channels cannot be zero and needs to be in range " +
-          channel_range_.to_string());
-    }
-  }
-
- protected:
-  ChannelRange channel_range_;
-  SampleRange sample_range_;
-};
 
 template <typename T> class Data : public Base::Data {
  public:
   typedef stride_iter<T *> channel_iterator;
   typedef T *sample_iterator;
 
-  Data() {}
-
   Data(size_t nchannels, size_t nsamples, double sample_rate) {
-    Initialize(nchannels, nchannels, sample_rate);
-  }
-
-  void ClearData() override {
-    std::fill(data_.begin(), data_.end(), 0);
-    std::fill(timestamps_.begin(), timestamps_.end(), 0);
-  }
-
-  void Initialize(const Parameters &parameters) {
-    Initialize(parameters.nchannels, parameters.nsamples,
-               parameters.sample_rate);
-  }
-
-  void Initialize(size_t nchannels, size_t nsamples, double sample_rate) {
     if (nchannels == 0 || nsamples == 0) {
       throw std::runtime_error(". MultiChannelData::Initialize - number of "
                                "channels/samples needs to be larger than 0.");
@@ -131,6 +70,19 @@ template <typename T> class Data : public Base::Data {
     data_.resize(nchannels_ * nsamples_);
 
     timestamps_.resize(nsamples_);
+  }
+
+  Data(const Parameters &parameters)
+  : Data(parameters.nchannels, parameters.nsamples,
+         parameters.sample_rate) {}
+
+  void ClearData() override {
+    std::fill(data_.begin(), data_.end(), 0);
+    std::fill(timestamps_.begin(), timestamps_.end(), 0);
+  }
+
+  Parameters parameters() const {
+    return Parameters(nchannels_, nsamples_, sample_rate_);
   }
 
   size_t nchannels() const { return nchannels_; }
@@ -314,6 +266,37 @@ template <typename T> class Data : public Base::Data {
   double sample_rate_;
   std::vector<T> data_;
   std::vector<uint64_t> timestamps_;
+};
+
+class Capabilities {
+ public:
+  Capabilities(ChannelRange channel_range,
+               SampleRange sample_range =
+                   SampleRange(1, std::numeric_limits<uint32_t>::max()))
+      : channel_range_(channel_range),
+        sample_range_(sample_range) {}
+
+  ChannelRange channel_range() const { return channel_range_; }
+  SampleRange sample_range() const { return sample_range_; }
+
+  template <class T>
+  void Validate(const Data<T> & prototype) {
+    if (!sample_range_.inrange(prototype.nsamples())) {
+      throw std::runtime_error(
+          "Number of samples cannot be zero and needs to be in range " +
+          sample_range_.to_string());
+    }
+
+    if (!channel_range_.inrange(prototype.nchannels())) {
+      throw std::runtime_error(
+          "Number of channels cannot be zero and needs to be in range " +
+          channel_range_.to_string());
+    }
+  }
+
+ protected:
+  ChannelRange channel_range_;
+  SampleRange sample_range_;
 };
 
 }  // namespace nsMultiChannel

@@ -31,7 +31,7 @@ namespace nsSpikeType {
 
 using Base = AnyType;
 
-struct Parameters : Base::Parameters {
+struct Parameters {
   Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
       : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
 
@@ -40,53 +40,17 @@ struct Parameters : Base::Parameters {
   double sample_rate;
 };
 
-class Capabilities : public Base::Capabilities {
- public:
-  Capabilities(ChannelRange channel_range =
-                   ChannelRange(1, MAX_N_CHANNELS_SPIKE_DETECTION))
-      : channel_range_(channel_range) {}
-
-  ChannelRange channel_range() const { return channel_range_; }
-
-  virtual void VerifyCompatibility(const Capabilities &capabilities) const {
-    Base::Capabilities::VerifyCompatibility(capabilities);
-    if (!channel_range_.overlapping(capabilities.channel_range())) {
-      throw std::runtime_error("Channel ranges do not overlap (" +
-                               channel_range_.to_string() + " and " +
-                               capabilities.channel_range().to_string() + ")");
-    }
-  }
-  virtual void Validate(const Parameters &parameters) const {
-    Base::Capabilities::Validate(parameters);
-    if (parameters.nchannels == 0 ||
-        !channel_range_.inrange(parameters.nchannels)) {
-      throw std::runtime_error(
-          "Number of channels cannot be zero and needs to be in range " +
-          channel_range_.to_string());
-    }
-    if (parameters.buffer_size <= 0) {
-      throw std::runtime_error(
-          "Buffer size cannot be smaller than or equal to zero.");
-    }
-    if (parameters.sample_rate <= 0) {
-      throw std::runtime_error(
-          "Sample rate cannot be smaller than or equal to zero.");
-    }
-  }
-
- protected:
-  ChannelRange channel_range_;
-};
 
 class Data : public Base::Data {
  public:
-  void Initialize(unsigned int nchannels, size_t max_nspikes,
-                  double sample_rate);
+  Data(unsigned int nchannels, double buffer_size,
+            double sample_rate, size_t max_nspikes=0);
 
-  void Initialize(const Parameters &parameters) {
-    unsigned int max_nspikes =
-        round(parameters.buffer_size * parameters.sample_rate / 1000) / 2;
-    Initialize(parameters.nchannels, max_nspikes, parameters.sample_rate);
+  Data(const Parameters &parameters)
+  : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {}
+
+  Parameters parameters() const {
+    return Parameters(buffer_size_, n_channels_, sample_rate_);
   }
 
   void ClearData() override;
@@ -94,7 +58,8 @@ class Data : public Base::Data {
   unsigned int n_channels() const;
 
   double sample_rate() const;
-
+  double buffer_size() const {return buffer_size_;}
+  
   void add_spike(const std::vector<double> &amplitudes,
                  uint64_t hw_timestamp);  // 1st argument will change to a better
                                           // interface for matrices
@@ -134,6 +99,7 @@ class Data : public Base::Data {
   std::vector<double> amplitudes_;
   // std::vector<double> widths_;
   std::vector<uint64_t> hw_ts_detected_spikes_;
+  double buffer_size_;
   double sample_rate_;
   ChannelValidityMask validity_mask_;
   ChannelValidityMask
@@ -149,6 +115,26 @@ class Data : public Base::Data {
   const std::string N_DETECTED_SPIKES = "n_detected_spikes";
   const std::string TS_DETECTED_SPIKES = "TS_detected_spikes";
   const std::string SPIKE_AMPLITUDES = "spike_amplitudes";
+};
+
+class Capabilities {
+ public:
+  Capabilities(ChannelRange channel_range =
+                   ChannelRange(1, MAX_N_CHANNELS_SPIKE_DETECTION))
+      : channel_range_(channel_range) {}
+
+  ChannelRange channel_range() const { return channel_range_; }
+
+  void Validate(const Data &prototype) const {
+    if (!channel_range_.inrange(prototype.n_channels())) {
+      throw std::runtime_error(
+          "Number of channels cannot be zero and needs to be in range " +
+          channel_range_.to_string());
+    }
+  }
+
+ protected:
+  ChannelRange channel_range_;
 };
 
 }  // namespace nsSpikeType

@@ -43,21 +43,21 @@ void RunningStats::CreatePorts() {
       PortInPolicy(SlotRange(1)));
 
   data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
+      "data",
       MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
 }
 
 void RunningStats::CompleteStreamInfo() {
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     data_out_port_->streaminfo(k).set_parameters(
-        data_in_port_->streaminfo(k).parameters());
+        data_in_port_->streaminfo(k).parameters<const typename MultiChannelType<double>::Parameters &>());
     data_out_port_->streaminfo(k).set_stream_rate(data_in_port_->streaminfo(k));
   }
 }
 
 void RunningStats::Preprocess(ProcessingContext &context) {
   double sample_rate =
-      data_in_port_->slot(0)->streaminfo().parameters().sample_rate;
+      data_in_port_->prototype(0).sample_rate();
   double alpha = 1.0 / (integration_time_() * sample_rate);
 
   stats_.reset(new dsp::algorithms::RunningMeanMAD(
