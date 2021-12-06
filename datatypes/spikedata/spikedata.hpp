@@ -41,13 +41,16 @@ struct Parameters {
 };
 
 
-class Data : public Base::Data {
+class Data : public IData<Data,Base> {
  public:
   Data(unsigned int nchannels, double buffer_size,
             double sample_rate, size_t max_nspikes=0);
 
   Data(const Parameters &parameters)
   : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {}
+
+  static const std::string static_datatype() { return "spike"; }
+  static const std::string static_dataname() { return "spikes"; }
 
   Parameters parameters() const {
     return Parameters(buffer_size_, n_channels_, sample_rate_);
@@ -139,13 +142,7 @@ class Capabilities {
 
 }  // namespace nsSpikeType
 
-class SpikeType {
- public:
-  static const std::string datatype() { return "spike"; }
-  static const std::string dataname() { return "spikes"; }
-
-  using Base = nsSpikeType::Base;
-  using Parameters = nsSpikeType::Parameters;
-  using Capabilities = nsSpikeType::Capabilities;
-  using Data = nsSpikeType::Data;
-};
+using SpikeType = DefineType<
+  nsSpikeType::Data, AnyType, true,
+  nsSpikeType::Capabilities, nsSpikeType::Parameters
+  >;

@@ -31,10 +31,13 @@ struct Parameters {
   double bin_size;
 };
 
-class Data : public Base::Data {
+class Data : public IData<Data,Base> {
  public:
   Data(double bin_size);
   Data(const Parameters &parameters);
+
+  static const std::string static_datatype() { return "mua"; }
+  static const std::string static_dataname() { return "mua"; }
 
   Parameters parameters() const {
     return Parameters(bin_size_);
@@ -70,13 +73,7 @@ using Capabilities = Base::Capabilities;
 
 }  // namespace nsMUAType
 
-class MUAType {
- public:
-  static const std::string datatype() { return "mua"; }
-  static const std::string dataname() { return "mua"; }
-
-  using Base = nsMUAType::Base;
-  using Parameters = nsMUAType::Parameters;
-  using Capabilities = nsMUAType::Capabilities;
-  using Data = nsMUAType::Data;
-};
+using MUAType = DefineType<
+  nsMUAType::Data, AnyType, true,
+  nsMUAType::Capabilities, nsMUAType::Parameters
+  >;

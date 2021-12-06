@@ -30,7 +30,6 @@
 #include "utilities/string.hpp"
 
 typedef Range<size_t> SampleRange;
-template <typename T> class MultiChannelType;
 
 namespace nsMultiChannel {
 
@@ -47,7 +46,7 @@ struct Parameters {
 };
 
 
-template <typename T> class Data : public Base::Data {
+template <typename T> class Data : public IData<Data<T>,Base> {
  public:
   typedef stride_iter<T *> channel_iterator;
   typedef T *sample_iterator;
@@ -75,6 +74,9 @@ template <typename T> class Data : public Base::Data {
   Data(const Parameters &parameters)
   : Data(parameters.nchannels, parameters.nsamples,
          parameters.sample_rate) {}
+
+  static const std::string static_datatype() { return "multichannel [" + get_type_string<T>() + "]"; }
+  static const std::string static_dataname() { return "data"; }
 
   void ClearData() override {
     std::fill(data_.begin(), data_.end(), 0);
@@ -218,7 +220,7 @@ template <typename T> class Data : public Base::Data {
 
       flex_builder.UInt("nchannels", nchannels());
       flex_builder.UInt("nsamples", nsamples());
-      flex_builder.String("type", MultiChannelType<T>::datatype());
+      flex_builder.String("type", this->datatype());
   }
 
   void YAMLDescription(YAML::Node &node,
@@ -301,13 +303,8 @@ class Capabilities {
 
 }  // namespace nsMultiChannel
 
-template <typename T> class MultiChannelType {
- public:
-  static const std::string datatype() { return "multichannel"; }
-  static const std::string dataname() { return "data"; }
-
-  using Base = nsMultiChannel::Base;
-  using Parameters = nsMultiChannel::Parameters;
-  using Capabilities = nsMultiChannel::Capabilities;
-  using Data = nsMultiChannel::Data<T>;
-};
+template <typename T>
+using MultiChannelType = DefineType<
+  nsMultiChannel::Data<T>, AnyType, true,
+  nsMultiChannel::Capabilities, nsMultiChannel::Parameters
+  >;

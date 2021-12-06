@@ -37,11 +37,14 @@ struct Parameters {
   TYPE default_value;
 };
 
-template <typenameTYPE> class Data : public Base::Data {
+template <typename TYPE> class Data : public IData<Data<TYPE>,Base> {
  public:
   ScalarData(TYPE data = DEFAULT_SCALAR_VALUE)
   : default_value_(data), data_(data) {}
   ScalarData(const Parameters<TYPE> &parameters) : ScalarData(parameters.default_value) {}
+
+  static const std::string static_datatype() { return "scalar [" + get_type_string<TYPE>() + "]"; }
+  static const std::string static_dataname() { return "data"; }
 
   Parameters parameters() const {
     return Parameters(default_value_);
@@ -105,13 +108,8 @@ using Capabilities = Base::Capabilities;
 
 }   // namespace nsScalarType
 
-template <class TYPE> class ScalarType {
- public:
-  static const std::string datatype() { return "scalar"; }
-  static const std::string dataname() { return "data"; }
-
-  using Base = nsScalarType::Base;
-  using Parameters = nsScalarType::Parameters<TYPE>;
-  using Capabilities = nsScalarType::Capabilities;
-  using Data = nsScalarType::Data<TYPE>;
-};
+template <typename T>
+using ScalarType = DefineType<
+  nsScalarType::Data<T>, AnyType, true,
+  nsScalarType::Capabilities, nsScalarType::Parameters<T>
+  >;
