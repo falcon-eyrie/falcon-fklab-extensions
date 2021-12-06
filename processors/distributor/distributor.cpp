@@ -48,7 +48,7 @@ void Distributor::CompleteStreamInfo() {
   for (auto &it : data_ports_) {
     it.second->streaminfo(0).set_parameters(
         TimeSeriesType<double>::Parameters(
-            channelmap_().at(it.first).get_channels_as_label(), incoming_batch_size_,
+            channelmap_().at(it.first).get_labels(), incoming_batch_size_,
             input_port_->prototype(0).sample_rate()));
 
 
@@ -110,7 +110,7 @@ void Distributor::Process(ProcessingContext &context) {
       data_out_vector[port_index]->set_sample_timestamps(
           data_in->sample_timestamps());
 
-      for (auto ch: it_chmap.second.get_channels_as_label()) {
+      for (auto ch: it_chmap.second.get_labels()) {
         for (s = 0; s < incoming_batch_size_; s++) {
           data_out_vector[port_index]->set_data_sample(
               s, ch,  data_in->data_sample(s, ch));

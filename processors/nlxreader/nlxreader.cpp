@@ -66,7 +66,7 @@ void NlxReader::CompleteStreamInfo() {
     // channel map
     it.second->streaminfo(0).set_parameters(
         TimeSeriesType<double>::Parameters(
-            channelmap_().at(it.first).get_channels_as_label(), batch_size_(),
+            channelmap_().at(it.first).get_labels(), batch_size_(),
             nlx::NLX_SIGNAL_SAMPLING_FREQUENCY));
     it.second->streaminfo(0).set_stream_rate(
         nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_());
@@ -205,7 +205,7 @@ void NlxReader::Process(ProcessingContext &context) {
         data_vector[data_index]->set_sample_timestamp(sample_counter_,
                                                       nlxrecord_.timestamp());
         data_iter = data_vector[data_index]->begin_sample(sample_counter_);
-        for (auto &channel : it.second.get_channels()) {
+        for (auto &channel : it.second.get_channel_numbers()) {
           (*data_iter) = nlxrecord_.sample_microvolt(channel);
           ++data_iter;
         }

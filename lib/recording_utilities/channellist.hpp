@@ -29,26 +29,39 @@ template <typename T> class ChannelList{
 public:
     ChannelList(){};
 
-    std::vector<T> get_channels() const{
+
+    std::vector<std::pair<T, std::string>> get_channels() const{
         return channels_;
     }
 
-    std::vector<std::string> get_channels_as_label() const{
-        /*std::vector<std::string> labels = {};
-        for(auto c: channels_){
-          labels.push_back(std::to_string(c));
-        }*/
-        return labels_;
+    std::vector<T> get_channel_numbers() const{
+
+        std::vector<T> channel_numbers;
+
+        std::transform(channels_.begin(), channels_.end(),
+                       std::back_inserter(channel_numbers),
+                       [](auto const& pair){ return pair.first; });
+
+        return channel_numbers;
+    }
+
+    std::vector<std::string> get_labels() const{
+
+        std::vector<std::string> labels;
+
+        std::transform(channels_.begin(), channels_.end(),
+                       std::back_inserter(labels),
+                       [](auto const& pair){ return pair.second; });
+
+        return labels;
     }
 
 
     void add_channels(T channel, std::string label=""){
-        channels_.push_back(channel);
-
         if(label == ""){
             label = std::to_string(channel);
         }
-        add_label(label);
+        add_element(channel, label);
     };
 
     void add_channels(std::vector<T> channels, std::vector<std::string> labels={}){
@@ -56,15 +69,15 @@ public:
 
         if (labels.size() == 0) {
             for(auto c : channels){
-                add_label(std::to_string(c));
+                add_element(c, std::to_string(c));
             }
         }
         else if(labels.size() != channels.size()){
             throw std::length_error(". channels and labels should have the same size.");
         }
         else{
-            for(auto l : labels){
-                add_label(l);
+            for(uint i=0; i<channels.size(); i++){
+                add_element(channels[i], labels[i]);
             }
 
         }
@@ -79,15 +92,15 @@ public:
 
     void remove_channels(double range_min, double range_max){
 
+
        auto to_remove = std::remove_if(
                             channels_.begin(), channels_.end(),
                             [range_min, range_max](T x) {
-                                return x >= range_min and x <= range_max;
+                                return x.first >= range_min and x.first <= range_max;
                             }
                             );
 
        channels_.erase(to_remove, channels_.end());
-       labels_.erase(to_remove, labels_.end());
     }
 
     void remove_channels(std::vector<T> channels){
@@ -95,24 +108,23 @@ public:
         auto to_remove = std::remove_if(
                     channels_.begin(), channels_.end(),
                     [channels](T x) {
-                        return std::find(channels.begin(), channels.end(), x)!= channels.end();
+                        return std::find(channels.begin(), channels.end(), x.first)!= channels.end();
                     }
                     );
 
         channels_.erase(to_remove ,channels_.end());
-        labels_.erase(to_remove, labels_.end());
     }
 
     void remove_channels(std::vector<std::string> labels){
         auto to_remove = std::remove_if(
-                    labels_.begin(), labels_.end(),
+                    channels_.begin(), channels_.end(),
                     [labels](T x) {
-                        return std::find(labels.begin(), labels.end(), x)!= labels.end();
+                        return std::find(labels.begin(), labels.end(), x.second)!= labels.end();
                     }
                     );
 
         channels_.erase(to_remove ,channels_.end());
-        labels_.erase(to_remove, labels_.end());
+
     }
 
     auto size() const{
@@ -121,35 +133,6 @@ public:
 
     T &operator[](size_t index) { return channels_[index]; };
     const T &operator[](size_t index) const { return channels_[index]; };
-
-    std::string to_string() const
-    {
-        std::string str="[";
-        if(!channels_.empty()){
-
-            unsigned int index=0;
-            bool inrange = false;
-
-            while( index < channels_.size()-1 ){
-                if(channels_[index]+1 == channels_[index+1]){
-                    if(!inrange){
-                        str += std::to_string(channels_[index])+"-";
-                    }
-                    inrange = true;
-                }else{
-                    str += std::to_string(channels_[index]) + ", ";
-                    inrange = false;
-                }
-                index++;
-
-            }
-            str += std::to_string(channels_[index]);
-
-        }
-        str += "]";
-        return str;
-
-    }
 
     auto begin() const {
         return channels_.begin();
@@ -165,8 +148,49 @@ public:
         return channels_.end();
     };
 
+    /**
+     * @brief to_string print the channel list in a yaml format understood by the options lib.
+     * @note labels are not added in this format.
+     *
+     * @return
+     */
+    std::string to_string() const
+    {
+        std::string str="[";
+        if(!channels_.empty()){
+
+            unsigned int index=0;
+            bool inrange = false;
+
+            while( index < channels_.size()-1 ){
+                if(channels_[index].first+1 == channels_[index+1].first){
+                    if(!inrange){
+                        str += std::to_string(channels_[index].first)+"-";
+                    }
+                    inrange = true;
+                }else{
+                    str += std::to_string(channels_[index].first) + ", ";
+                    inrange = false;
+                }
+                index++;
+
+            }
+            str += std::to_string(channels_[index].first);
+
+        }
+        str += "]";
+        return str;
+
+    }
+
+    /**
+     * @brief all_in_range check if all the column numbers in this collection are contained in the range given in input.
+     * @param range_min
+     * @param range_max
+     * @return
+     */
     bool all_in_range(T range_min, T range_max) const {
-        for (auto const &ch : channels_) {
+        for (auto const &ch : get_channel_numbers()) {
             if (ch >= range_max or ch < range_min) {
                 return false;
             }
@@ -174,54 +198,101 @@ public:
         return true;
     }
 
-    bool is_subset(std::vector<T> channels) const {
-        const auto subset = get_channels();
+    /**
+     * @brief is_subset check if the column numbers in this collection is a subset of the column numbers list given in input.
+     * @param channels_vec
+     * @return
+     */
+    bool is_subset(std::vector<T> channels_vec) const {
+        const auto subset_vec = get_channel_numbers();
+        const std::set<T> subset(subset_vec.begin(), subset_vec.end());
+        const std::set<T> channels(channels_vec.begin(), channels_vec.end());
+
         return std::includes(channels.begin(), channels.end(), subset.begin(), subset.end());
     }
 
-    bool is_subset(std::vector<std::string> labels) const {
-        const auto subset = get_channels_as_label();
+    /**
+     * @brief is_subset check if the labels in this collection is a subset of the labels list given in input.
+     * @param labels_vec
+     * @return
+     */
+    bool is_subset(std::vector<std::string> labels_vec) const {
+        const auto subset_vec = get_labels();
+        const std::set<std::string> subset(subset_vec.begin(), subset_vec.end());
+        const std::set<std::string> labels(labels_vec.begin(), labels_vec.end());
         return std::includes(labels.begin(), labels.end(), subset.begin(), subset.end());
-
     }
 
-    bool is_sorted() const {
+    /**
+     * @brief is_sorted check without modifying the collection if it is sorted by column numbers or by labels
+     *
+     * @param by_label  optional, switch the sorting test to sort by labels instead of column numbers
+     * @return
+     */
+    bool is_sorted(bool by_label=false) const {
+        if(by_label){
+            return std::is_sorted(channels_.begin(), channels_.end(),
+                                  [](const auto &lhs, const auto &rhs) {
+                                          return lhs.second < rhs.second; } );
+        }
+
         return std::is_sorted(channels_.begin(), channels_.end());
     }
 
+    /**
+     * @brief is_unique check without modifying the collection if there is an unique set of column numbers.
+     * @return
+     */
     bool is_unique() const {
-        std::vector<T> sorted_vector = channels_;
-        std::sort(sorted_vector.begin(), sorted_vector.end());
-        return std::adjacent_find(sorted_vector.begin(), sorted_vector.end()) == sorted_vector.end();
+        auto channels = get_channels();
+        std::sort(channels.begin(), channels.end());
+        return std::adjacent_find(channels.begin(), channels.end()) == channels.end();
     }
 
-    /**void sort() {   TODO later - not straighforward argsort or way to sort labels_ in the same new order as channels_
-        std::sort(channels_.begin(), channels_.end());
+    /**
+     * @brief sort the collection of pair (column index, label)
+     *
+     * std::pair has a sort implementation by default - it sorts automatically by the first element (channel number)
+     * and then in case of equality by the second element (label).
+     *
+     * @param by_label optional, optional, switch the sorting to sort by labels instead of column numbers
+     *
+     */
+    void sort(bool by_label=false) {
+        if(by_label){
+            std::sort(channels_.begin(), channels_.end(),
+                      [](const auto &lhs, const auto &rhs) {
+                              return lhs.second < rhs.second; } );
+        }else{
+            std::sort(channels_.begin(), channels_.end());
+        }
     }
 
-    void unique() {  Same now unique became complicated - which label should we remove ?
-
-        std::sort(channels_.begin(), channels_.end());
+    /**
+     * @brief unique - Remove duplicates to keep only an unique set of channel numbers.
+     * Because of the way sort works, the first label in alphabetical order is the one keep.
+     *
+     * No need to have an unique implementation for the labels as we cannot from the start have duplicate labels.
+     */
+    void unique() {
+        sort();
         auto it = std::unique(channels_.begin(), channels_.end());
         channels_.resize( std::distance(channels_.begin(),it) );
-
-    }**/
-
+    }
 
 private :
-    void add_label(std::string label){
-        auto existing_labels = get_channels_as_label();
+    void add_element(T channel, std::string label){
+        auto existing_labels = get_labels();
 
         if(std::find(existing_labels.begin(), existing_labels.end(), label) != existing_labels.end()){
             throw std::invalid_argument(". This label " + label + " already exist in this channel list and should be unique");
         }
 
-        labels_.push_back(label);
+        channels_.push_back(std::make_pair(channel, label));
     }
 
 private:
-    std::vector<T> channels_;
-    std::vector<std::string> labels_;
+    std::vector<std::pair<T, std::string>> channels_;
 };
 
 
@@ -230,7 +301,7 @@ namespace YAML {
 template <typename T> struct convert<ChannelList<T>> {
     static Node encode(const ChannelList<T> &rhs) {
         Node node;
-        node = rhs.get_channels();
+        node = rhs.get_channel_numbers();
         return node;
     }
 
