@@ -108,7 +108,7 @@ void NlxParser::CompleteStreamInfo() {
       data_in_port_->slot(0)->streaminfo().stream_rate() / batch_size_());
 
   output_port_ttl_->streaminfo(0).set_parameters(
-      MultiChannelType<double>::Parameters(
+      MultiChannelType<uint32_t>::Parameters(
           1, batch_size_(),
           data_in_port_->slot(0)->streaminfo().stream_rate()));
 

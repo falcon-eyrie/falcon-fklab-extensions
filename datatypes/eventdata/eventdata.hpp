@@ -39,10 +39,13 @@ struct Parameters {
   std::string default_event;
 };
 
-class Data : public Base::Data {
+class Data : public IData<Data,Base> {
  public:
   Data(std::string event = DEFAULT_EVENT);
   Data(const Parameters & parameters) : Data(parameters.default_event) {}
+
+  static const std::string static_datatype() { return "event"; }
+  static const std::string static_dataname() { return "events"; }
 
   Parameters parameters() const {
     return Parameters(default_event_);
@@ -83,16 +86,11 @@ using Capabilities = Base::Capabilities;
 
 }  // namespace nsEventType
 
-class EventType {
- public:
-  static const std::string datatype() { return "event"; }
-  static const std::string dataname() { return "events"; }
+using EventType = DefineType<
+  nsEventType::Data, AnyType, true,
+  nsEventType::Capabilities, nsEventType::Parameters
+  >;
 
-  using Base = nsEventType::Base;
-  using Parameters = nsEventType::Parameters;
-  using Capabilities = nsEventType::Capabilities;
-  using Data = nsEventType::Data;
-};
 
 namespace YAML {
 template <> struct convert<EventType::Data> {

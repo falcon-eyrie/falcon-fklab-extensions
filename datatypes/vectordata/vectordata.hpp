@@ -35,7 +35,7 @@ struct Parameters {
 
 
 template <typename TYPE>
-class Data : public Base::Data {
+class Data : public IData<Data<TYPE>,Base> {
  public:
   Data(unsigned int n) {
     if (n==0) {
@@ -45,6 +45,9 @@ class Data : public Base::Data {
   }
   Data(const Parameters &parameters) : Data(parameters.size) {}
   
+  static const std::string static_datatype() { return "vector [" + get_type_string<TYPE>() + "]"; }
+  static const std::string static_dataname() { return "data"; }
+
   Parameters parameters() const {
     return Parameters(data_.size());
   }
@@ -107,13 +110,8 @@ using Capabilities = Base::Capabilities;
 
 }  // namespace nsVectorType
 
-template <class TYPE> class VectorType {
- public:
-  static const std::string datatype() { return "vector"; }
-  static const std::string dataname() { return "data"; }
-
-  using Base = nsVectorType::Base;
-  using Parameters = nsVectorType::Parameters;
-  using Capabilities = nsVectorType::Capabilities;
-  using Data = nsVectorType::Data<TYPE>;
-};
+template <typename T>
+using VectorType = DefineType<
+  nsVectorType::Data<T>, AnyType, true,
+  nsVectorType::Capabilities, nsVectorType::Parameters
+  >;
