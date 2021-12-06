@@ -27,8 +27,6 @@
 #include "idata.hpp"
 #include "columnsdata/columnsdata.hpp"
 
-template <typename T> class TimeSeriesType;
-
 namespace nsTimeSeries {
 
 struct Parameters :  nsColumn::Parameters {
@@ -91,6 +89,8 @@ template <typename T> class Data : public Base<T>::Data {
   Data(const Parameters &parameters)
       : Data(parameters.labels, parameters.nsamples, parameters.sample_rate){}
 
+  static const std::string static_datatype() { return "time series"; }
+  static const std::string static_dataname() { return "data"; }
 
   /**
    * @brief ClearData - clear the timestamps and the data (done in the columndatatype::Data)
@@ -157,13 +157,13 @@ template <typename T> class Data : public Base<T>::Data {
    *
    * @param flex_builder
    */
-  void FlatbufferDescription(flexbuffers::Builder& flex_builder) override{
+  void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) override{
       flex_builder.TypedVector("timestamps", [&]{
              for(auto samples: timestamps_)
                  flex_builder.Add(samples);
       });
 
-      flex_builder.String("type", TimeSeriesType<T>::datatype());
+      flex_builder.String("type", static_datatype());
     }
 
   /**
@@ -246,13 +246,8 @@ protected:
   using Capabilities = nsColumn::Capabilities;
 }  // namespace nsMulticolumn
 
-template <typename T> class TimeSeriesType {
- public:
-  static const std::string datatype() { return "time series"; }
-  static const std::string dataname() { return "data"; }
-
-  using Base = ColumnsType<T>;
-  using Parameters = nsTimeSeries::Parameters;
-  using Capabilities = nsTimeSeries::Capabilities;
-  using Data = nsTimeSeries::Data<T>;
-};
+template <typename T>
+using TimeSeriesType = DefineType<
+  nsTimeSeries::Data<T>, ColumnsType<T>, false,
+  nsTimeSeries::Capabilities, nsTimeSeries::Parameters
+  >;

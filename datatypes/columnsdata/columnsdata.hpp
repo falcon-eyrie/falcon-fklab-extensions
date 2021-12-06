@@ -24,7 +24,6 @@
 #include "utilities/string.hpp"
 
 typedef Range<size_t> SampleRange;
-template <typename T> class ColumnsType;
 
 inline std::vector<std::string> generate_labels(size_t nchannels){
     std::vector<std::string> labels;
@@ -75,6 +74,8 @@ public:
     Data(const Parameters &parameters)
         : Data(parameters.labels, parameters.nsamples){}
 
+    static const std::string static_datatype() { return "columnar"; }
+    static const std::string static_dataname() { return "data"; }
 
     /**
     * @brief ClearData - clear the data
@@ -319,17 +320,7 @@ public:
        flex_builder.UInt("ncolumns", ncolumns());
        flex_builder.UInt("nsamples", nsamples());
 
-       FlatbufferDescription(flex_builder);
-
-   }
-
-   /**
-    * @brief FlatbufferDescription - add to the flexbuffer for this datype but not its childrens the datatype name.
-    * @param flex_builder
-    */
-   virtual void FlatbufferDescription(flexbuffers::Builder& flex_builder){
-       flex_builder.String("type", ColumnsType<T>::datatype());
-
+       flex_builder.String("type", static_datatype());
    }
 
    /**
@@ -504,13 +495,9 @@ class Capabilities{
 
 }
 
-template <typename T> class ColumnsType {
- public:
-  static const std::string datatype() { return "columnar"; }
-  static const std::string dataname() { return "data"; }
+template <typename T>
+using ColumnsType = DefineType<
+  nsColumn::Data<T>, AnyType, true,
+  nsColumn::Capabilities, nsColumn::Parameters
+  >;
 
-  using Base = nsColumn::Base;
-  using Parameters = nsColumn::Parameters;
-  using Capabilities = nsColumn::Capabilities;
-  using Data = nsColumn::Data<T>;
-};
