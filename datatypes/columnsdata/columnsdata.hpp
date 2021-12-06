@@ -319,8 +319,6 @@ public:
 
        flex_builder.UInt("ncolumns", ncolumns());
        flex_builder.UInt("nsamples", nsamples());
-
-       flex_builder.String("type", static_datatype());
    }
 
    /**

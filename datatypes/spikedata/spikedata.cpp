@@ -198,5 +198,4 @@ void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
     });
 
     flex_builder.UInt(N_DETECTED_SPIKES.c_str(), n_detected_spikes_);
-    flex_builder.String("type", SpikeType::datatype());
 }

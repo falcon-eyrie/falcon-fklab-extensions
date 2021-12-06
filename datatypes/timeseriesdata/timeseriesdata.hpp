@@ -158,12 +158,11 @@ template <typename T> class Data : public Base<T>::Data {
    * @param flex_builder
    */
   void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) override{
+      Base<T>::Data::SerializeFlatBuffer(flex_builder);
       flex_builder.TypedVector("timestamps", [&]{
              for(auto samples: timestamps_)
                  flex_builder.Add(samples);
       });
-
-      flex_builder.String("type", static_datatype());
     }
 
   /**

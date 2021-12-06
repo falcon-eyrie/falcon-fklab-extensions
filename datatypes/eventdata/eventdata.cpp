@@ -77,7 +77,6 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
 void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
     Base::Data::SerializeFlatBuffer(flex_builder);
     flex_builder.String("event", event_);
-    flex_builder.String("type", EventType::datatype());
 }
 
 void Data::YAMLDescription(YAML::Node &node,
