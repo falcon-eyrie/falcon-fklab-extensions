@@ -89,7 +89,7 @@ template <typename T> class Data : public Base<T>::Data {
   Data(const Parameters &parameters)
       : Data(parameters.labels, parameters.nsamples, parameters.sample_rate){}
 
-  static const std::string static_datatype() { return "time series"; }
+  static const std::string static_datatype() { return "time series [" + get_type_string<T>() + "]"; }
   static const std::string static_dataname() { return "data"; }
 
   /**

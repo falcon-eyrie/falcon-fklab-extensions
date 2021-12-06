@@ -348,8 +348,8 @@ public:
       Base::Data::YAMLDescription(node, format);
       if (format == Serialization::Format::FULL) {
         node.push_back("signal " + get_type_string<T>() + " (" +
-                       std::to_string(nsColumn::Data<T>::ncolumns()) + "," +
-                       std::to_string(nsColumn::Data<T>::nsamples()) + ")");
+                       std::to_string(nsColumn::Data<T>::nsamples()) + "," +
+                       std::to_string(nsColumn::Data<T>::ncolumns()) + ")");
       }
 
       if (format == Serialization::Format::COMPACT) {
