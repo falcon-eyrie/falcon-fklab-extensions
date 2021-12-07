@@ -43,7 +43,9 @@ struct Parameters :  nsColumn::Parameters {
 template <typename T>
 using Base = ColumnsType<T>;
 
-template <typename T> class Data : public Base<T>::Data {
+
+template <typename T> class Data : public IData<Data<T>,Base<T>> {
+ using BaseClass = IData<Data<T>,Base<T>>;
 
  public:
   typedef stride_iter<T *> column_iterator;
@@ -57,7 +59,7 @@ template <typename T> class Data : public Base<T>::Data {
    * @param sample_rate
    */
   Data(std::vector<std::string> columns_label, size_t nsamples, double sample_rate)
-      : Base<T>::Data(columns_label, nsamples) {
+      :BaseClass(columns_label, nsamples) {
 
       if (sample_rate <= 0) {
         throw std::runtime_error("Time Series Data::Initialize - sample rate "
@@ -96,7 +98,7 @@ template <typename T> class Data : public Base<T>::Data {
    * @brief ClearData - clear the timestamps and the data (done in the columndatatype::Data)
    */
   void ClearData() override {
-    Base<T>::Data::ClearData();
+    BaseClass::ClearData();
     std::fill(timestamps_.begin(), timestamps_.end(), 0);
   }
 
@@ -158,7 +160,7 @@ template <typename T> class Data : public Base<T>::Data {
    * @param flex_builder
    */
   void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) override{
-      Base<T>::Data::SerializeFlatBuffer(flex_builder);
+      BaseClass::SerializeFlatBuffer(flex_builder);
       flex_builder.TypedVector("timestamps", [&]{
              for(auto samples: timestamps_)
                  flex_builder.Add(samples);
@@ -177,7 +179,7 @@ template <typename T> class Data : public Base<T>::Data {
                        Serialization::Format format =
                                    Serialization::Format::FULL) const override {
 
-    Base<T>::Data::SerializeBinary(stream, format);
+    BaseClass::SerializeBinary(stream, format);
 
     if (format == Serialization::Format::FULL) {
             stream.write(reinterpret_cast<const char *>(timestamps_.data()),
@@ -204,7 +206,7 @@ template <typename T> class Data : public Base<T>::Data {
                      Serialization::Format format =
                                  Serialization::Format::FULL) const override {
 
-    Base<T>::Data::SerializeYAML(node, format);
+    BaseClass::SerializeYAML(node, format);
 
     if (format == Serialization::Format::FULL ||
         format == Serialization::Format::COMPACT) {
@@ -224,7 +226,7 @@ template <typename T> class Data : public Base<T>::Data {
                        Serialization::Format format =
                                    Serialization::Format::FULL) const override {
 
-     Base<T>::Data::YAMLDescription(node, format);
+     BaseClass::YAMLDescription(node, format);
 
      if (format == Serialization::Format::FULL) {
        node.push_back("timestamps uint64 (" + std::to_string(this->nsamples()) + ")");

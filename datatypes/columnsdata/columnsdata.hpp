@@ -48,7 +48,7 @@ struct Parameters{
   std::vector<std::string> labels;
 };
 
-template <typename T> class Data : public Base::Data {
+template <typename T> class Data : public IData<Data<T>,Base> {
 public:
 
     /**
@@ -74,7 +74,7 @@ public:
     Data(const Parameters &parameters)
         : Data(parameters.labels, parameters.nsamples){}
 
-    static const std::string static_datatype() { return "columnar"; }
+    static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
     static const std::string static_dataname() { return "data"; }
 
     /**
