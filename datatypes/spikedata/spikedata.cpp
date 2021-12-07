@@ -114,7 +114,7 @@ Data::spike_amplitudes(std::size_t spike_index) const {
 
 void Data::SerializeBinary(std::ostream &stream,
                            Serialization::Format format) const {
-  Base::Data::SerializeBinary(stream, format);
+  BaseClass::SerializeBinary(stream, format);
 
   if (format == Serialization::Format::FULL) {
     int n_spikes_to_fill_buffer = MAX_N_SPIKES_IN_BUFFER - n_detected_spikes_;
@@ -148,7 +148,7 @@ void Data::SerializeBinary(std::ostream &stream,
 }
 
 void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
-  Base::Data::SerializeYAML(node, format);
+  BaseClass::SerializeYAML(node, format);
 
   if (format == Serialization::Format::FULL ||
       format == Serialization::Format::COMPACT) {
@@ -164,7 +164,7 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
 
 void Data::YAMLDescription(YAML::Node &node,
                            Serialization::Format format) const {
-  Base::Data::YAMLDescription(node, format);
+  BaseClass::YAMLDescription(node, format);
 
   if (format == Serialization::Format::FULL) {
     node.push_back(N_DETECTED_SPIKES + " " +
@@ -185,7 +185,7 @@ void Data::YAMLDescription(YAML::Node &node,
 }
 
 void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
-    Base::Data::SerializeFlatBuffer(flex_builder);
+    BaseClass::SerializeFlatBuffer(flex_builder);
 
     flex_builder.TypedVector(SPIKE_AMPLITUDES.c_str(), [&]{
            for(auto samples: amplitudes_)

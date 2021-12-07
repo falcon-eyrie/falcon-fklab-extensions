@@ -50,7 +50,7 @@ unsigned int Data::n_spikes() { return n_spikes_; }
 
 void Data::SerializeBinary(std::ostream &stream,
                            Serialization::Format format) const {
-  Base::Data::SerializeBinary(stream, format);
+  BaseClass::SerializeBinary(stream, format);
   if (format == Serialization::Format::FULL ||
       format == Serialization::Format::COMPACT) {
     auto _mua = mua();
@@ -65,7 +65,7 @@ void Data::SerializeBinary(std::ostream &stream,
 }
 
 void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
-  Base::Data::SerializeYAML(node, format);
+  BaseClass::SerializeYAML(node, format);
   if (format == Serialization::Format::FULL ||
       format == Serialization::Format::COMPACT) {
     node["MUA"] = mua();
@@ -78,7 +78,7 @@ void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
 
 void Data::YAMLDescription(YAML::Node &node,
                            Serialization::Format format) const {
-  Base::Data::YAMLDescription(node, format);
+  BaseClass::YAMLDescription(node, format);
 
   if (format == Serialization::Format::FULL ||
       format == Serialization::Format::COMPACT) {
@@ -92,7 +92,7 @@ void Data::YAMLDescription(YAML::Node &node,
 
 void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder)
  {
-    Base::Data::SerializeFlatBuffer(flex_builder);
+    BaseClass::SerializeFlatBuffer(flex_builder);
 
     flex_builder.Float("bin size", bin_size_);
     flex_builder.UInt("mua", mua());

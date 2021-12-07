@@ -29,7 +29,7 @@
 
 namespace nsSpikeType {
 
-using Base = AnyType;
+using ParentType = AnyType;
 
 struct Parameters {
   Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
@@ -41,8 +41,10 @@ struct Parameters {
 };
 
 
-class Data : public IData<Data,Base> {
+class Data : public IData<Data,ParentType> {
  public:
+  using BaseClass = IData<Data,ParentType>;
+
   Data(unsigned int nchannels, double buffer_size,
             double sample_rate, size_t max_nspikes=0);
 

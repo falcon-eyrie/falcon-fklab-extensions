@@ -33,8 +33,8 @@ struct Parameters :  nsColumn::Parameters {
   Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0)
       :  nsColumn::Parameters(generate_labels(nchan), nsamp), sample_rate(rate) {}
 
-  Parameters(std::vector<std::string> column_label, size_t nsamp = 0, double rate = 1.0)
-      :  nsColumn::Parameters(column_label, nsamp), sample_rate(rate) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, double rate = 1.0)
+      :  nsColumn::Parameters(labels, nsamp), sample_rate(rate) {}
 
   double sample_rate;
 };
@@ -58,11 +58,11 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * @param nsamples  give the number of samples by column
    * @param sample_rate
    */
-  Data(std::vector<std::string> columns_label, size_t nsamples, double sample_rate)
-      :BaseClass(columns_label, nsamples) {
+  Data(const std::vector<std::string> &labels, size_t nsamples, double sample_rate)
+      :BaseClass(labels, nsamples) {
 
       if (sample_rate <= 0) {
-        throw std::runtime_error("Time Series Data::Initialize - sample rate "
+        throw std::runtime_error("Time Series Data::Data - sample rate "
                                  "needs to be larger than 0.");
       }
 
@@ -143,7 +143,7 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * @brief set_sample_timestamps - set all timestamps for all sample
    * @param t
    */
-  void set_sample_timestamps(std::vector<uint64_t> &t) {
+  void set_sample_timestamps(const std::vector<uint64_t> &t) {
 
     if(t.size() !=  this->nsamples_){
         throw  std::length_error(". the timestamps vector to set should have the same size as the number of samples ("
@@ -245,7 +245,7 @@ protected:
 };
 
   using Capabilities = nsColumn::Capabilities;
-}  // namespace nsMulticolumn
+}  // namespace nsTimeSeries
 
 template <typename T>
 using TimeSeriesType = DefineType<

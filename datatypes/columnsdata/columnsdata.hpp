@@ -36,11 +36,11 @@ inline std::vector<std::string> generate_labels(size_t nchannels){
 
 namespace nsColumn {
 
-using Base = AnyType;
+using ParentType = AnyType;
 
 struct Parameters{
 
-  Parameters(std::vector<std::string> labels, size_t nsamp = 0)
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0)
      : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
 
   size_t ncolumns;
@@ -48,9 +48,9 @@ struct Parameters{
   std::vector<std::string> labels;
 };
 
-template <typename T> class Data : public IData<Data<T>,Base> {
+template <typename T> class Data : public IData<Data<T>,ParentType> {
 public:
-
+    using BaseClass = IData<Data<T>,ParentType>;
     /**
      * @brief Data constructor with the labels for each column and the number of samples
      * @param labels give a label for each column
@@ -284,7 +284,7 @@ public:
                         Serialization::Format format =
                                     Serialization::Format::FULL) const override {
 
-     Base::Data::SerializeBinary(stream, format);
+     BaseClass::SerializeBinary(stream, format);
      if (format == Serialization::Format::FULL) {
         stream.write(reinterpret_cast<const char *>(data_.data()),
                             data_.size() * sizeof(T));
@@ -305,7 +305,7 @@ public:
     */
    void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) override{
 
-       Base::Data::SerializeFlatBuffer(flex_builder);
+       BaseClass::SerializeFlatBuffer(flex_builder);
 
        flex_builder.TypedVector("labels", [&]{
               for(auto label: labels_)
@@ -329,7 +329,7 @@ public:
    void SerializeYAML(YAML::Node &node,
                       Serialization::Format format =
                                   Serialization::Format::FULL) const override {
-     Base::Data::SerializeYAML(node, format);
+     BaseClass::SerializeYAML(node, format);
      if (format == Serialization::Format::FULL ||
          format == Serialization::Format::COMPACT) {
        node["signal"] = data_;
@@ -345,7 +345,7 @@ public:
    void YAMLDescription(YAML::Node &node,
                         Serialization::Format format =
                                     Serialization::Format::FULL) const override {
-      Base::Data::YAMLDescription(node, format);
+      BaseClass::YAMLDescription(node, format);
       if (format == Serialization::Format::FULL) {
         node.push_back("signal " + get_type_string<T>() + " (" +
                        std::to_string(nsColumn::Data<T>::nsamples()) + "," +
@@ -367,12 +367,24 @@ public:
     */
    T sum_column(std::string column, bool absolute=false) const {
      auto index =  extract_index_from_column(column);
+     return sum_column(index);
+
+   }
+
+   /**
+    * @brief sum_column - compute the (absolute) sum of all samples in the same column
+    *
+    * @param column - column index
+    * @param absolute - absolute sum or not
+    * @return (absolute) sum
+    */
+   T sum_column(size_t column, bool absolute=false) const {
      if(absolute){
-        return std::accumulate(begin_channel(index), end_channel(index), 0,
+        return std::accumulate(begin_column(column), end_column(column), 0,
                             [](T a, T b) { return a + std::abs(b); });
      }
 
-     return std::accumulate(begin_channel(index), end_channel(index), 0.0);
+     return std::accumulate(begin_column(column), end_column(column), 0.0);
 
    }
 
@@ -385,6 +397,18 @@ public:
     * @return mean of the (absolute) sum
     */
    T mean_column(std::string column, bool absolute=false) const {
+     return sum_column(column, absolute) / ncolumns_;
+   }
+
+   /**
+    * @brief mean_column - compute the mean of the (absolute) sum
+    * of all samples in the same column
+    *
+    * @param column - column index
+    * @param absolute - absolute sum or not
+    * @return mean of the (absolute) sum
+    */
+   T mean_column(size_t column, bool absolute=false) const {
      return sum_column(column, absolute) / ncolumns_;
    }
 
@@ -444,18 +468,18 @@ public:
 
 class Capabilities{
  public:
-  Capabilities(ChannelRange channel_range,
+  Capabilities(ChannelRange column_range,
                SampleRange sample_range =
                SampleRange(1, std::numeric_limits<uint32_t>::max()))
-      : column_range_(channel_range),
+      : column_range_(column_range),
         sample_range_(sample_range),
-        labels({}) {}
+        labels_({}) {}
 
   Capabilities(std::vector<std::string> labels,
                SampleRange sample_range =
                    SampleRange(1, std::numeric_limits<uint32_t>::max()))
       : column_range_(ChannelRange(labels.size())),
-        sample_range_(sample_range), labels(labels) {}
+        sample_range_(sample_range), labels_(labels) {}
 
   ChannelRange column_range() const { return column_range_; }
   SampleRange sample_range() const { return sample_range_; }
@@ -476,7 +500,7 @@ class Capabilities{
     }
 
     auto cl = prototype.labels();
-    for(auto label: labels){
+    for(auto label: labels_){
         if (std::find(cl.begin(), cl.end(), label)== cl.end())
         {
             throw std::runtime_error("Expected column: "+ label
@@ -488,10 +512,10 @@ class Capabilities{
  protected:
   ChannelRange column_range_;
   SampleRange sample_range_;
-  std::vector<std::string> labels;
+  std::vector<std::string> labels_;
 };
 
-}
+} // namespace nsColumn
 
 template <typename T>
 using ColumnsType = DefineType<

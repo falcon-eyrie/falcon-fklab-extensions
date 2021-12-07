@@ -190,8 +190,8 @@ public:
      * @return
      */
     bool all_in_range(T range_min, T range_max) const {
-        for (auto const &ch : get_channel_numbers()) {
-            if (ch >= range_max or ch < range_min) {
+        for (auto const &ch : channels_) {
+            if (ch.first >= range_max or ch.first < range_min) {
                 return false;
             }
         }
@@ -282,9 +282,10 @@ public:
 
 private :
     void add_element(T channel, std::string label){
-        auto existing_labels = get_labels();
 
-        if(std::find(existing_labels.begin(), existing_labels.end(), label) != existing_labels.end()){
+        if(std::any_of(channels_.begin(), channels_.end(),
+                       [&label](const std::pair<T, std::string>& ch)
+                       { return ch.second == label; })){
             throw std::invalid_argument(". This label " + label + " already exist in this channel list and should be unique");
         }
 
