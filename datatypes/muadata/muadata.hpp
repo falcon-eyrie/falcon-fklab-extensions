@@ -24,15 +24,16 @@
 
 namespace nsMUAType {
 
-using Base = AnyType;
+using ParentType = AnyType;
 
 struct Parameters {
   Parameters(double bin = 0) : bin_size(bin) {}
   double bin_size;
 };
 
-class Data : public IData<Data,Base> {
+class Data : public IData<Data,ParentType> {
  public:
+  using BaseClass = IData<Data,ParentType>;
   Data(double bin_size);
   Data(const Parameters &parameters);
 
@@ -69,7 +70,7 @@ class Data : public IData<Data,Base> {
   unsigned int n_spikes_;
 };
 
-using Capabilities = Base::Capabilities;
+using Capabilities = ParentType::Capabilities;
 
 }  // namespace nsMUAType
 

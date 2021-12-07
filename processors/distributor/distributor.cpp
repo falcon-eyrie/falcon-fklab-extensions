@@ -26,30 +26,31 @@ Distributor::Distributor() : IProcessor(PRIORITY_MEDIUM) {
 }
 
 void Distributor::CreatePorts() {
-  input_port_ = create_input_port<MultiChannelType<double>>(
-      MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
+  input_port_ = create_input_port<TimeSeriesType<double>>(
+      TimeSeriesType<double>::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
       PortInPolicy(SlotRange(1)));
 
   for (auto &it : channelmap_()) {
-    data_ports_[it.first] = create_output_port<MultiChannelType<double>>(
+    data_ports_[it.first] = create_output_port<TimeSeriesType<double>>(
         it.first,
-        MultiChannelType<double>::Parameters(),
+        TimeSeriesType<double>::Parameters(),
         PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY));
   }
 }
 
 void Distributor::CompleteStreamInfo() {
   incoming_batch_size_ = input_port_->prototype(0).nsamples();
-  max_n_channels_ = input_port_->prototype(0).nchannels();
+  max_n_channels_ = input_port_->prototype(0).ncolumns();
 
   LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size_
             << ".";
 
   for (auto &it : data_ports_) {
     it.second->streaminfo(0).set_parameters(
-        MultiChannelType<double>::Parameters(
-            channelmap_().at(it.first).size(), incoming_batch_size_,
+        TimeSeriesType<double>::Parameters(
+            channelmap_().at(it.first).get_labels(), incoming_batch_size_,
             input_port_->prototype(0).sample_rate()));
+
 
     it.second->streaminfo(0).set_stream_rate(
         input_port_->streaminfo(0).stream_rate());
@@ -64,7 +65,7 @@ void Distributor::Prepare(GlobalContext &context) {
           "Channel map entry " + it.first + " has zero channels.", name());
     }
 
-    if(!it.second.all_in_range(0, max_n_channels_)){
+    if(!it.second.is_subset(input_port_->prototype(0).labels())){
         throw ProcessingPrepareError(
             "Channel list " + it.first + ": " + it.second.to_string() + " is invalid",
             name());
@@ -79,10 +80,10 @@ void Distributor::Prepare(GlobalContext &context) {
 }
 
 void Distributor::Process(ProcessingContext &context) {
-  MultiChannelType<double>::Data *data_in = nullptr;
+  TimeSeriesType<double>::Data *data_in = nullptr;
   int port_index;
-  unsigned int ch, s;
-  std::vector<MultiChannelType<double>::Data *> data_out_vector(
+  unsigned int s;
+  std::vector<TimeSeriesType<double>::Data *> data_out_vector(
       data_ports_.size());
 
   while (!context.terminated()) {
@@ -109,10 +110,10 @@ void Distributor::Process(ProcessingContext &context) {
       data_out_vector[port_index]->set_sample_timestamps(
           data_in->sample_timestamps());
 
-      for (ch = 0; ch < it_chmap.second.size(); ch++) {
+      for (auto ch: it_chmap.second.get_labels()) {
         for (s = 0; s < incoming_batch_size_; s++) {
           data_out_vector[port_index]->set_data_sample(
-              s, ch, data_in->data_sample(s, it_chmap.second[ch]));
+              s, ch,  data_in->data_sample(s, ch));
         }
       }
       port_index++;

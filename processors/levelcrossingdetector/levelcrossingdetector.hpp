@@ -24,7 +24,7 @@
 
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 
 #include "options/units.hpp"
 
@@ -39,7 +39,7 @@ class LevelCrossingDetector : public IProcessor {
 
   // DATA PORTS
  protected:
-  PortIn<MultiChannelType<double>> *data_in_port_;
+  PortIn<TimeSeriesType<double>> *data_in_port_;
   PortOut<EventType> *data_out_port_;
 
   // STATES
@@ -52,7 +52,7 @@ class LevelCrossingDetector : public IProcessor {
  protected:
   std::vector<double> previous_sample_;
   uint64_t n_detections_;
-  MultiChannelType<double>::Data *data_in_;
+  TimeSeriesType<double>::Data *data_in_;
   EventType::Data *data_out_;
 
   // METHODS

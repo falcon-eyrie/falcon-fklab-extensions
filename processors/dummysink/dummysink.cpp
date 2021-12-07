@@ -23,7 +23,7 @@
 
 #include "dummysink.hpp"
 #include "idata.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 #include "utilities/time.hpp"
 
 void DummySink::CreatePorts() {

@@ -26,7 +26,7 @@
 #include "idata.hpp"
 
 namespace nsVectorType {
-using Base = AnyType;
+using ParentType = AnyType;
 
 struct Parameters {
   Parameters(unsigned int n) : size(n) {}
@@ -34,9 +34,12 @@ struct Parameters {
 };
 
 
-template <typename TYPE>
-class Data : public IData<Data<TYPE>,Base> {
+template <typename T>
+class Data : public IData<Data<T>,ParentType> {
  public:
+
+  using BaseClass = IData<Data<T>,ParentType>;
+
   Data(unsigned int n) {
     if (n==0) {
       throw std::runtime_error("Vector size cannot be zero.");
@@ -45,46 +48,46 @@ class Data : public IData<Data<TYPE>,Base> {
   }
   Data(const Parameters &parameters) : Data(parameters.size) {}
   
-  static const std::string static_datatype() { return "vector [" + get_type_string<TYPE>() + "]"; }
+  static const std::string static_datatype() { return "vector [" + get_type_string<T>() + "]"; }
   static const std::string static_dataname() { return "data"; }
 
   Parameters parameters() const {
     return Parameters(data_.size());
   }
 
-  void setData(const std::vector<TYPE> &data) {
+  void setData(const std::vector<T> &data) {
     if (data.size() != data_.size()) {
       throw std::runtime_error("Setting vector data from wrong size source vector");
     }
     data_ = data;  // copy
   }
 
-  void setData(const TYPE *data, int len) {
+  void setData(const T *data, int len) {
     if (len != data_.size()) {
       throw std::runtime_error("Setting vector data from wrong size source data");
     }
     std::copy(data, data + len, data_.begin());
   }
 
-  void setSample(int index, const TYPE &data) { data_[index] = data; }
+  void setSample(int index, const T &data) { data_[index] = data; }
 
-  std::vector<TYPE> &data() { return data_; }
+  std::vector<T> &data() { return data_; }
 
   void SerializeBinary(std::ostream &stream,
                                Serialization::Format format =
                                    Serialization::Format::FULL) const override {
-    Base::Data::SerializeBinary(stream, format);
+    BaseClass::SerializeBinary(stream, format);
     if (format == Serialization::Format::FULL ||
         format == Serialization::Format::COMPACT) {
       stream.write(reinterpret_cast<const char *>(data_.data()),
-                   data_.size() * sizeof(TYPE));
+                   data_.size() * sizeof(T));
     }
   }
 
   void SerializeYAML(YAML::Node &node,
                              Serialization::Format format =
                                  Serialization::Format::FULL) const override {
-    Base::Data::SerializeYAML(node, format);
+    BaseClass::SerializeYAML(node, format);
     if (format == Serialization::Format::FULL ||
         format == Serialization::Format::COMPACT) {
       node["data"] = data_;
@@ -94,19 +97,19 @@ class Data : public IData<Data<TYPE>,Base> {
   void YAMLDescription(YAML::Node &node,
                                Serialization::Format format =
                                    Serialization::Format::FULL) const override {
-    Base::Data::YAMLDescription(node, format);
+    BaseClass::YAMLDescription(node, format);
     if (format == Serialization::Format::FULL ||
         format == Serialization::Format::COMPACT) {
-      node.push_back("data " + get_type_string<TYPE>() + " (" +
+      node.push_back("data " + get_type_string<T>() + " (" +
                      std::to_string(data_.size()) + ")");
     }
   }
 
  protected:
-  std::vector<TYPE> data_;
+  std::vector<T> data_;
 };
 
-using Capabilities = Base::Capabilities;
+using Capabilities = ParentType::Capabilities;
 
 }  // namespace nsVectorType
 

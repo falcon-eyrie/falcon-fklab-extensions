@@ -39,13 +39,13 @@ void MultiChannelFilter::Configure(const GlobalContext &context) {
 }
 
 void MultiChannelFilter::CreatePorts() {
-  data_in_port_ = create_input_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
+  data_in_port_ = create_input_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
       PortInPolicy(SlotRange(0, MAX_NCHANNELS)));
 
-  data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data",
-      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
+  data_out_port_ = create_output_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
+
 }
 
 void MultiChannelFilter::CompleteStreamInfo() {
@@ -75,14 +75,13 @@ void MultiChannelFilter::Prepare(GlobalContext &context) {
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     filters_.push_back(std::move(
         std::unique_ptr<dsp::filter::IFilter>(filter_template_->clone())));
-    filters_.back()->realize(
-        data_in_port_->prototype(k).nchannels());
+    filters_.back()->realize(data_in_port_->prototype(k).ncolumns());
   }
 }
 
 void MultiChannelFilter::Process(ProcessingContext &context) {
-  MultiChannelType<double>::Data *data_in = nullptr;
-  MultiChannelType<double>::Data *data_out = nullptr;
+  TimeSeriesType<double>::Data *data_in = nullptr;
+  TimeSeriesType<double>::Data *data_out = nullptr;
   auto nslots = data_in_port_->number_of_slots();
   decltype(nslots) k = 0;
 

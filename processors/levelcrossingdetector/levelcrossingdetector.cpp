@@ -35,8 +35,8 @@ LevelCrossingDetector::LevelCrossingDetector() : IProcessor() {
 }
 
 void LevelCrossingDetector::CreatePorts() {
-  data_in_port_ = create_input_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
+  data_in_port_ = create_input_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
       PortInPolicy(SlotRange(1)));
 
   data_out_port_ = create_output_port<EventType>(
@@ -64,7 +64,7 @@ void LevelCrossingDetector::Preprocess(ProcessingContext &context) {
     init_value = std::numeric_limits<int>::min();
   }
 
-  previous_sample_.assign(data_in_port_->prototype(0).nchannels(),
+  previous_sample_.assign(data_in_port_->prototype(0).ncolumns(),
                           init_value);
 }
 
@@ -102,7 +102,7 @@ void LevelCrossingDetector::Process(ProcessingContext &context) {
         --nblock;
 
         if (nblock == 0) {
-          for (unsigned int c = 0; c < data_in_->nchannels(); ++c) {
+          for (unsigned int c = 0; c < data_in_->ncolumns(); ++c) {
             previous_sample_[c] = data_in_->data_sample(s, c);
           }
         }
@@ -110,7 +110,7 @@ void LevelCrossingDetector::Process(ProcessingContext &context) {
       }
 
       // loop through each channel
-      for (unsigned int c = 0; c < data_in_->nchannels(); ++c) {
+      for (unsigned int c = 0; c < data_in_->ncolumns(); ++c) {
         // for up slope:
         if ((upslope && (previous_sample_[c] <= threshold) &&
              (data_in_->data_sample(s, c) > threshold)) ||
@@ -141,7 +141,7 @@ void LevelCrossingDetector::Process(ProcessingContext &context) {
         }
       }
 
-      for (unsigned int c = 0; c < data_in_->nchannels(); ++c) {
+      for (unsigned int c = 0; c < data_in_->ncolumns(); ++c) {
         previous_sample_[c] = data_in_->data_sample(s, c);
       }
     }

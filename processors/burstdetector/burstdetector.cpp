@@ -44,9 +44,10 @@ void BurstDetector::CreatePorts() {
       EventType::Parameters("burst"),
       PortOutPolicy(SlotRange(1)));
 
-  stats_out_port_ = create_output_port<MultiChannelType<double>>(
+  stats_out_port_ = create_output_port<TimeSeriesType<double>>(
       "statistics",
-      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
+      TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(1)));
+
 
   threshold_ = create_broadcaster_state("threshold", 0.0, Permission::READ);
 
@@ -86,7 +87,7 @@ void BurstDetector::CompleteStreamInfo() {
   stats_out_port_->streaminfo(0).set_stream_rate(
       data_in_port_->streaminfo(0).stream_rate());
   stats_out_port_->streaminfo(0).set_parameters(
-      MultiChannelType<double>::Parameters(
+      TimeSeriesType<double>::Parameters(
           N_STATS_OUT, stats_nsamples_,
           1. / data_in_port_->prototype(0).bin_size()));
 
@@ -122,7 +123,7 @@ void BurstDetector::Preprocess(ProcessingContext &context) {
 void BurstDetector::Process(ProcessingContext &context) {
   typename MUAType::Data *data_in = nullptr;
   typename EventType::Data *event_out = nullptr;
-  typename MultiChannelType<double>::Data *stats_out = nullptr;
+  typename TimeSeriesType<double>::Data *stats_out = nullptr;
 
   double value, test_value;
   auto stats_nsamples_counter = stats_nsamples_;

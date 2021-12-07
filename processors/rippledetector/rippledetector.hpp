@@ -25,7 +25,7 @@
 #include "dsp/algorithms.hpp"
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 #include "options/options.hpp"
 #include "options/units.hpp"
 
@@ -41,14 +41,14 @@ class RippleDetector : public IProcessor {
 
   // METHODS
  protected:
-  double compute_value(MultiChannelType<double>::Data *data_in,
+  double compute_value(TimeSeriesType<double>::Data *data_in,
                        unsigned int sample);
 
   // DATA PORTS
  protected:
-  PortIn<MultiChannelType<double>> *data_in_port_;
+  PortIn<TimeSeriesType<double>> *data_in_port_;
   PortOut<EventType> *event_out_port_;
-  PortOut<MultiChannelType<double>> *stats_out_port_;
+  PortOut<TimeSeriesType<double>> *stats_out_port_;
 
   // STATES
  protected:
@@ -76,7 +76,7 @@ class RippleDetector : public IProcessor {
 
   // CONSTANTS
  public:
-  const unsigned int N_STATS_OUT = 2;
+  const std::vector<std::string> STATS_LABEL = {"statistics", "threshold"};
   const std::string THRESHOLD_DEV = "threshold dev";
   const std::string SMOOTH_TIME = "smooth time";
   const std::string DETECTION_LOCKOUT_TIME = "analysis lockout time";

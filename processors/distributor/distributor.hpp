@@ -24,8 +24,8 @@
 #include <vector>
 
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
-#include "recording_utilities/channelist.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
+#include "recording_utilities/channellist.hpp"
 #include "options/options.hpp"
 
 typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
@@ -42,8 +42,8 @@ class Distributor : public IProcessor {
 
   // PORTS
  protected:
-  PortIn<MultiChannelType<double>> *input_port_;
-  std::map<std::string, PortOut<MultiChannelType<double>> *> data_ports_;
+  PortIn<TimeSeriesType<double>> *input_port_;
+  std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
 
   // variables
  protected:

@@ -36,16 +36,15 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
 }
 
 void OpenEphysZMQ::CreatePorts() {
-    data_port_= create_output_port<MultiChannelType<double>>(
-          "data",
-          MultiChannelType<double>::Parameters(),
+    data_port_= create_output_port<TimeSeriesType<double>>(
+          "data", TimeSeriesType<double>::Parameters(),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
 }
 
 
 void OpenEphysZMQ::CompleteStreamInfo() {
     data_port_->streaminfo(0).set_parameters(
-          MultiChannelType<double>::Parameters(
+          TimeSeriesType<double>::Parameters(
               nchannels_(), batch_size_()));
     data_port_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
 
@@ -72,9 +71,9 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
-  MultiChannelType<double>::Data::sample_iterator data_out_iter;
+  TimeSeriesType<double>::Data::sample_iterator data_out_iter;
   flatbuffers::VectorIterator<float, float> data_in_iter;
-  MultiChannelType<double>::Data* data_out;
+  TimeSeriesType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
 
   while (!context.terminated()  && valid_packets_counter_ < npackets_()) {

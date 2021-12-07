@@ -30,7 +30,7 @@ const std::string EVENTDATA = "events";
 
 namespace nsEventType {
 
-using Base = AnyType;
+using ParentType = AnyType;
 
 struct Parameters {
   Parameters(std::string event = DEFAULT_EVENT)
@@ -39,8 +39,11 @@ struct Parameters {
   std::string default_event;
 };
 
-class Data : public IData<Data,Base> {
+class Data : public IData<Data,ParentType> {
  public:
+
+  using BaseClass = IData<Data,ParentType>;
+
   Data(std::string event = DEFAULT_EVENT);
   Data(const Parameters & parameters) : Data(parameters.default_event) {}
 
@@ -82,7 +85,7 @@ class Data : public IData<Data,Base> {
   static const unsigned int EVENT_STRING_LENGTH = 128;
 };
 
-using Capabilities = Base::Capabilities;
+using Capabilities = ParentType::Capabilities;
 
 }  // namespace nsEventType
 

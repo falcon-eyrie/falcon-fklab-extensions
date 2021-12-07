@@ -31,13 +31,12 @@ Rebuffer::Rebuffer() : IProcessor() {
 }
 
 void Rebuffer::CreatePorts() {
-  data_in_port_ = create_input_port<MultiChannelType<double>>(
-      "data", MultiChannelType<double>::Capabilities(ChannelRange(1, 256)),
+  data_in_port_ = create_input_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
       PortInPolicy(SlotRange(0, 256)));
 
-  data_out_port_ = create_output_port<MultiChannelType<double>>(
-      "data",
-      MultiChannelType<double>::Parameters(), PortOutPolicy(SlotRange(0, 256)));
+  data_out_port_ = create_output_port<TimeSeriesType<double>>(
+      "data", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(0, 256)));
 }
 
 void Rebuffer::Configure(const GlobalContext &context) {
@@ -83,8 +82,8 @@ void Rebuffer::CompleteStreamInfo() {
   // finalize
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     data_out_port_->streaminfo(k).set_parameters(
-        MultiChannelType<double>::Parameters(
-            data_in_port_->prototype(k).nchannels(),
+        TimeSeriesType<double>::Parameters(
+             data_in_port_->prototype(k).ncolumns(),
             sample_buffer_[k],
             data_in_port_->prototype(k).sample_rate() /
                 downsample_factor_()));
@@ -97,8 +96,8 @@ void Rebuffer::CompleteStreamInfo() {
 void Rebuffer::Process(ProcessingContext &context) {
   auto nslots = data_in_port_->number_of_slots();
 
-  MultiChannelType<double>::Data *data_in = nullptr;
-  std::vector<MultiChannelType<double>::Data *> data_out;
+  TimeSeriesType<double>::Data *data_in = nullptr;
+  std::vector<TimeSeriesType<double>::Data *> data_out;
 
   data_out.assign(nslots, nullptr);
   decltype(sample_buffer_) sample_out_counter = sample_buffer_;
@@ -121,7 +120,7 @@ void Rebuffer::Process(ProcessingContext &context) {
         for (s = offset[k]; s < data_in->nsamples() &&
                             sample_out_counter[k] < sample_buffer_[k];
              s += downsample_factor_()) {
-          for (unsigned int c = 0; c < data_in->nchannels(); ++c) {
+          for (unsigned int c = 0; c < data_in->ncolumns(); ++c) {
             data_out[k]->set_data_sample(sample_out_counter[k], c,
                                          data_in->data_sample(s, c));
           }

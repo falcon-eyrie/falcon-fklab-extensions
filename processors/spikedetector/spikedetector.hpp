@@ -25,7 +25,7 @@
 #include "dsp/algorithms.hpp"
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 #include "options/options.hpp"
 #include "spikedata/spikedata.hpp"
 
@@ -41,7 +41,7 @@ class SpikeDetector : public IProcessor {
 
   // PORTS
  protected:
-  PortIn<MultiChannelType<double>> *data_in_port_;
+  PortIn<TimeSeriesType<double>> *data_in_port_;
   PortOut<SpikeType> *data_out_port_spikes_;
   PortOut<EventType> *data_out_port_events_;
 
@@ -58,7 +58,7 @@ class SpikeDetector : public IProcessor {
   uint64_t n_streamed_events_;
 
   std::unique_ptr<dsp::algorithms::SpikeDetector> spike_detector_;
-  std::unique_ptr<MultiChannelType<double>::Data> inverted_signals_;
+  std::unique_ptr<TimeSeriesType<double>::Data> inverted_signals_;
 
   // CONSTANTS
  public:

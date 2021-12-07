@@ -28,7 +28,7 @@
 #include <limits>
 
 #include "iprocessor.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 #include "neuralynx/nlx.hpp"
 #include "options/options.hpp"
 #include "utilities/time.hpp"
@@ -87,8 +87,8 @@ class NlxParser : public IProcessor {
 
   // PORTS
  protected:
-  PortOut<MultiChannelType<double>> *output_port_signal_;
-  PortOut<MultiChannelType<uint32_t>> *output_port_ttl_;
+  PortOut<TimeSeriesType<double>> *output_port_signal_;
+  PortOut<TimeSeriesType<uint32_t>> *output_port_ttl_;
   PortIn<VectorType<uint32_t>> *data_in_port_;
 
   // STATES

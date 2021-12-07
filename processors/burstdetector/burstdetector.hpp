@@ -26,7 +26,7 @@
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
 #include "muadata/muadata.hpp"
-#include "multichanneldata/multichanneldata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 
 class BurstDetector : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
@@ -42,7 +42,7 @@ class BurstDetector : public IProcessor {
  protected:
   PortIn<MUAType> *data_in_port_;
   PortOut<EventType> *data_out_port_;
-  PortOut<MultiChannelType<double>> *stats_out_port_;
+  PortOut<TimeSeriesType<double>> *stats_out_port_;
 
   // STATES
  protected:
