@@ -34,15 +34,17 @@ void ColumnSplitter::CreatePorts() {
         "data",
         TimeSeriesType<double>::Parameters(),
         PortOutPolicy(SlotRange(ngroups_())));
+
+   LOG(INFO) << "Port created !!";
 }
 
 
 void ColumnSplitter::CompleteStreamInfo() {
+
   incoming_batch_size_ = input_port_->prototype(0).nsamples();
   max_n_channels_ = input_port_->prototype(0).ncolumns();
   n_channel_by_group_ = max_n_channels_/ngroups_();
   auto sample_rate = input_port_->prototype(0).sample_rate();
-
 
   if(std::fmod(max_n_channels_, ngroups_()) !=0){
       throw ProcessingStreamInfoError("The packet (" + std::to_string(max_n_channels_)+
@@ -54,21 +56,21 @@ void ColumnSplitter::CompleteStreamInfo() {
   LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size_
             << ".";
 
-  auto packet_labels_begin = input_port_->prototype(0).labels().begin();
-
+  auto labels = input_port_->prototype(0).labels();
   for(auto i=0; i< ngroups_(); i++){
 
-      std::vector<std::string> labels(packet_labels_begin+i*n_channel_by_group_,
-                                      packet_labels_begin+(i+1)*n_channel_by_group_);
+      std::vector<std::string> subset_labels(n_channel_by_group_);
+
+      std::copy(labels.begin()+i*n_channel_by_group_,
+                labels.begin()+(i+1)*n_channel_by_group_, subset_labels.begin());
 
       output_port_->streaminfo(i).set_parameters(
             TimeSeriesType<double>::Parameters(
-                labels, incoming_batch_size_, sample_rate));
+                subset_labels, incoming_batch_size_, sample_rate));
 
       output_port_->streaminfo(i).set_stream_rate(
             input_port_->streaminfo(0).stream_rate());
   }
-
 }
 
 
