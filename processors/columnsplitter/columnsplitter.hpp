@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // This file is part of falcon-core.
 //
-// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+// Copyright (C) 2021-now Neuro-Electronics Research Flanders
 //
 // Falcon-server is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

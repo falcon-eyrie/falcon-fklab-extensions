@@ -34,8 +34,6 @@ void ColumnSplitter::CreatePorts() {
         "data",
         TimeSeriesType<double>::Parameters(),
         PortOutPolicy(SlotRange(ngroups_())));
-
-   LOG(INFO) << "Port created !!";
 }
 
 
@@ -52,9 +50,6 @@ void ColumnSplitter::CompleteStreamInfo() {
                                       "which is not possible when asking for " + std::to_string(ngroups_())+ " packets.");
 
   }
-
-  LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size_
-            << ".";
 
   auto labels = input_port_->prototype(0).labels();
   for(auto i=0; i< ngroups_(); i++){
@@ -107,10 +102,6 @@ void ColumnSplitter::Process(ProcessingContext &context) {
     // release input data bucket
     input_port_->slot(0)->ReleaseData();
   }
-}
-
-void ColumnSplitter::Postprocess(ProcessingContext &context) {
-
 }
 
 REGISTERPROCESSOR(ColumnSplitter)
