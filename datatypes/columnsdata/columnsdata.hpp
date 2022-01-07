@@ -192,6 +192,26 @@ public:
      return data_[flat_index(sample, extract_index_from_column(column))];
    }
 
+
+   const Data &filter_by(std::string column, T value){
+       const BaseClass::Data &filtered_data;
+       filtered_data.reset(new BaseClass::Data(labels_, nsamples_);
+       filtered_data.CloneTimestamps(this);
+
+
+       auto iter = begin_column(column);
+       auto sample_number = 0;
+       while ((iter = std::find_if(iter, end_column(column), value)) != end_column(column))
+       {
+           int idx = std::distance(begin_column(column), iter);
+           // Here copy in filtered_data L sample_number the sample line going from begin_sample(idx) to end_sample(idx)
+           std::copy(begin_sample(idx), end_sample(idx), filtered_data.begin_sample(sample_number));
+           sample_number++;
+           iter++;
+       }
+
+       return filtered_data;
+   }
    // Operator based on sample index / column index
 
    T &operator()(size_t sample, size_t column = 0) {
