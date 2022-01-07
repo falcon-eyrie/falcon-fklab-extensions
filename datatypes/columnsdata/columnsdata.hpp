@@ -193,19 +193,16 @@ public:
    }
 
 
-   const Data &filter_by(std::string column, T value){
-       const BaseClass::Data &filtered_data;
-       filtered_data.reset(new BaseClass::Data(labels_, nsamples_);
-       filtered_data.CloneTimestamps(this);
-
-
+   Data *filter_by(std::string column, T value){
+       Data* filtered_data= new Data(labels_, nsamples_);
        auto iter = begin_column(column);
        auto sample_number = 0;
-       while ((iter = std::find_if(iter, end_column(column), value)) != end_column(column))
+
+       while ((iter = std::find(iter, end_column(column), value)) != end_column(column))
        {
            int idx = std::distance(begin_column(column), iter);
            // Here copy in filtered_data L sample_number the sample line going from begin_sample(idx) to end_sample(idx)
-           std::copy(begin_sample(idx), end_sample(idx), filtered_data.begin_sample(sample_number));
+           std::copy(begin_sample(idx), end_sample(idx), filtered_data->begin_sample(sample_number));
            sample_number++;
            iter++;
        }
