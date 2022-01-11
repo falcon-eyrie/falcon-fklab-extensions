@@ -60,9 +60,8 @@ void Distributor::CompleteStreamInfo() {
                             TimeSeriesType<double>::Parameters(
                                 channelmap_().at(it.first).get_labels(),
                                 incoming_batch_size,
-                                input_port_->prototype(0).sample_rate()));
-
-                // when implemented, set datastream name in the packet to it->first
+                                input_port_->prototype(0).sample_rate(),
+                                it.first));
 
                 it.second->streaminfo(slot_).set_stream_rate(
                             input_port_->streaminfo(0).stream_rate());
