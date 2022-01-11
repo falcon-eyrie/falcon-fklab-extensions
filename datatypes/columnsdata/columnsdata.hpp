@@ -194,7 +194,7 @@ public:
 
 
    Data *filter_by(std::string column, T value){
-       Data* filtered_data= new Data(labels_, nsamples_);
+       Data* filtered_data= new Data(labels_, nsamples_, streamname_);
        auto iter = begin_column(column);
        auto sample_number = 0;
 
