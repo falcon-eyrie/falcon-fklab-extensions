@@ -44,6 +44,7 @@ class Distributor : public IProcessor {
  protected:
   PortIn<TimeSeriesType<double>> *input_port_;
   std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
+  PortOut<TimeSeriesType<double>> *output_port_;
 
   // variables
  protected:
@@ -60,4 +61,5 @@ class Distributor : public IProcessor {
   // OPTIONS
  protected:
   options::Value<ChannelMap, false> channelmap_;
+  options::Bool distribution_type_{true};
 };
