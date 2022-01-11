@@ -28,8 +28,6 @@
 #include "recording_utilities/channellist.hpp"
 #include "options/options.hpp"
 
-typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
-
 class Distributor : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:

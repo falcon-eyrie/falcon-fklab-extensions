@@ -37,8 +37,6 @@
 #include "options/options.hpp"
 #include "utilities/time.hpp"
 
-typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
-
 class NlxReader : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:

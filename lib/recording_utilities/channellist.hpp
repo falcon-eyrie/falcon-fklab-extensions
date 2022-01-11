@@ -25,6 +25,8 @@
 #include "yaml-cpp/yaml.h"
 #include "utilities/string.hpp"
 
+
+
 template <typename T> class ChannelList{
 public:
     ChannelList(){};
@@ -330,3 +332,5 @@ template <typename T> struct convert<ChannelList<T>> {
     }
 };
 }
+
+typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
