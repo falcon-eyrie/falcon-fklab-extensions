@@ -67,7 +67,7 @@ void NlxReader::CompleteStreamInfo() {
     it.second->streaminfo(0).set_parameters(
         TimeSeriesType<double>::Parameters(
             channelmap_().at(it.first).get_labels(), batch_size_(),
-            nlx::NLX_SIGNAL_SAMPLING_FREQUENCY));
+            nlx::NLX_SIGNAL_SAMPLING_FREQUENCY, it.first));
     it.second->streaminfo(0).set_stream_rate(
         nlx::NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_());
   }

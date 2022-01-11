@@ -89,7 +89,7 @@ void BurstDetector::CompleteStreamInfo() {
   stats_out_port_->streaminfo(0).set_parameters(
       TimeSeriesType<double>::Parameters(
           N_STATS_OUT, stats_nsamples_,
-          1. / data_in_port_->prototype(0).bin_size()));
+          1. / data_in_port_->prototype(0).bin_size(), "statistics"));
 
   data_out_port_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
 }

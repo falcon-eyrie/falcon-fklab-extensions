@@ -86,9 +86,7 @@ void SpikeDetector::Prepare(GlobalContext &context) {
 
   if (invert_signal_()) {
     inverted_signals_.reset(new TimeSeriesType<double>::Data(
-         data_in_port_->prototype(0).labels(),
-         incoming_buffer_size_samples_,
-         data_in_port_->prototype(0).sample_rate()));
+         data_in_port_->prototype(0).parameters()));
 
   }
 }

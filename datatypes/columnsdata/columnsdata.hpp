@@ -40,12 +40,13 @@ using ParentType = AnyType;
 
 struct Parameters{
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0)
-     : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, std::string datalabel="data")
+     : ncolumns(labels.size()), nsamples(nsamp), labels(labels), datalabel(datalabel) {}
 
   size_t ncolumns;
   size_t nsamples;
   std::vector<std::string> labels;
+  std::string datalabel;
 };
 
 template <typename T> class Data : public IData<Data<T>,ParentType> {
@@ -55,8 +56,9 @@ public:
      * @brief Data constructor with the labels for each column and the number of samples
      * @param labels give a label for each column
      * @param nsamples give the number of samples
+     * @param datalabel label specific to the datastream
      */
-    Data(const std::vector<std::string>& labels, size_t nsamples){
+    Data(const std::vector<std::string>& labels, size_t nsamples, std::string datalabel){
         if (labels.size() == 0 || nsamples == 0) {
           throw std::runtime_error("Column Data::Initialize - number of "
                                    "columns/samples needs to be larger than 0.");
@@ -65,6 +67,7 @@ public:
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
         data_.resize(ncolumns_ * nsamples_);
+        datalabel_ = datalabel;
     }
 
     /**
@@ -72,7 +75,7 @@ public:
      * @param parameters
      */
     Data(const Parameters &parameters)
-        : Data(parameters.labels, parameters.nsamples){}
+        : Data(parameters.labels, parameters.nsamples, parameters.datalabel){}
 
     static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
     static const std::string static_dataname() { return "data"; }
@@ -85,11 +88,12 @@ public:
    }
 
    Parameters parameters() const {
-     return Parameters(labels_, nsamples_);
+     return Parameters(labels_, nsamples_, datalabel_);
    }
 
    size_t ncolumns() const { return ncolumns_; }
    size_t nsamples() const { return nsamples_; }
+   std::string datalabel() const { return datalabel_;}
    std::vector<std::string> labels() const{ return labels_; }
 
    /**
@@ -191,6 +195,7 @@ public:
    const T &data_sample(size_t sample, std::string column) const{
      return data_[flat_index(sample, extract_index_from_column(column))];
    }
+
 
    // Operator based on sample index / column index
 
@@ -460,6 +465,7 @@ public:
  protected:
    size_t ncolumns_;
    size_t nsamples_;
+   std::string datalabel_;
 
    std::vector<std::string> labels_;
    std::vector<T> data_;
