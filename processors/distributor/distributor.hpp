@@ -44,12 +44,10 @@ class Distributor : public IProcessor {
  protected:
   PortIn<TimeSeriesType<double>> *input_port_;
   std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
-  PortOut<TimeSeriesType<double>> *output_port_;
 
   // variables
  protected:
-  unsigned int incoming_batch_size_;
-  unsigned int max_n_channels_;
+  SlotType slot_;
 
   // constants
  protected:

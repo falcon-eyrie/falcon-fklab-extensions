@@ -24,7 +24,8 @@ Distributor::Distributor() : IProcessor(PRIORITY_MEDIUM) {
     add_option("channelmap", channelmap_,
                "Mapping of columns in different datastreams.", true);
 
-    add_option("port distribution", distribution_type_, "Distribution over the ports or over the slots");
+    add_option("port distribution", distribution_type_,
+               "Distribution over the ports or over the slots");
 
 }
 
@@ -43,30 +44,27 @@ void Distributor::CreatePorts() {
     }else{  // 1 port with N slots (N = channelmap size)
         data_ports_[0] = create_output_port<TimeSeriesType<double>>(
                                      TimeSeriesType<double>::Parameters(),
-                                      PortOutPolicy(SlotRange(channelmap_().size())));
+                                      PortOutPolicy(SlotRange(channelmap_().size()), BUFFER_SIZE, WAIT_STRATEGY));
     }
-
 }
 
 void Distributor::CompleteStreamInfo() {
-    incoming_batch_size_ = input_port_->prototype(0).nsamples();
-    unsigned int s = 0;
+    auto incoming_batch_size = input_port_->prototype(0).nsamples();
 
-    LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size_
-              << ".";
+    LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size << ".";
 
     if(distribution_type_()){
         for (auto &it : data_ports_) {
-            for (s = 0; s < it.second->number_of_slots(); ++s) {
-                it.second->streaminfo(s).set_parameters(
+            for (slot_ = 0; slot_ < it.second->number_of_slots(); ++slot_) {
+                it.second->streaminfo(slot_).set_parameters(
                             TimeSeriesType<double>::Parameters(
                                 channelmap_().at(it.first).get_labels(),
-                                incoming_batch_size_,
+                                incoming_batch_size,
                                 input_port_->prototype(0).sample_rate()));
 
                 // when implemented, set datastream name in the packet to it->first
 
-                it.second->streaminfo(s).set_stream_rate(
+                it.second->streaminfo(slot_).set_stream_rate(
                             input_port_->streaminfo(0).stream_rate());
             }
         }
@@ -97,8 +95,7 @@ void Distributor::Prepare(GlobalContext &context) {
 
 void Distributor::Process(ProcessingContext &context) {
     TimeSeriesType<double>::Data *data_in = nullptr;
-    unsigned int s;
-
+    unsigned int s = 0;
     std::vector<TimeSeriesType<double>::Data *> data_out_vector(
                 channelmap_().size());
 
@@ -110,11 +107,10 @@ void Distributor::Process(ProcessingContext &context) {
         }
 
         for (auto &it : data_ports_) {
-            for (s = 0; s < it.second->number_of_slots(); ++s) {
-                data_out_vector.push_back(it.second->slot(s)->ClaimData(false));
+            for (slot_ = 0; slot_ < it.second->number_of_slots(); ++slot_) {
+                data_out_vector.push_back(it.second->slot(slot_)->ClaimData(false));
             }
         }
-
 
         for (auto &data_out_ : data_out_vector) {
             data_out_->set_hardware_timestamp(
@@ -124,18 +120,21 @@ void Distributor::Process(ProcessingContext &context) {
             data_out_->set_sample_timestamps(
                         data_in->sample_timestamps());
 
+
+            // Note for later = would be nice to implement a helper to copy in once
+            // whole column from one packet to the other
             for (auto ch: data_out_->labels()) {
-                for (s = 0; s < incoming_batch_size_; s++) {
-                    data_out_->set_data_sample(
-                                s, ch,  data_in->data_sample(s, ch));
+                // publish data buckets
+                for (s = 0; s < data_in->nsamples(); s++) {
+                     data_out_->set_data_sample(s, ch,  data_in->data_sample(s, ch));
                 }
             }
         }
 
         // publish data buckets
         for (auto &it : data_ports_) {
-            for (s = 0; s < it.second->number_of_slots(); ++s) {
-                it.second->slot(s)->PublishData();
+            for (slot_ = 0; slot_ < it.second->number_of_slots(); ++slot_) {
+                it.second->slot(slot_)->PublishData();
             }
         }
 
@@ -145,11 +144,10 @@ void Distributor::Process(ProcessingContext &context) {
 }
 
 void Distributor::Postprocess(ProcessingContext &context) {
-    SlotType s;
     for (auto &it : data_ports_) {
-        for (s = 0; s < it.second->number_of_slots(); ++s) {
-            LOG(INFO) << name() << ". Port " << it.first << ". Slot " << s
-                      << ". Streamed " << it.second->slot(s)->nitems_produced()
+        for (slot_ = 0; slot_ < it.second->number_of_slots(); ++slot_) {
+            LOG(INFO) << name() << ". Port " << it.first << ". Slot " << slot_
+                      << ". Streamed " << it.second->slot(slot_)->nitems_produced()
                       << " data packets. ";
         }
     }
