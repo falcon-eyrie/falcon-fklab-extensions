@@ -105,7 +105,7 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
   }
 
   Parameters parameters() const {
-    return Parameters(this->labels_, this->nsamples_, sample_rate_);
+    return Parameters(this->labels_, this->nsamples_, sample_rate_, this->streamname_);
   }
 
   double sample_rate() const { return sample_rate_; }
