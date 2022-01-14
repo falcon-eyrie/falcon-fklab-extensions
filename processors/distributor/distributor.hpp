@@ -32,6 +32,7 @@ class Distributor : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
   Distributor();
+  void Configure(const GlobalContext &context) override;
   void CreatePorts() override;
   void CompleteStreamInfo() override;
   void Prepare(GlobalContext &context) override;
@@ -57,6 +58,7 @@ class Distributor : public IProcessor {
   // OPTIONS
  protected:
   options::Value<ChannelMap, false> channelmap_;
+  options::String channelmap_file_{""};
 
   options::Bool distribution_type_{true};
 };
