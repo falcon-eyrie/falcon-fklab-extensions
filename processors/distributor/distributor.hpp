@@ -57,5 +57,6 @@ class Distributor : public IProcessor {
   // OPTIONS
  protected:
   options::Value<ChannelMap, false> channelmap_;
+
   options::Bool distribution_type_{true};
 };

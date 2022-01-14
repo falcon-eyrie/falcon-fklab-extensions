@@ -24,6 +24,7 @@ Distributor::Distributor() : IProcessor(PRIORITY_MEDIUM) {
     add_option("channelmap", channelmap_,
                "Mapping of columns in different datastreams.", true);
 
+
     add_option("port distribution", distribution_type_,
                "Distribution over the ports or over the slots");
 
@@ -42,7 +43,7 @@ void Distributor::CreatePorts() {
                                     PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY));
         }
     }else{  // 1 port with N slots (N = channelmap size)
-        data_ports_[0] = create_output_port<TimeSeriesType<double>>(
+        data_ports_["data"] = create_output_port<TimeSeriesType<double>>(
                                      TimeSeriesType<double>::Parameters(),
                                       PortOutPolicy(SlotRange(channelmap_().size()), BUFFER_SIZE, WAIT_STRATEGY));
     }
