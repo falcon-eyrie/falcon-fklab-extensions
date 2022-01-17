@@ -64,7 +64,7 @@ void Distributor::CreatePorts() {
     }else{  // 1 port with N slots (N = channelmap size)
         data_ports_["data"] = create_output_port<TimeSeriesType<double>>(
                                      TimeSeriesType<double>::Parameters(),
-                                     PortOutPolicy(SlotRange(0, MAX_N_CHANNELS), BUFFER_SIZE, WAIT_STRATEGY));
+                                     PortOutPolicy(SlotRange(channelmap_().size()), BUFFER_SIZE, WAIT_STRATEGY));
     }
 }
 
@@ -100,7 +100,6 @@ void Distributor::CompleteStreamInfo() {
              slot_++;
         }
     }
-
 }
 
 void Distributor::Prepare(GlobalContext &context) {
@@ -128,8 +127,7 @@ void Distributor::Prepare(GlobalContext &context) {
 void Distributor::Process(ProcessingContext &context) {
     TimeSeriesType<double>::Data *data_in = nullptr;
     unsigned int s = 0;
-    std::vector<TimeSeriesType<double>::Data *> data_out_vector(
-                channelmap_().size());
+    std::vector<TimeSeriesType<double>::Data *> data_out_vector;
 
 
     while (!context.terminated()) {
@@ -139,39 +137,37 @@ void Distributor::Process(ProcessingContext &context) {
         }
 
         for (auto &it : data_ports_) {
-            for (slot_ = 0; slot_ < it.second->number_of_slots(); ++slot_) {
+            for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
                 data_out_vector.push_back(it.second->slot(slot_)->ClaimData(false));
             }
         }
 
-        for (auto &data_out_ : data_out_vector) {
-            data_out_->set_hardware_timestamp(
-                        data_in->hardware_timestamp());
-            data_out_->set_source_timestamp(
-                        data_in->source_timestamp());
-            data_out_->set_sample_timestamps(
+        for (auto &data_out : data_out_vector) {
+            data_out->CloneTimestamps(*data_in);
+            data_out->set_sample_timestamps(
                         data_in->sample_timestamps());
 
 
             // Note for later = would be nice to implement a helper to copy in once
             // whole column from one packet to the other
-            for (auto ch: data_out_->labels()) {
+            for (auto ch: data_out->labels()) {
                 // publish data buckets
                 for (s = 0; s < data_in->nsamples(); s++) {
-                     data_out_->set_data_sample(s, ch,  data_in->data_sample(s, ch));
+                     data_out->set_data_sample(s, ch,  data_in->data_sample(s, ch));
                 }
             }
         }
 
         // publish data buckets
         for (auto &it : data_ports_) {
-            for (slot_ = 0; slot_ < it.second->number_of_slots(); ++slot_) {
+            for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
                 it.second->slot(slot_)->PublishData();
             }
         }
 
         // release input data bucket
         input_port_->slot(0)->ReleaseData();
+        data_ports_.clear();
     }
 }
 
