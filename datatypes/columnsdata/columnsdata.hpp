@@ -55,7 +55,6 @@ public:
      * @brief Data constructor with the labels for each column and the number of samples
      * @param labels give a label for each column
      * @param nsamples give the number of samples
-     * @param streamname label specific to the datastream
      */
     Data(const std::vector<std::string>& labels, size_t nsamples){
         if (labels.size() == 0 || nsamples == 0) {
@@ -461,7 +460,6 @@ public:
  protected:
    size_t ncolumns_;
    size_t nsamples_;
-   std::string streamname_;
 
    std::vector<std::string> labels_;
    std::vector<T> data_;
