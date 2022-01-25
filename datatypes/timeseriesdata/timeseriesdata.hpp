@@ -30,11 +30,11 @@
 namespace nsTimeSeries {
 
 struct Parameters :  nsColumn::Parameters {
-  Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0, std::string streamname="data")
-      :  nsColumn::Parameters(generate_labels(nchan), nsamp, streamname), sample_rate(rate) {}
+  Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0)
+      :  nsColumn::Parameters(generate_labels(nchan), nsamp), sample_rate(rate) {}
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, double rate = 1.0, std::string streamname="data")
-      :  nsColumn::Parameters(labels, nsamp, streamname), sample_rate(rate) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, double rate = 1.0)
+      :  nsColumn::Parameters(labels, nsamp), sample_rate(rate) {}
 
   double sample_rate;
 };
@@ -57,10 +57,9 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * @param columns_label give a label for each column in the data / set also the number of columns in the dataset
    * @param nsamples  give the number of samples by column
    * @param sample_rate
-   * @param streamname label specific to the datastream
    */
-  Data(const std::vector<std::string> &labels, size_t nsamples, double sample_rate, std::string streamname)
-      :BaseClass(labels, nsamples, streamname) {
+  Data(const std::vector<std::string> &labels, size_t nsamples, double sample_rate)
+      :BaseClass(labels, nsamples) {
 
       if (sample_rate <= 0) {
         throw std::runtime_error("Time Series Data::Data - sample rate "
@@ -79,10 +78,9 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * @param ncolumns
    * @param nsamples
    * @param sample_rate
-   * @param streamname label specific to the datastream
    */
-  Data(size_t ncolumns, size_t nsamples, double sample_rate, std::string streamname)
-      : Data(generate_labels(ncolumns), ncolumns, nsamples, sample_rate, streamname) {}
+  Data(size_t ncolumns, size_t nsamples, double sample_rate)
+      : Data(generate_labels(ncolumns), ncolumns, nsamples, sample_rate) {}
 
   /**
    * @brief Data constructor based on the parameters object
@@ -91,7 +89,7 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * based on the number of columns or set directly.
    */
   Data(const Parameters &parameters)
-      : Data(parameters.labels, parameters.nsamples, parameters.sample_rate, parameters.streamname){}
+      : Data(parameters.labels, parameters.nsamples, parameters.sample_rate){}
 
   static const std::string static_datatype() { return "time series [" + get_type_string<T>() + "]"; }
   static const std::string static_dataname() { return "data"; }
@@ -105,7 +103,7 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
   }
 
   Parameters parameters() const {
-    return Parameters(this->labels_, this->nsamples_, sample_rate_, this->streamname_);
+    return Parameters(this->labels_, this->nsamples_, sample_rate_);
   }
 
   double sample_rate() const { return sample_rate_; }

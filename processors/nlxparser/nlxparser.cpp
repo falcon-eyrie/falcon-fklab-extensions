@@ -100,7 +100,7 @@ void NlxParser::CompleteStreamInfo() {
   output_port_signal_->streaminfo(0).set_parameters(
       TimeSeriesType<double>::Parameters(
           nchannels_, batch_size_(),
-          data_in_port_->slot(0)->streaminfo().stream_rate(), "data"));
+          data_in_port_->slot(0)->streaminfo().stream_rate()));
 
   output_port_signal_->streaminfo(0).set_stream_rate(
       data_in_port_->slot(0)->streaminfo().stream_rate() / batch_size_());
@@ -108,7 +108,7 @@ void NlxParser::CompleteStreamInfo() {
   output_port_ttl_->streaminfo(0).set_parameters(
       TimeSeriesType<uint32_t>::Parameters(
           1, batch_size_(),
-          data_in_port_->slot(0)->streaminfo().stream_rate(), "ttl"));
+          data_in_port_->slot(0)->streaminfo().stream_rate()));
 
   output_port_ttl_->streaminfo(0).set_stream_rate(
       data_in_port_->slot(0)->streaminfo().stream_rate() / batch_size_());

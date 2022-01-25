@@ -40,13 +40,12 @@ using ParentType = AnyType;
 
 struct Parameters{
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, std::string streamname="data")
-     : ncolumns(labels.size()), nsamples(nsamp), labels(labels), streamname(streamname) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0)
+     : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
 
   size_t ncolumns;
   size_t nsamples;
   std::vector<std::string> labels;
-  std::string streamname;
 };
 
 template <typename T> class Data : public IData<Data<T>,ParentType> {
@@ -58,7 +57,7 @@ public:
      * @param nsamples give the number of samples
      * @param streamname label specific to the datastream
      */
-    Data(const std::vector<std::string>& labels, size_t nsamples, std::string streamname){
+    Data(const std::vector<std::string>& labels, size_t nsamples){
         if (labels.size() == 0 || nsamples == 0) {
           throw std::runtime_error("Column Data::Initialize - number of "
                                    "columns/samples needs to be larger than 0.");
@@ -67,7 +66,6 @@ public:
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
         data_.resize(ncolumns_ * nsamples_);
-        streamname_ = streamname;
     }
 
     /**
@@ -75,7 +73,7 @@ public:
      * @param parameters
      */
     Data(const Parameters &parameters)
-        : Data(parameters.labels, parameters.nsamples, parameters.streamname){}
+        : Data(parameters.labels, parameters.nsamples){}
 
     static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
     static const std::string static_dataname() { return "data"; }
@@ -88,12 +86,11 @@ public:
    }
 
    Parameters parameters() const {
-     return Parameters(labels_, nsamples_, streamname_);
+     return Parameters(labels_, nsamples_);
    }
 
    size_t ncolumns() const { return ncolumns_; }
    size_t nsamples() const { return nsamples_; }
-   std::string streamname() const { return streamname_;}
    std::vector<std::string> labels() const{ return labels_; }
 
    /**

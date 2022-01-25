@@ -29,6 +29,7 @@ class EventConverter : public IProcessor {
 public:
   EventConverter();
   void CreatePorts() override;
+  void CompleteStreamInfo() override;
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;
 

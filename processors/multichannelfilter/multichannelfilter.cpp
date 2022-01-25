@@ -61,8 +61,8 @@ void MultiChannelFilter::CompleteStreamInfo() {
   }
 
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
-    data_out_port_->streaminfo(k).set_stream_rate(
-        data_in_port_->streaminfo(k).stream_rate());
+    data_out_port_->streaminfo(k).set_stream_parameters(data_in_port_->streaminfo(k));
+
     data_out_port_->streaminfo(k).set_parameters(
         data_in_port_->prototype(k).parameters());
   }
