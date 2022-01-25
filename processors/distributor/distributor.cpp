@@ -36,16 +36,11 @@ void Distributor::Configure(const GlobalContext &context){
     if(channelmap_file_() != ""){
         auto path = context.resolve_path(channelmap_file_());
         YAML::Node config = YAML::LoadFile(path);
-        //try{
+        try{
             channelmap_.from_yaml(config);
-        //}catch (...){
-        //    throw std::runtime_error(". The channelmap is not valid.");
-        //}
-
-    }
-
-    if(channelmap_().size() == 0){
-        throw std::runtime_error(". The channelmap needs to be specified in the options.");
+        }catch (...){
+            throw std::runtime_error(". The channelmap is not valid.");
+        }
     }
 }
 
@@ -81,22 +76,21 @@ void Distributor::CompleteStreamInfo() {
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
                             incoming_batch_size,
-                            input_port_->prototype(0).sample_rate(),
-                            it.first));
+                            input_port_->prototype(0).sample_rate()));
 
-             data_ports_[it.first]->streaminfo(0).set_stream_rate(
-                        input_port_->streaminfo(0).stream_rate());
+             data_ports_[it.first]->streaminfo(0).set_stream_parameters(input_port_->streaminfo(0));
+
 
         }else{  // 1 port with N slots (N = channelmap size)
             data_ports_["data"]->streaminfo(slot_).set_parameters(
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
                             incoming_batch_size,
-                            input_port_->prototype(0).sample_rate(),
-                            it.first));
+                            input_port_->prototype(0).sample_rate()));
 
-             data_ports_["data"]->streaminfo(slot_).set_stream_rate(
-                        input_port_->streaminfo(0).stream_rate());
+             data_ports_["data"]->streaminfo(slot_).set_stream_parameters(
+                        input_port_->streaminfo(0).stream_rate(), it.first);
+
              slot_++;
         }
     }
