@@ -146,9 +146,7 @@ void Distributor::Process(ProcessingContext &context) {
             // whole column from one packet to the other
             for (auto ch: data_out->labels()) {
                 // publish data buckets
-                for (s = 0; s < data_in->nsamples(); s++) {
-                     data_out->set_data_sample(s, ch,  data_in->data_sample(s, ch));
-                }
+                data_out->clone_column(ch, *data_in);
             }
         }
 
@@ -161,7 +159,7 @@ void Distributor::Process(ProcessingContext &context) {
 
         // release input data bucket
         input_port_->slot(0)->ReleaseData();
-        data_ports_.clear();
+        data_out_vector.clear();
     }
 }
 
