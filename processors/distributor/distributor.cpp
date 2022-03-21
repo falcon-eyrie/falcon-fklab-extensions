@@ -25,7 +25,8 @@ Distributor::Distributor() : IProcessor(PRIORITY_MEDIUM) {
                "Mapping of columns in different datastreams.");
 
     add_option("channelmap file", channelmap_file_,
-               "Mapping of columns in different datastreams.");
+               "File path for a channelmap mapping of columns in different datastreams.");
+
     add_option("port distribution", distribution_type_,
                "Distribution over the ports or over the slots");
 
