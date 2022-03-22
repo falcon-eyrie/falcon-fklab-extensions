@@ -1,3 +1,5 @@
  
 sphinx_bootstrap_theme
 breathe
+sphinxcontrib.datatemplates
+exhale

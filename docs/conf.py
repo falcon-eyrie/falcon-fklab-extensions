@@ -30,10 +30,29 @@ import sphinx_bootstrap_theme
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['breathe', "sphinx.ext.intersphinx", 'sphinxcontrib.datatemplates']
+extensions = ['breathe', "exhale", "sphinx.ext.intersphinx", 'sphinxcontrib.datatemplates']
 
-breathe_projects = {'falcon': 'doxyfile/xml'}
+breathe_projects = {'falcon': '_doxygen/xml'}
 breathe_default_project = 'falcon'
+
+
+# Setup the exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./api",
+    "rootFileName":          "library_root.rst",
+    "doxygenStripFromPath":  "..",
+    # Heavily encouraged optional argument (see docs)
+    "rootFileTitle":         "Falcon extension API",
+    "minifyTreeView": False,
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    "treeViewIsBootstrap": False,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin":    "INPUT = ../processors ../lib/dio ../lib/dsp ../lib/neuralynx ../datatypes"
+}
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -51,8 +70,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Falcon'
-copyright = u'2017, Fabian Kloosterman, Davide Ciliberti'
-author = u'Fabian Kloosterman, Davide Ciliberti'
+copyright = u'2017, Fabian Kloosterman, Davide Ciliberti, Chaput Marine'
+author = u'Fabian Kloosterman, Davide Ciliberti, Chaput Marine'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

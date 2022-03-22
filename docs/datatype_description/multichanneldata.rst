@@ -26,8 +26,9 @@ Payload details
 
 API
 ---
-
-TODO
+.. doxygenclass:: nsMultiChannel::Data
+   :members:
+   :undoc-members:
 
 Parameters
 ----------
@@ -52,6 +53,10 @@ Parameters
      - 1.0
      - Sample rate needs to be larger than 0
 
+.. doxygenstruct:: nsMultiChannel::Parameters
+   :members:
+   :undoc-members:
+
 Capabilities
 ------------
 
@@ -71,6 +76,9 @@ Capabilities
      - [1, (maximum of the datatype can hold)]
      - the number of samples that is supported
 
+.. doxygenclass:: nsMultiChannel::Capabilities
+   :members:
+   :undoc-members:
 
 Binary Serialization
 --------------------

@@ -35,6 +35,11 @@ Here is an example of how to use the ThresholdCrosser class:
         }
     }
 
+.. doxygenclass:: dsp::algorithms::ThresholdCrosser
+   :members:
+   :undoc-members:
+
+
 Compute running statistics of signal
 ------------------------------------
 
@@ -70,12 +75,22 @@ Here is an example of how to use the *RunningMeanMAD* class:
 
     std::cout << "running mean = " << r.mean() << " and running MAD = " << r.mad();
 
+.. doxygenclass:: dsp::algorithms::RunningStatistics
+   :members:
+   :undoc-members:
+
+
+
 Detect local peaks
 ------------------
 
 The *PeakDetector* class detects local peaks in a signal, gives access to
 the timestamp and amplitude of the last detected peak and keeps track of
 the total number of detected peaks.
+
+.. doxygenclass:: dsp::algorithms::PeakDetector
+   :members:
+   :undoc-members:
 
 Exponentially smooth signal
 ---------------------------
@@ -98,6 +113,10 @@ that sets the weight of the new data sample, i.e.
         smooth_sample = s.smooth(k);
     }
 
+.. doxygenclass:: dsp::algorithms::ExponentialSmoother
+   :members:
+   :undoc-members:
+
 
 Detect spikes
 -------------
@@ -112,6 +131,9 @@ In case a proper maximum is found on all channels, the peak values are returned,
 timestamp; however, if on one or more channels no peaks were found, the values of the signals at the threshold-crossing
 sample will be returned.
 
+.. doxygenclass:: dsp::algorithms::SpikeDetector
+   :members:
+   :undoc-members:
 
 Filtering
 ---------
@@ -120,3 +142,6 @@ Finite impulse response (FIR) filters
 
 Infinite impulse response (IIR) filters
 
+.. doxygennamespace:: dsp::filter
+   :members:
+   :undoc-members:

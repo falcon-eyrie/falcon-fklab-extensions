@@ -20,11 +20,12 @@ Payload details
      - any type
      - scalar value
 
-
 API
 ---
 
-TODO
+.. doxygenclass:: nsScalarType::Data
+   :members:
+   :undoc-members:
 
 Parameters
 ----------
@@ -41,9 +42,19 @@ Parameters
      -
      -
 
+
+.. doxygenstruct:: nsScalarType::Parameters
+   :members:
+   :undoc-members:
+
+
 Capabilities
 ------------
-None
+
+.. doxygenclass:: nsScalarType::Capabilities
+   :members:
+   :undoc-members:
+
 
 Binary Serialization
 --------------------

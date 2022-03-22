@@ -11,3 +11,4 @@ Content table
    libs
    tools
    resource
+   api/library_root

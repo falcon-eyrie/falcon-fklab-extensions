@@ -90,7 +90,6 @@ Overview
 
 .. rst-class:: column column3
 
-
 |tools|
 .......
 
@@ -109,6 +108,7 @@ Overview
 Indices and tables
 ******************
 
+* `Reference API <api/library_root.html>`_
 * `Content table <content_table.html>`_
 * :ref:`search`
 
@@ -124,6 +124,7 @@ Indices and tables
    libs
    tools
    resource
+   api/library_root
 
 .. |lib| image:: icons/lib.svg
          :width: 120
