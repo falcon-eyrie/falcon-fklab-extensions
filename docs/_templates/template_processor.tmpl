@@ -1,0 +1,102 @@
+.. -*- mode: rst -*-
+
+{{ data['Description'] }}
+
+{% if data['Long description'] is defined %}
+{{ data['Long description'] }}
+{% endif %}
+
+{% if data['Example'] is defined %}
+
+Here are some example configurations:
+
+{% for item in data['Example'] %}
+.. code-block:: yaml
+
+    {{ item }}
+{% endfor %}
+{% endif %}
+
+
+{% if data['Input port'] is defined %}
+{{ make_list_table_from_mappings(
+    [('port name', 'name'), ('data type', 'type'), ('slots', 'slots'), ('description', 'description')],
+    data['Input port'],
+    title='Input port',
+    ) }}
+{% endif %}
+
+
+{% if data['Output port'] is defined %}
+{{ make_list_table_from_mappings(
+   [('port name', 'name'), ('data type', 'type'), ('slots', 'slots'),('description', 'description')],
+    data['Output port'],
+    title='Output port',
+    ) }}
+{% endif %}
+
+{% if data['Options'] is defined %}
+{{ make_list_table_from_mappings(
+    [('port name', 'name'), ('data type', 'type'), ('default', 'default'), ('description', 'description')],
+    data['Options'],
+    title='Options',
+    ) }}
+
+{% endif %}
+
+{% if data['States']is defined %}
+
+{% if data['States']['Static'] is defined %}
+{{ make_list_table_from_mappings(
+    [('name', 'name'),
+    ('data type', 'type'),
+    ('initial value', 'default'),
+    ('external access', 'external access'),
+    ('peers access', 'shared'),
+    ('description', 'description'),
+    ],
+    data['States']['Static'],
+    title='Static states',
+    ) }}
+{% endif %}
+
+{% if data['States'][Broadcaster] is defined %}
+{{ make_list_table_from_mappings(
+    [('name', 'name'),
+    ('data type', 'type'),
+    ('initial value', 'default'),
+    ('external access', 'external access'),
+    ('description', 'description'),
+    ],
+    data['States'][Broadcaster],
+    title='Broadcaster states',
+    ) }}
+{% endif %}
+
+{% if data['States']['Follower'] is defined %}
+{{ make_list_table_from_mappings(
+    [('name', 'name'),
+    ('data type', 'type'),
+    ('initial value', 'default'),
+    ('external access', 'external access'),
+    ('description', 'description'),
+    ],
+    data['States']['Follower'],
+    title='Follower states',
+    ) }}
+{% endif %}
+
+{% if data['States']['Producer'] is defined %}
+{{ make_list_table_from_mappings(
+    [('name', 'name'),
+    ('data type', 'type'),
+    ('initial value', 'default'),
+    ('external access', 'external access'),
+    ('description', 'description'),
+    ],
+    data['States']['Producer'],
+    title='Producer states',
+    ) }}
+{% endif %}
+
+{% endif %}

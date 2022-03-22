@@ -1,16 +1,14 @@
 Description: The processor will convert incoming events into a detection event and a stimulation event with optional delay.
 
-Long description :
-    This processor will convert each incoming event into two events; a detection event that is sent out immediately, and a stimulation event that is sent out with an optional delay. Incoming events are ignored if they arrive within a configurable lock-out time window after a previous event. Stimulation events are either sent out immediately (“on-time”), with a (random) delay or may be disabled.
+Long description : This processor will convert each incoming event into two events; a detection event that is sent out immediately, and a stimulation event that is sent out with an optional delay. Incoming events are ignored if they arrive within a configurable lock-out time window after a previous event. Stimulation events are either sent out immediately (“on-time”), with a (random) delay or may be disabled.
 
-
-Input ports:
+Input port:
   - name: events
     type: EventData
     slots: 1
     description:
 
-Output ports:
+Output port:
   - name: events
     type: EventData
     slots: 1
@@ -72,28 +70,33 @@ Options:
     type: list(double)
     default: [0]
     description: when to start stopping detection after a stimulation.
-
   - name: enabled saving
     type: bool
     default: true
     description: Enable saving of target events to disk.
   - name: prefix
     type: string
-    default: "stim_"
+    default: stim_
     description: add a prefix in the filename (prefix+eventname) where target event are saved
 
 State:
   Static:
-    - options: *detection_lockout
+    - <<: *detection_lockout
       external access: write
       shared: true
-    - options: *analysis_lockout
+    - <<: *analysis_lockout
       external access: write
       shared: true
+
   Follower:
-    - options: *delayed
+    - <<: *delayed
       external access: write
-    - options: *disabled
+    - <<: *disabled
       external access: write
+
+  Broadcaster:
     - name: analysis enabled
+      type: bool
+      default: true
       external access: read
+      description: allow to enabled/disabled a state in another processor node (often linked with the ripple detector analysis state).

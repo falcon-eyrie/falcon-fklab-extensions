@@ -1,7 +1,5 @@
 Description: Synchronize on the occurrence of a target event on all its input slots, before emitting the same target event
 
-Long description:
-
 Input port:
   - name: events
     type: EventData

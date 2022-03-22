@@ -1,7 +1,5 @@
 Description: Log target events
 
-Long description:
-
 Input port:
   - name: events
     type: EventData

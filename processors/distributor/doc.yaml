@@ -3,10 +3,11 @@ Description: Read multi-channel data stream and splits the data across multiple 
 Long description: The channelmap defines the output port names and for each port lists the channels that will be copied to the data buckets on that port.
 
 Example:
-  channelmap option:
-    portnameA: [0,1,2,3,4]
-    portnameB: [5,6]
-    portnameC: [0,5]
+
+  - channelmap:
+      portnameA: [0,1,2,3,4]
+      portnameB: [5,6]
+      portnameC: [0,5]
 
 Input port:
   - name: data

@@ -1,7 +1,5 @@
 Description: Detect population bursts using a threshold crossing algorithm.
 
-Long description:
-
 Input port:
   - name: mua
     type: MUAData
@@ -78,19 +76,19 @@ States:
       description:
 
   Static:
-    - options: *threshold
+    - <<: *threshold
       external access: write
       shared: true
-    - options: *detectlookouttime
+    - <<: *detectlookouttime
       external access: write
       shared: true
-    - options: *streamevents
+    - <<: *streamevents
       external access: write
       shared: true
-    - options: *streamstats
+    - <<: *streamstats
       external access: write
       shared: true
-    - options: *smoothtime
+    - <<: *smoothtime
       external access: write
       shared: true
 

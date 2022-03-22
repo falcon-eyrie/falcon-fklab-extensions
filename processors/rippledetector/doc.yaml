@@ -1,7 +1,5 @@
 Description: Detect ripples in a MultiChannelData stream and emits a ripple event in response
 
-Long description:
-
 Input port:
   - name: data
     type: MultiChannelData <double>
@@ -62,7 +60,7 @@ Options:
 
 States:
 
-  producer:
+  Producer:
     - name: threshold
       type: double
       default: 0.0
@@ -82,33 +80,33 @@ States:
       external access: read
       description: Current signal deviation. Same unit as input signal.
 
-  broadcaster:
+  Broadcaster:
     - name: ripple
       type: bool
       default: false
       external access: read
       description:
 
-  follower:
+  Follower:
     - name: detection enabled
       type: bool
       default: true
       external access: None
       description: Enable the detection of ripples
 
-  static:
-    - options: *threshold
+  Static:
+    - <<: *threshold
       external access: write
       shared: true
-    - options: *smoothtime
+    - <<: *smoothtime
       external access: write
       shared: true
-    - options: *detectlookuptime
+    - <<: *detectlookuptime
       external access: write
       shared: true
-    - options: *streamevents
+    - <<: *streamevents
       external access: write
       shared: true
-    - options: *streamstats
+    - <<: *streamstats
       external access: write
       shared: true

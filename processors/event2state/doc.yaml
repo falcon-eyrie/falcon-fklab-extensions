@@ -1,7 +1,5 @@
 Description: Arrival of target events set state to true, arrival of non-target events set state to false. All events are forwarded to output stream.
 
-Long description:
-
 Input port:
   - name: events
     type: EventData

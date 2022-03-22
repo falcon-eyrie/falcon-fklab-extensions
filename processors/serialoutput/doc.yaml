@@ -1,6 +1,6 @@
 Description: Take an EventData stream and sends as a message over serial port the event name.
 
-Input ports:
+Input port:
   - name: events
     type: EventData
     slots: 1

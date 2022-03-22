@@ -1,7 +1,5 @@
 Description: Compute the Multi-Unit Activity from the spike counts provided by the spike detectors and outputs MUAData.
 
-Long description:
-
 Input port:
   - name: spikes
     type: EventData
@@ -22,12 +20,12 @@ Options:
     description:
 
 State:
-  static:
-    - options: *binsize
+  Static:
+    - <<: *binsize
       shared: true
       external access: write
 
-  broadcaster:
+  Broadcaster:
     - name: MUA
       type: double
       initial value: 0.0

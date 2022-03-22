@@ -1,12 +1,10 @@
 Description: Serialize data streams to file
 
-Long description:
-  Input port:
-
-    - name: data
-      type: IData
-      slots: 1-256
-      description:
+Input port:
+  - name: data
+    type: IData
+    slots: 1-256
+    description:
 
 Options:
   - name: path

@@ -35,12 +35,12 @@ Options:
 
 States:
   Static:
-    - options: *threshold
+    - <<: *threshold
       shared: true
       external access: write
-    - options: *postdetectblock
+    - <<: *postdetectblock
       shared: true
       external access: write
-    - options: *upslope
+    - <<: *upslope
       shared: true
       external access: write

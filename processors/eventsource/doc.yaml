@@ -1,7 +1,5 @@
 Description: Generate target events following an uniform distribution with a certain rate
 
-Long description:
-
 Output port:
   - name: events
     type: EventData
