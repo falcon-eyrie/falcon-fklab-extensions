@@ -1,8 +1,6 @@
 Hippocampal ripple detection
 ============================
 
-Overview
---------
 
 Implementation
 --------------

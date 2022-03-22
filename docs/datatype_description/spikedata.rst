@@ -36,7 +36,9 @@ Payload details
 API
 ---
 
-TODO
+.. doxygenclass:: nsSpikeType::Data
+   :members:
+   :undoc-members:
 
 Parameters
 ----------
@@ -61,10 +63,16 @@ Parameters
      - buffer size
      - needs to be larger than 0
 
+.. doxygenstruct:: nsSpikeType::Parameters
+   :members:
+   :undoc-members:
 
 Capabilities
 ------------
-(none)
+
+.. doxygenclass:: nsSpikeType::Capabilities
+   :members:
+   :undoc-members:
 
 Binary Serialization
 --------------------

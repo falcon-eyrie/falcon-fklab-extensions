@@ -23,11 +23,14 @@ Payload details
      - vector of any type
      -
 
-
 API
 ---
 
-TODO
+
+.. doxygenclass:: nsVectorType::Data
+   :members:
+   :undoc-members:
+
 
 Parameters
 ----------
@@ -44,9 +47,20 @@ Parameters
      - size of the vector
      - cannot be zero
 
+
+.. doxygenstruct:: nsVectorType::Parameters
+   :members:
+   :undoc-members:
+
+
 Capabilities
 ------------
-None
+
+
+.. doxygenclass:: nsVectorType::Capabilities
+   :members:
+   :undoc-members:
+
 
 Binary Serialization
 --------------------

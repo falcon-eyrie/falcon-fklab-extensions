@@ -21,10 +21,13 @@ Payload details
      - double
      - number of spikes / size of the bin * 1e3
 
+
 API
 ---
 
-TODO
+.. doxygenclass:: nsMUAType::Data
+   :members:
+   :undoc-members:
 
 Parameters
 ----------
@@ -45,9 +48,17 @@ Parameters
      - Set separately after initialization of the datatype
      -
 
+.. doxygenstruct:: nsMUAType::Parameters
+   :members:
+   :undoc-members:
+
 Capabilities
 ------------
-(none)
+
+.. doxygenclass:: nsMUAType::Capabilities
+   :members:
+   :undoc-members:
+
 
 Binary Serialization
 --------------------

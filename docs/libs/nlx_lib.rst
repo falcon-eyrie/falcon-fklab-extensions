@@ -12,3 +12,6 @@ value with member methods to create new record and constructs a NlxRecord object
 Initialize() - will be done during construction), then it sets the new record and Finalize() (will compute CRC) and finally
 copy packet into external buffer to be sent over network using ToNetworkBuffer.
 
+.. doxygennamespace:: nlx
+   :members:
+   :undoc-members:

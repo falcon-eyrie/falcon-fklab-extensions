@@ -2,7 +2,7 @@ Too Long; Did not read
 ======================
 
 
-Here, the important info as a user or as client developper to know about this use-case.
+Here, the important info as a user or as client developer to know about this use-case.
 
 .. image:: ../images/ripple_graph.png
    :width: 50 %

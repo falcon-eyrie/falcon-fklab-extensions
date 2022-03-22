@@ -26,9 +26,9 @@ Payload details
 API
 ---
 
-TODO (put here an overview of the public
-methods and a short description of what they do.
-Should we leave this to doxygen??)
+.. doxygenclass:: nsEventType::Data
+   :members:
+   :undoc-members:
 
 Parameters
 ----------
@@ -45,9 +45,17 @@ Parameters
      - default event string
      - cannot be empty
 
+.. doxygenstruct:: nsEventType::Parameters
+   :members:
+   :undoc-members:
+
 Capabilities
 ------------
-(none)
+
+.. doxygenclass:: nsEventType::Capabilities
+   :members:
+   :undoc-members:
+
 
 Binary Serialization
 --------------------
