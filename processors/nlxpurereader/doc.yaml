@@ -1,7 +1,5 @@
 Description: Read raw data of a Neuralynx Digilynx data acquisition on a UDP buffer
 
-Long description:
-
 Output port:
   - name: udp
     type: VectorType <char>
@@ -28,8 +26,7 @@ Options:
     description: The number of channels of the Digilynx acquisition system.
 
 States:
-
-  broadcaster:
+  Broadcaster:
     - name: n_invalid
       type: uint64_t
       default: O

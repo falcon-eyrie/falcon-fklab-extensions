@@ -1,8 +1,6 @@
 Description: Read raw Neuralynx Digilynx data packets from a NlxPureReader processor and turns it a single MultiChannelData
   output stream of all available channels. Optionally, multiple data packets are combined into batches.
 
-Long description:
-
 Input port:
   - name: udp
     type: VectorType <char>
@@ -47,8 +45,7 @@ Options:
 
 
 States:
-
-  broadcaster:
+  Broadcaster:
     - name: n_invalid
       type: uint64_t
       default: O

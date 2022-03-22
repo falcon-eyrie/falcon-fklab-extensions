@@ -1,7 +1,5 @@
 Description: Compute running statistics
 
-Long description:
-
 Input port:
   - name: data
     type: MultiChannelData <double>

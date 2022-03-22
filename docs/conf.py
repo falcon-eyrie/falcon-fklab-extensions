@@ -30,7 +30,7 @@ import sphinx_bootstrap_theme
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['breathe', "sphinx.ext.intersphinx"]
+extensions = ['breathe', "sphinx.ext.intersphinx", 'sphinxcontrib.datatemplates']
 
 breathe_projects = {'falcon': 'doxyfile/xml'}
 breathe_default_project = 'falcon'

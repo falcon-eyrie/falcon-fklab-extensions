@@ -1,7 +1,5 @@
 Description: Detect spikes in a MultiChannelData stream and emits a spike event and spike data in response
 
-Long description:
-
 Input ports:
   - name: data
     type: MultiChannelData <double>
@@ -43,10 +41,10 @@ Options:
     description: Peak life time in samples
 
 States:
-  static:
-    - options: *threshold
+  Static:
+    - <<: *threshold
       shared: true
       external access: write
-    - options: *peaklifetime
+    - <<: *peaklifetime
       shared: true
       external access: write

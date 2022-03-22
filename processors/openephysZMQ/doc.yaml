@@ -4,7 +4,7 @@ Output port:
   - name: data
     type: MultiChannelData <double>
     slots: 1
-    description: the multichanneldata contains N channels (depend on nchannels) and N samples (depend on batch_size)
+    description: the multichanneldata contains N channels (depend on nchannels) and P samples (depend on batch_size)
 
 Options:
   - name: address
@@ -13,7 +13,7 @@ Options:
     description: IP address of Open-Ephys zmq communication.
   - name: port
     type: unsigned int
-    default: 50000
+    default: 5556
     description: Port of Open-Ephys zmq communication.
   - name: npackets
     type: uint64_t
@@ -25,5 +25,5 @@ Options:
     description: The number of data packets to concatenate into single multi-channel data bucket.
   - name: nchannels
     type: unsigned int
-    default: 128
+    default: 384
     description: The number of channels in the data packet sent by Open-Ephys.
