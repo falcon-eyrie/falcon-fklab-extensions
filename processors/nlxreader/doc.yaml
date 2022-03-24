@@ -13,7 +13,7 @@ Example:
 
 Output port:
   - name: channel name
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description: configurable number - 1 by channel in channelmap
 

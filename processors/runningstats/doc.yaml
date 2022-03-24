@@ -2,7 +2,7 @@ Description: Compute running statistics
 
 Input port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description:
 

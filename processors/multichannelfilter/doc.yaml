@@ -2,13 +2,13 @@ Description: Filter each channels from a multichannel datastream
 
 Input port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1-256
     description:
 
 Output port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1-256
     description:
 

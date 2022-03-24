@@ -2,7 +2,7 @@ Description: Reads raw data from Open-Ephys acquisition software and converts it
 
 Output port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description: the multichanneldata contains N channels (depend on nchannels) and P samples (depend on batch_size)
 

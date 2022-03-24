@@ -9,11 +9,11 @@ Input port:
 
 Output port:
   - name: data
-    type: MultiChannelType <double>
+    type: TimeSerieType <double>
     slots: 1
     description:
   - name: ttl
-    type: MultiChannelType <uint32_t>
+    type: TimeSerieType <uint32_t>
     slots: 1
     description:
 

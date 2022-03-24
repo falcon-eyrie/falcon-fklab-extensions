@@ -56,11 +56,7 @@ Parameters
 Capabilities
 ------------
 
-
-.. doxygenclass:: nsVectorType::Capabilities
-   :members:
-   :undoc-members:
-
+no particular capabilities
 
 Binary Serialization
 --------------------

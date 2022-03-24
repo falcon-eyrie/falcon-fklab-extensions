@@ -70,9 +70,7 @@ Parameters
 Capabilities
 ------------
 
-.. doxygenclass:: nsSpikeType::Capabilities
-   :members:
-   :undoc-members:
+no particular capabilities
 
 Binary Serialization
 --------------------

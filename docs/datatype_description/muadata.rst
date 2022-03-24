@@ -55,9 +55,7 @@ Parameters
 Capabilities
 ------------
 
-.. doxygenclass:: nsMUAType::Capabilities
-   :members:
-   :undoc-members:
+no particular capabilities
 
 
 Binary Serialization

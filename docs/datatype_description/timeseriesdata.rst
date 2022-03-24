@@ -1,11 +1,14 @@
-.. _multichanneldata:
+.. _timeseriesdata:
 
-MultiChannelData
+Time Series data
 ================
 
 General description
 -------------------
-Data packet of the MultiChannelData type contains a generic nsamples-by-nchannels array of data.
+Data packet of the time series data type contains a generic nsamples-by-ncolumn array of data. It inherits from
+the column data type and it replaced the multichannel data from previous falcon-fklab-extension version.
+
+Each column has a label which by default will be the channel number. It has also a timestamps associated to the samples.
 
 
 Payload details
@@ -17,6 +20,9 @@ Payload details
    * - name
      - type
      - description
+   * - labels
+     - vector of ncolumn strings
+     - a string name for each column
    * - timestamp
      - uint64
      -
@@ -26,7 +32,7 @@ Payload details
 
 API
 ---
-.. doxygenclass:: nsMultiChannel::Data
+.. doxygenclass:: nsTimeSeries::Data
    :members:
    :undoc-members:
 
@@ -40,7 +46,7 @@ Parameters
      - type
      - description
      - validation
-   * - nsample
+   * - nsamples
      - unsigned int
      - 0
      - Number of samples cannot be zero and needs to be in range
@@ -53,30 +59,16 @@ Parameters
      - 1.0
      - Sample rate needs to be larger than 0
 
-.. doxygenstruct:: nsMultiChannel::Parameters
+.. doxygenstruct:: nsTimeSeries::Parameters
    :members:
    :undoc-members:
 
 Capabilities
 ------------
 
-.. list-table::
-   :header-rows: 1
+see :ref:columndata type capabilities
 
-   * - name
-     - type
-     - default
-     - description
-   * - channel range
-     - ChannelRange or Range<unsigned int>
-     - (none)
-     - the number of channels that is supported
-   * - sample range
-     - SampleRange or Range<size_t>
-     - [1, (maximum of the datatype can hold)]
-     - the number of samples that is supported
-
-.. doxygenclass:: nsMultiChannel::Capabilities
+.. doxygentypedef:: nsTimeSeries::Capabilities
    :members:
    :undoc-members:
 
@@ -93,3 +85,4 @@ the following YAML is emitted:
 
 timestamps: [timestamps (unsigned int)]
 signal: [data]
+label: [label]

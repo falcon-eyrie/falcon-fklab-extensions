@@ -2,7 +2,7 @@ Description: Detect a threshold crossing on any of the channels in the incoming 
 
 Input port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description:
 

@@ -18,7 +18,8 @@ Below is a list of data types that are currently available in this extension.
 
    datatype_description/eventdata
    datatype_description/spikedata
-   datatype_description/multichanneldata
+   datatype_description/columndata
+   datatype_description/timeseriesdata
    datatype_description/muadata
    datatype_description/vectordata
    datatype_description/scalardata

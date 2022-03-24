@@ -51,10 +51,7 @@ Parameters
 Capabilities
 ------------
 
-.. doxygenclass:: nsScalarType::Capabilities
-   :members:
-   :undoc-members:
-
+no particular datatype
 
 Binary Serialization
 --------------------

@@ -2,7 +2,7 @@ Description: Detect spikes in a MultiChannelData stream and emits a spike event 
 
 Input ports:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description:
 

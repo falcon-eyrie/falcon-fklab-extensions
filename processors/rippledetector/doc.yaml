@@ -2,7 +2,7 @@ Description: Detect ripples in a MultiChannelData stream and emits a ripple even
 
 Input port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description:
 
@@ -12,7 +12,7 @@ Output port:
     slots: 1
     description: A stream of 'ripple' events.
   - name: statistics
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1
     description:
 

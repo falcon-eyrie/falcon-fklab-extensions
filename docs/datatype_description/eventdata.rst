@@ -52,10 +52,7 @@ Parameters
 Capabilities
 ------------
 
-.. doxygenclass:: nsEventType::Capabilities
-   :members:
-   :undoc-members:
-
+no particular capabilities
 
 Binary Serialization
 --------------------

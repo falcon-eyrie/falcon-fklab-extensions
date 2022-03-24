@@ -2,13 +2,13 @@ Description: Rebuffer and downsample multiple MultiChannelData streams. No anti-
 
 Input port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1-256
     description:
 
 Output port:
   - name: data
-    type: MultiChannelData <double>
+    type: TimeSerieType <double>
     slots: 1-256
     description:
 

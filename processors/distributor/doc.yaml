@@ -11,13 +11,13 @@ Example:
 
 Input port:
   - name: data
-    type: MultiChannelData <double>
+    type: ColumnType <double> or TimeSerieType <double>
     slots: 1
     description:
 
 Output port:
   - name: channel name
-    type: MultiChannelData <double>
+    type:  ColumnType <double>
     slots: 1
     description: configurable number - 1 by channel in channelmap
 
