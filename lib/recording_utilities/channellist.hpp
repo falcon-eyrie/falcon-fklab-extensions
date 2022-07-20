@@ -25,8 +25,6 @@
 #include "yaml-cpp/yaml.h"
 #include "utilities/string.hpp"
 
-
-
 template <typename T> class ChannelList{
 public:
     ChannelList(){};

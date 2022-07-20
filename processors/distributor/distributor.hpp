@@ -60,5 +60,5 @@ class Distributor : public IProcessor {
   options::Value<ChannelMap, false> channelmap_;
   options::String channelmap_file_{""};
 
-  options::Bool distribution_type_{true};
+  options::String distribution_type_{"ports"};
 };

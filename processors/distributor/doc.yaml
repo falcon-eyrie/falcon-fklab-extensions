@@ -37,8 +37,8 @@ Options:
     type: string
     default: None but fail in the configure step if both channelmap or channelmap file are not specified
     description: File containing a mapping of channels to processor output ports.
-  - name: port distribution
-    type: boolean
-    default: True
-    description: Select distribution over the ports by default or over the slots if turn off.
+  - name: distribution mode
+    type: string
+    default: ports
+    description: Select distribution over the ports (keyword: ports) or over the slots (keyword: slots).
 

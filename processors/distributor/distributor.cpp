@@ -27,21 +27,29 @@ Distributor::Distributor() : IProcessor(PRIORITY_MEDIUM) {
     add_option("channelmap file", channelmap_file_,
                "File path for a channelmap mapping of columns in different datastreams.");
 
-    add_option("port distribution", distribution_type_,
-               "Distribution over the ports or over the slots");
+    add_option("distribution mode", distribution_type_,
+               "Select distribution over the ports (keyword: ports) or over the slots (keyword: slots).");
 
 }
 
 void Distributor::Configure(const GlobalContext &context){
-
-    if(channelmap_file_() != ""){
+    if(channelmap_file_() == "" and channelmap_().empty()){
+        throw ProcessingConfigureError(". No channelmap given in input. Make use of the option channelmap or channelmap file.");
+    }else if(channelmap_file_() != "" and not channelmap_().empty()){
+        throw ProcessingConfigureError(". Two channelmaps given in input. Use only one option channelmap or channelmap file.");
+    }
+    else if(channelmap_file_() != ""){
         auto path = context.resolve_path(channelmap_file_());
         YAML::Node config = YAML::LoadFile(path);
         try{
             channelmap_.from_yaml(config);
         }catch (...){
-            throw std::runtime_error(". The channelmap is not valid.");
+            throw ProcessingConfigureError(". The channelmap is not valid.");
         }
+    }
+
+    if(distribution_type_() != "ports" and distribution_type_() != "slots"){
+        throw ProcessingStreamInfoError(". Only ports or slots are a valable distribution mode to fill in the distribution mode option.");
     }
 }
 
@@ -50,14 +58,14 @@ void Distributor::CreatePorts() {
                   TimeSeriesType<double>::Capabilities(ChannelRange(1, MAX_N_CHANNELS)),
                   PortInPolicy(SlotRange(1)));
 
-    if(distribution_type_()){   // N port with 1 slot each (N = channelmap size)
+    if(distribution_type_()== "ports"){   // N port with 1 slot each (N = channelmap size)
         for (auto &it : channelmap_()) {
             data_ports_[it.first] = create_output_port<TimeSeriesType<double>>(
                                     it.first,
                                     TimeSeriesType<double>::Parameters(),
                                     PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY));
         }
-    }else{  // 1 port with N slots (N = channelmap size)
+     } else if(distribution_type_() == "slots"){   // 1 port with N slots (N = channelmap size)
         data_ports_["data"] = create_output_port<TimeSeriesType<double>>(
                                      TimeSeriesType<double>::Parameters(),
                                      PortOutPolicy(SlotRange(channelmap_().size()), BUFFER_SIZE, WAIT_STRATEGY));
@@ -71,7 +79,7 @@ void Distributor::CompleteStreamInfo() {
 
     slot_ = 0;
     for (auto &it : channelmap_()) {
-        if(distribution_type_()){   // N port with 1 slot each (N = channelmap size)
+        if(distribution_type_() == "ports"){   // N port with 1 slot each (N = channelmap size)
 
             data_ports_[it.first]->streaminfo(0).set_parameters(
                         TimeSeriesType<double>::Parameters(
@@ -82,7 +90,7 @@ void Distributor::CompleteStreamInfo() {
              data_ports_[it.first]->streaminfo(0).set_stream_parameters(input_port_->streaminfo(0));
 
 
-        }else{  // 1 port with N slots (N = channelmap size)
+        } else if(distribution_type_() == "slots"){  // 1 port with N slots (N = channelmap size)
             data_ports_["data"]->streaminfo(slot_).set_parameters(
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
@@ -94,6 +102,7 @@ void Distributor::CompleteStreamInfo() {
 
              slot_++;
         }
+
     }
 }
 
@@ -121,7 +130,6 @@ void Distributor::Prepare(GlobalContext &context) {
 
 void Distributor::Process(ProcessingContext &context) {
     TimeSeriesType<double>::Data *data_in = nullptr;
-    unsigned int s = 0;
     std::vector<TimeSeriesType<double>::Data *> data_out_vector;
 
 
@@ -142,9 +150,6 @@ void Distributor::Process(ProcessingContext &context) {
             data_out->set_sample_timestamps(
                         data_in->sample_timestamps());
 
-
-            // Note for later = would be nice to implement a helper to copy in once
-            // whole column from one packet to the other
             for (auto ch: data_out->labels()) {
                 // publish data buckets
                 data_out->clone_column(ch, *data_in);
