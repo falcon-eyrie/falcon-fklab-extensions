@@ -83,10 +83,12 @@ void Rebuffer::CompleteStreamInfo() {
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     data_out_port_->streaminfo(k).set_parameters(
         TimeSeriesType<double>::Parameters(
-             data_in_port_->prototype(k).ncolumns(),
+            data_in_port_->prototype(k).ncolumns(),
             sample_buffer_[k],
             data_in_port_->prototype(k).sample_rate() /
                 downsample_factor_()));
+
+    data_out_port_->streaminfo(k).set_stream_name(data_in_port_->streaminfo(k).stream_name());
     data_out_port_->streaminfo(k).set_stream_rate(
         data_in_port_->streaminfo(k).stream_rate() *
         data_in_port_->prototype(k).nsamples() / sample_buffer_[k]);

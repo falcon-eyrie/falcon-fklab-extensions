@@ -42,6 +42,7 @@ public:
   EventDelayed();
   void CreatePorts() override;
   void Configure(const GlobalContext &context) override;
+  void CompleteStreamInfo() override;
   void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
   void Postprocess(ProcessingContext &context) override;

@@ -120,6 +120,11 @@ void EventDelayed::CreatePorts() {
             "analysis enabled", true, Permission::READ);      // connected to the ripple detection processor to disable/enabled ripple processing
 }
 
+void EventDelayed::CompleteStreamInfo(){
+    output_port_->streaminfo(0).set_stream_name(data_in_port_->streaminfo(0).stream_name());
+
+}
+
 void EventDelayed::Preprocess(ProcessingContext &context) {
 
     ontime_received_event_ = 0;

@@ -94,7 +94,7 @@ void RippleDetector::CompleteStreamInfo()
             STATS_LABEL, stats_nsamples_,
             data_in_port_->prototype(0).sample_rate() /
                 stats_downsample_factor_()));
-    stats_out_port_->streaminfo(0).set_stream_rate(data_in_port_->streaminfo(0));
+    stats_out_port_->streaminfo(0).set_stream_parameters(data_in_port_->streaminfo(0));
 }
 
 void RippleDetector::Preprocess(ProcessingContext &context)

@@ -84,14 +84,15 @@ void BurstDetector::CompleteStreamInfo() {
         "Stats buffersize is smaller than MUA bin size.", name());
   }
 
-  stats_out_port_->streaminfo(0).set_stream_rate(
-      data_in_port_->streaminfo(0).stream_rate());
+  stats_out_port_->streaminfo(0).set_stream_parameters(data_in_port_->streaminfo(0));
+
   stats_out_port_->streaminfo(0).set_parameters(
       TimeSeriesType<double>::Parameters(
           N_STATS_OUT, stats_nsamples_,
           1. / data_in_port_->prototype(0).bin_size()));
 
-  data_out_port_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
+  data_out_port_->streaminfo(0).set_stream_parameters(IRREGULARSTREAM,
+                                                      data_in_port_->streaminfo(0).stream_name());
 }
 
 void BurstDetector::Preprocess(ProcessingContext &context) {

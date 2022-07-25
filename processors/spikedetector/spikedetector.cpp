@@ -77,6 +77,9 @@ void SpikeDetector::CompleteStreamInfo() {
   data_out_port_spikes_->streaminfo(0).set_parameters(parms);
   data_out_port_spikes_->streaminfo(0).set_stream_rate(
       incoming_stream_rate / (incoming_buffer_size_samples_ * n_incoming_));
+  data_out_port_spikes_->streaminfo(0).set_stream_name(data_in_port_->streaminfo(0));
+
+  data_out_port_events_->streaminfo(0).set_stream_name(data_in_port_->streaminfo(0));
   data_out_port_events_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
 }
 
@@ -86,10 +89,7 @@ void SpikeDetector::Prepare(GlobalContext &context) {
 
   if (invert_signal_()) {
     inverted_signals_.reset(new TimeSeriesType<double>::Data(
-         data_in_port_->prototype(0).labels(),
-         incoming_buffer_size_samples_,
-         data_in_port_->prototype(0).sample_rate()));
-
+         data_in_port_->prototype(0).parameters()));
   }
 }
 

@@ -35,6 +35,11 @@ void EventConverter::CreatePorts() {
       PortOutPolicy(SlotRange(1)));
 }
 
+void EventConverter::CompleteStreamInfo(){
+    data_out_port_->streaminfo(0).set_stream_name(data_in_port_->streaminfo(0).stream_name());
+
+}
+
 void EventConverter::Process(ProcessingContext &context) {
   EventType::Data *data_in = nullptr;
   EventType::Data *data_out = nullptr;

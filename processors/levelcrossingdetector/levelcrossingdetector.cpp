@@ -54,6 +54,13 @@ void LevelCrossingDetector::CreatePorts() {
       POST_DETECT_BLOCK, initial_post_detect_block_(), true, Permission::WRITE);
 }
 
+void LevelCrossingDetector::CompleteStreamInfo(){
+    data_out_port_->streaminfo(0).set_stream_parameters(IRREGULARSTREAM,
+                                                        data_in_port_->streaminfo(0).stream_name());
+
+}
+
+
 void LevelCrossingDetector::Preprocess(ProcessingContext &context) {
   double init_value;
   post_detection_block_update(initial_post_detect_block_());
