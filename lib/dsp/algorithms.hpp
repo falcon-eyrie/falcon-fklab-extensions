@@ -193,6 +193,10 @@ class SpikeDetector {
 
   uint64_t timestamp_detected_spike() const;
   const std::vector<double> &amplitudes_detected_spike() const;
+  const std::vector<double> &slopes_detected_spike() const{
+      return slope_;
+  }
+
 
   /**
    * Spike detection algorithm:

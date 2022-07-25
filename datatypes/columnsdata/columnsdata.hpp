@@ -64,6 +64,7 @@ public:
         labels_ = labels;
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
+        nreal_samples_ = nsamples;
         data_.resize(ncolumns_ * nsamples_);
     }
 
@@ -89,8 +90,23 @@ public:
    }
 
    size_t ncolumns() const { return ncolumns_; }
-   size_t nsamples() const { return nsamples_; }
+   size_t nsamples() const {
+      /* if (nsamples_ != nreal_samples_){
+           std::cout << "Be careful, nsamples and nreal_samples are differents." << std::endl;
+       }*/
+
+       return nsamples_;
+   }
    std::vector<std::string> labels() const{ return labels_; }
+
+   size_t nreal_samples() { return nreal_samples_; }
+   void set_nreal_samples(size_t nreal_samples) {
+       if(nreal_samples > nsamples()){
+           throw "The number of real samples cannot be upper than the number of samples predefined for the dataset.";
+       }
+       nreal_samples_ = nreal_samples;
+   }
+
 
    /**
     * @brief set_data_column set all samples for one column based on the name of the column
@@ -153,6 +169,18 @@ public:
      data_[flat_index(sample, column)] = data;
    }
 
+
+   /**
+    * @brief set_data_sample set one data for one column index and one sample index
+    * @param sample - selected sample index
+    * @param column - selected column index
+    * @param data
+    */
+   void clone_column(std::string column, Data &data_in) {
+     std::copy(data_in.begin_column(column), data_in.end_column(column), begin_column(column));
+   }
+
+
    /**
     * @brief set_data_sample set one data for one column label and one sample index
     * @param sample - selected sample index
@@ -162,6 +190,16 @@ public:
    void set_data_sample(size_t sample, std::string column, T data) {
        auto index =  extract_index_from_column(column);
        set_data_sample(sample, index, data);
+   }
+
+   /**
+    * @brief set_data_sample set one data for one column label and one sample index
+    * @param sample - selected sample index
+    * @param column - selected column label
+    * @param data
+    */
+   void set_data(std::vector<T> data) {
+       std::copy(data.begin(), data.end(), data_.begin());
    }
 
    /**
@@ -286,14 +324,19 @@ public:
 
      BaseClass::SerializeBinary(stream, format);
      if (format == Serialization::Format::FULL) {
+        stream.write(reinterpret_cast<const char *>(&nreal_samples_), sizeof(nreal_samples_));
         stream.write(reinterpret_cast<const char *>(data_.data()),
                             data_.size() * sizeof(T));
+
+
      }
 
      if (format == Serialization::Format::COMPACT) {
        for (size_t k = 0; k < nsamples_; ++k) {
+           stream.write(reinterpret_cast<const char *>(&nreal_samples_), sizeof(nreal_samples_));
            stream.write(reinterpret_cast<const char *>(&data_[flat_index(k)]),
                         sizeof(T) * ncolumns_);
+
        }
      }
    }
@@ -313,12 +356,14 @@ public:
        });
 
        flex_builder.TypedVector("data", [&]{
-              for(auto samples: data_)
+              for(unsigned int i =0; i < ncolumns()*nreal_samples(); i++){
+                  auto samples = *(data_.begin()+i);
                   flex_builder.Add(samples);
+             }
        });
 
        flex_builder.UInt("ncolumns", ncolumns());
-       flex_builder.UInt("nsamples", nsamples());
+       flex_builder.UInt("nsamples", nreal_samples());
    }
 
    /**
@@ -332,7 +377,9 @@ public:
      BaseClass::SerializeYAML(node, format);
      if (format == Serialization::Format::FULL ||
          format == Serialization::Format::COMPACT) {
+       node["nreal_samples"] = nreal_samples_;
        node["signal"] = data_;
+
      }
    }
 
@@ -347,14 +394,20 @@ public:
                                     Serialization::Format::FULL) const override {
       BaseClass::YAMLDescription(node, format);
       if (format == Serialization::Format::FULL) {
+        node.push_back("nreal_samples uint64 (1)");
         node.push_back("signal " + get_type_string<T>() + " (" +
                        std::to_string(nsColumn::Data<T>::nsamples()) + "," +
                        std::to_string(nsColumn::Data<T>::ncolumns()) + ")");
+
       }
 
       if (format == Serialization::Format::COMPACT) {
+
+          node.push_back("nreal_samples uint64 (1)");
           node.push_back("signal " + get_type_string<T>() + " (" +
                        std::to_string(nsColumn::Data<T>::ncolumns()) + ")");
+
+
       }
    }
 
@@ -460,6 +513,7 @@ public:
  protected:
    size_t ncolumns_;
    size_t nsamples_;
+   size_t nreal_samples_;
 
    std::vector<std::string> labels_;
    std::vector<T> data_;
