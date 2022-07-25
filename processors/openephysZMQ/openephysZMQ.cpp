@@ -31,8 +31,15 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
     add_option("batch size", batch_size_,
                "The number of data packets to concatenate into "
                "single multi-channel data bucket.");
+
+    add_option("sample rate", sample_rate_,
+               "Sample rate from Open-Ephys");
+
     add_option("nchannels", nchannels_,
                "The number of channels in the data packet sent by Open-Ephys.");
+    add_option("missed samples/method", missed_method_, "what to do in case of missed samples: 'fail', 'fill', 'ignore'");
+    add_option("missed samples/value", fill_value_, "if fill method chose, this value will be use to replace the missing samples.");
+
 }
 
 void OpenEphysZMQ::CreatePorts() {
@@ -46,7 +53,7 @@ void OpenEphysZMQ::CompleteStreamInfo() {
     data_port_->streaminfo(0).set_parameters(
           TimeSeriesType<double>::Parameters(
               nchannels_(), batch_size_()));
-    data_port_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
+    data_port_->streaminfo(0).set_stream_rate(sample_rate_()/batch_size_());
 
 }
 
@@ -56,6 +63,9 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   try {
     socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
     zmq_setsockopt(socket_, ZMQ_SUBSCRIBE, nullptr, 0);
+    int t  = 3*(sample_rate_()/batch_size_());
+    zmq_setsockopt(socket_, ZMQ_RCVTIMEO, &t, sizeof(t));
+
     socket_.connect(tcp_address);
   } catch (...) {
         throw ProcessingPreprocessingError("Error when connecting the socket to the address: "+ tcp_address, name());
@@ -75,17 +85,18 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
   flatbuffers::VectorIterator<float, float> data_in_iter;
   TimeSeriesType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
+  unsigned int nmissed = 0;
 
   while (!context.terminated()  && valid_packets_counter_ < npackets_()) {
       zmq_msg_t message;
       zmq_msg_init (&message);
 
-      if (zmq_msg_recv(&message, socket_, ZMQ_DONTWAIT) != -1) {
+      if (zmq_msg_recv(&message, socket_, 0) != -1) {
 
           try {
               data = openephysflatbuffer::GetContinuousData(zmq_msg_data(&message));
           } catch (...) {
-              LOG(DEBUG) << "Impossible to parse the packet received - skipping to the next.";
+              LOG(DEBUG) << name() << ". Impossible to parse the packet received - skipping to the next.";
               invalid_packets_counter_++;
               continue;
           }
@@ -98,51 +109,70 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           }
 
           valid_packets_counter_++;
-          uint64_t init_ts = data->timestamp();
 
+          nmissed = 0;
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
             LOG(INFO) << name() << ". Received first valid data packet"
                       << " (OE TS = " << data->timestamp() << ")";
+            last_message_number_ = data->timestamp();
 
-          } else if (last_message_number_ + 1 !=
-                     data->message_id()) {
-            LOG(DEBUG) << name() << ". Message lost: "
-                       <<  data->message_id() - last_message_number_;
-            missing_packets_counter_++;
+          } else if (last_message_number_ !=
+                     data->timestamp()) {
+            LOG(UPDATE) << name() << ". "
+                       <<  data->timestamp()  - last_message_number_
+                       << " sample(s) losted - missing ts from " << last_message_number_
+                       << " to " << data->timestamp();
+
+            if(missed_method_() == "fail"){
+                throw ProcessingError("There are " + std::to_string(data->timestamp()  - last_message_number_)
+                                      + " missing samples between received packets.");
+            }
+            else if(missed_method_() == "fill"){
+                nmissed = data->timestamp()  - last_message_number_;
+            }
+
+            missing_packets_counter_+= data->timestamp()  - last_message_number_;
           }
 
-          last_message_number_ =  data->message_id();
-
-          uint64_t n_samples = data->n_samples();
+          uint64_t n_samples = data->n_samples() ;
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
           data_in_iter = data->samples()->begin();
 
-          for(uint64_t sample=0; sample<n_samples; sample++){
+          for(uint64_t sample=0; sample<n_samples+nmissed; sample++){
               if (sample_counter_ == batch_size_()) {
                  data_out= data_port_->slot(0)->ClaimData(false);
                  // set data bucket metadata
-                 data_out->set_hardware_timestamp(init_ts);
-                 data_out->set_source_timestamp();
+                 data_out->set_hardware_timestamp(last_message_number_+sample);
+
                  sample_counter_ = 0;
               }
 
-              data_out->set_sample_timestamp(sample_counter_, init_ts+sample);
+              data_out->set_sample_timestamp(sample_counter_, last_message_number_+sample);
 
               data_out_iter = data_out->begin_sample(sample_counter_);
 
               for(uint64_t channel=0; channel<nchannels_(); channel++){
-                  (*data_out_iter) = *(data_in_iter + n_samples*channel);
+                  if(sample>=nmissed){
+                    (*data_out_iter) = *(data_in_iter + n_samples*channel);
+                  }else{
+                    (*data_out_iter) = fill_value_();
+                  }
                   ++data_out_iter;
               }
 
-              ++data_in_iter;
+              if(sample>=nmissed){
+                ++data_in_iter;
+              }
               ++sample_counter_;
 
               if (sample_counter_ == batch_size_()) {
+                  data_out->set_source_timestamp();
                   data_port_->slot(0)->PublishData();
               }
           }
+
+          last_message_number_ =  data->timestamp() + n_samples;
       }
       zmq_msg_close(&message);
   }
@@ -150,7 +180,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
 void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
   LOG_IF(UPDATE, (valid_packets_counter_ == npackets_()))
-      << "Requested number of packets was read. You can now STOP processing.";
+      << name() << ". Requested number of packets was read. You can now STOP processing.";
 
   std::chrono::milliseconds runtime(
       std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -164,8 +194,8 @@ void OpenEphysZMQ::Postprocess(ProcessingContext &context) {
                      (static_cast<double>(runtime.count()) / 1000)
               << " packets/second.";
 
-  LOG(DEBUG)  << name() << ". " << invalid_packets_counter_ << " packets were detected as invalid and could not be parse.";
-  LOG(DEBUG)  << name() << ". " << missing_packets_counter_ << " packets were detected as missing.";
+  LOG(INFO)  << name() << ". " << invalid_packets_counter_ << " packets were detected as invalid and could not be parse.";
+  LOG(INFO)  << name() << ". " << missing_packets_counter_ << " samples were detected as missing.";
 
   socket_.close();
 }
