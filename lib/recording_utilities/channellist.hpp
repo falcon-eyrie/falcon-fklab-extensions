@@ -330,3 +330,5 @@ template <typename T> struct convert<ChannelList<T>> {
     }
 };
 }
+
+typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;

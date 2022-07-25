@@ -1,6 +1,7 @@
-Description: Read multi-channel data stream and splits the data across multiple output streams based on a channel mapping
+Description: Read column-type data stream and splits the data across multiple output streams based on a channel mapping. The split is done over ports or slots.
 
 Long description: The channelmap defines the output port names and for each port lists the channels that will be copied to the data buckets on that port.
+                  In case of distribution over the slot, the channelmap define the
 
 Example:
 
@@ -17,13 +18,27 @@ Input port:
 
 Output port:
   - name: channel name
-    type:  ColumnType <double>
-    slots: 1
-    description: configurable number - 1 by channel in channelmap
+    type: ColumnType <double>
 
+    slots: 1
+    description: configurable number of port output - 1 by channel in channelmap if in port distributor mode
+
+  - name: data
+    type: ColumnType <double>
+    slots: 1-n
+    description: configurable number of slot output - 1 by channel in channelmap if in slot distributor mode
 
 Options:
   - name: channelmap
     type: ChannelMap
-    default: not - required option
+    default: None but fail in the configure step if both channelmap or channelmap file are not specified
     description: Mapping of channels to processor output ports.
+  - name: channelmap file
+    type: string
+    default: None but fail in the configure step if both channelmap or channelmap file are not specified
+    description: File containing a mapping of channels to processor output ports.
+  - name: distribution mode
+    type: string
+    default: ports
+    description: Select distribution over the ports (keyword: ports) or over the slots (keyword: slots).
+
