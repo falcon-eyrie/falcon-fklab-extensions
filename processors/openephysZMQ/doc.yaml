@@ -27,3 +27,12 @@ Options:
     type: unsigned int
     default: 384
     description: The number of channels in the data packet sent by Open-Ephys.
+  - name: missed samples/method
+    type: string
+    default: fill
+    description: method could be fill (replace missing samples by a sample with the fill value, fail or ignore)
+  - name: missed samples/value
+    type: unsigned int
+    default: 0
+    description: The value to use to replace missing samples when missed samples/method is set to fill mode
+
