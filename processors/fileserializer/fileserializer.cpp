@@ -47,7 +47,7 @@ FileSerializer::FileSerializer() : IProcessor() {
 void FileSerializer::CreatePorts() {
   data_port_ =
       create_input_port<AnyType>("data", AnyType::Capabilities(),
-                                 PortInPolicy(SlotRange(1, 256), false));
+                                 PortInPolicy(SlotRange(1, 4000), false));
 }
 
 void FileSerializer::Configure(const GlobalContext &context) {
@@ -116,6 +116,7 @@ void FileSerializer::create_preamble(std::ostream &out, int slot) {
   node["format"] = format_.to_yaml();
   node["encoding"] = encoding_.to_yaml();
   node["stream"] = slot;
+  node["streamname"] = data_port_->streaminfo(slot).stream_name();
   node["data"] =
       serializer_->DataDescription(data_port_->prototype(slot));
 
