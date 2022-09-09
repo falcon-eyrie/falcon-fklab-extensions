@@ -40,12 +40,13 @@ using ParentType = AnyType;
 
 struct Parameters{
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0)
-     : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, bool expand = false)
+     : ncolumns(labels.size()), nsamples(nsamp), labels(labels), expand(expand) {}
 
   size_t ncolumns;
   size_t nsamples;
   std::vector<std::string> labels;
+  bool expand;
 };
 
 template <typename T> class Data : public IData<Data<T>,ParentType> {
@@ -56,7 +57,7 @@ public:
      * @param labels give a label for each column
      * @param nsamples give the number of samples
      */
-    Data(const std::vector<std::string>& labels, size_t nsamples){
+    Data(const std::vector<std::string>& labels, size_t nsamples, bool expand=false){
         if (labels.size() == 0) {
           throw std::runtime_error("Column Data::Initialize - number of "
                                    "columns/samples needs to be larger than 0.");
@@ -64,6 +65,7 @@ public:
         labels_ = labels;
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
+        expand_ = expand;
         data_.resize(ncolumns_ * nsamples_);
     }
 
@@ -72,7 +74,7 @@ public:
      * @param parameters
      */
     Data(const Parameters &parameters)
-        : Data(parameters.labels, parameters.nsamples){}
+        : Data(parameters.labels, parameters.nsamples, parameters.expand){}
 
     static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
     static const std::string static_dataname() { return "data"; }
@@ -138,11 +140,16 @@ public:
                                   + std::to_string(ncolumns_)+" columns)");
      }
      if (sample >= nsamples_){
-         nsamples_ = sample+1;
-         std::copy(data.begin(), data.end(), std::back_inserter(data_));
-     }else{
-        std::copy(data.begin(), data.end(), begin_sample(sample));
+         if(expand_){
+             nsamples_ = sample+1;
+             data_.resize(nsamples_*ncolumns_);
+         }else{
+             throw  std::out_of_range(". This data packet is not expandable. Sample index " + std::to_string(sample) +
+                                      "should not be out of range. Max index is " + std::to_string(nsamples_ - 1));
+         }
      }
+     std::copy(data.begin(), data.end(), begin_sample(sample));
+
    }
 
    /**
@@ -153,11 +160,13 @@ public:
     */
    void set_data_sample(size_t sample, size_t column, T data) {
      if (sample >= nsamples_) {
-       /*throw std::out_of_range(". Sample index " + std::to_string(sample) +
-                               " out of range. Max index is " +
-                               std::to_string(nsamples_ - 1));*/
-       std::vector<T> holder(ncolumns());
-       set_data_sample(sample, holder);
+         if(expand_){
+             nsamples_ = sample+1;
+             data_.resize(nsamples_*ncolumns_);
+         }else{
+             throw  std::out_of_range(". This data packet is not expandable. Sample index " + std::to_string(sample) +
+                                      "should not be out of range. Max index is " + std::to_string(nsamples_ - 1));
+         }
      }
      if (column >= ncolumns_) {
        throw std::out_of_range(". Channel index " + std::to_string(sample) +
@@ -191,12 +200,12 @@ public:
    }
 
    /**
-    * @brief set_data_sample set one data for one column label and one sample index
-    * @param sample - selected sample index
-    * @param column - selected column label
+    * @brief set_data set data for all columns and all labels
     * @param data
     */
    void set_data(std::vector<T> data) {
+
+       nsamples_ = data.size()/ncolumns_;
        std::copy(data.begin(), data.end(), data_.begin());
    }
 
@@ -505,7 +514,7 @@ public:
  protected:
    size_t ncolumns_;
    size_t nsamples_;
-
+   bool expand_;
    std::vector<std::string> labels_;
    std::vector<T> data_;
 
