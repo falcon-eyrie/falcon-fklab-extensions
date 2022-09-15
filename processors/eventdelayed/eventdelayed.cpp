@@ -93,6 +93,14 @@ void EventDelayed::Configure(const GlobalContext &context) {
                   << "some weird behavior of detection locked out or not locked out when it should, could occur.";
     }
 
+    LOG_IF(WARNING, start_after_detection_() != start_after_stimulation_()) << name()
+                                                                         << "Event trigger lockout time:\n Be careful if you switch on ontime mode "
+                                                                         << "where stimulation and detection are in the same time, "
+                                                                         << "your options set will be interpreted as do a stimulation lock-out time. \n"
+                                                                         << "Turn off both detection and stimulation if you want to deactivate. ";
+
+
+
 }
 
 void EventDelayed::CreatePorts() {
@@ -221,7 +229,7 @@ void EventDelayed::Process(ProcessingContext &context) {
             // If stimulation is sent at the same time as detection = ontime mode
             } else {
                 ++ontime_received_event_;
-                if (not(start_after_detection_() and start_after_stimulation_()) or not to_lock_out()) {
+                if (not(start_after_detection_() or start_after_stimulation_()) or not to_lock_out()) {
                     send_event(data_in, msg_ontime_());
                     for(auto time_to_start:  when_stop_analysis_period_()){
                         Delayed event_lockout(data_in->source_timestamp() + std::chrono::milliseconds(time_to_start), data_in);
