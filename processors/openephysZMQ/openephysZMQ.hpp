@@ -32,6 +32,7 @@ class OpenEphysZMQ : public IProcessor {
 public:
   OpenEphysZMQ();
   void Preprocess(ProcessingContext &context) override;
+  void Configure(const GlobalContext &context) override;
   void CreatePorts() override;
   void CompleteStreamInfo() override;
   void Process(ProcessingContext &context) override;
@@ -44,7 +45,8 @@ protected:
   options::Value<std::uint64_t, false> npackets_{0, options::zeroismax<std::uint64_t>()};
   options::Value<unsigned int, false> batch_size_{1};
   options::Value<unsigned int, false> nchannels_{384, options::positive<unsigned int>(true)};
-
+  options::String unit_{"sample", options::notempty<std::string>()};
+  options::Value<unsigned int, false> frequency_{30000, options::positive<unsigned int>(true)};
   // PORT
 protected:
   PortOut<MultiChannelType<double>>* data_port_;

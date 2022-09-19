@@ -33,6 +33,9 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
                "single multi-channel data bucket.");
     add_option("nchannels", nchannels_,
                "The number of channels in the data packet sent by Open-Ephys.");
+    add_option("unit", unit_,
+               "Unit can be in sample (original from OE) or ms (transformed based on frequency)");
+    add_option("frequency", frequency_, "Sample frequency to expect from open-ephys");
 }
 
 void OpenEphysZMQ::CreatePorts() {
@@ -52,8 +55,13 @@ void OpenEphysZMQ::CompleteStreamInfo() {
 
 }
 
-void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
+void OpenEphysZMQ::Configure(const GlobalContext &context){
+   if(unit_().compare("sample") !=0 and unit_().compare("us") != 0){
+       throw ProcessingPreprocessingError("Error in setting the data unit. It should be either sample or us", name());
+   }
+}
 
+void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   auto tcp_address = "tcp://" + address_() + ":" + std::to_string(port_());
   try {
     socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
@@ -104,8 +112,16 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
-            LOG(INFO) << name() << ". Received first valid data packet"
-                      << " (OE TS = " << data->timestamp() << ")";
+
+            if(unit_().compare("us") == 0){
+                LOG(INFO) << name() << ". Received first valid data packet"
+                          << " (OE TS = " << static_cast<uint64_t>(data->timestamp()*1e6/frequency_()) << ")";
+            }else{
+                LOG(INFO) << name() << ". Received first valid data packet"
+                          << " (OE TS = " << data->timestamp() << ")";
+            }
+
+
 
           } else if (last_message_number_ + 1 !=
                      data->message_id()) {
@@ -124,12 +140,21 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               if (sample_counter_ == batch_size_()) {
                  data_out= data_port_->slot(0)->ClaimData(false);
                  // set data bucket metadata
-                 data_out->set_hardware_timestamp(init_ts);
+                 if(unit_().compare("us") == 0){
+                    data_out->set_hardware_timestamp(static_cast<uint64_t>(init_ts*1e6/frequency_()));
+                 }else{
+                    data_out->set_hardware_timestamp(init_ts);
+                 }
+
                  data_out->set_source_timestamp();
                  sample_counter_ = 0;
               }
+              if(unit_().compare("us") == 0){
+                  data_out->set_sample_timestamp(sample_counter_, static_cast<uint64_t>((init_ts+sample)*1e6/frequency_()));
+              }else{
+                  data_out->set_sample_timestamp(sample_counter_, init_ts+sample);
+              }
 
-              data_out->set_sample_timestamp(sample_counter_, init_ts+sample);
 
               data_out_iter = data_out->begin_sample(sample_counter_);
 

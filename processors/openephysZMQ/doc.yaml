@@ -27,3 +27,11 @@ Options:
     type: unsigned int
     default: 384
     description: The number of channels in the data packet sent by Open-Ephys.
+  - name: frequency
+    type: unsigned int
+    default: 30000
+    description: The number of channels in the data packet sent by Open-Ephys.
+- name: unit
+    type: string
+    default: sample
+    description: The number of channels in the data packet sent by Open-Ephys.
