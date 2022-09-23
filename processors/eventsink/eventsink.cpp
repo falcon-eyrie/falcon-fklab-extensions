@@ -17,7 +17,7 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "nlxsink.hpp"
+#include "eventsink.hpp"
 
 #include <string>
 #include <utility>
@@ -26,7 +26,7 @@
 #include "utilities/zmqutil.hpp"
 #include "utilities/string.hpp"
 
-NlxSink::NlxSink() : IProcessor() {
+EventSink::EventSink() : IProcessor() {
   add_option("address", address_, "Cheetah ip address");
   add_option("port", port_,"Cheetah network port.");
   add_option("ttl", ttl_,"TTL");
@@ -34,12 +34,12 @@ NlxSink::NlxSink() : IProcessor() {
   add_option("system", system_, "could be oe or nlx");
 }
 
-void NlxSink::CreatePorts() {
+void EventSink::CreatePorts() {
   data_port_ = create_input_port<EventType>("data", EventType::Capabilities(),
                                  PortInPolicy(SlotRange(1, 256), false));
 }
 
-void NlxSink::Preprocess(ProcessingContext &context) {
+void EventSink::Preprocess(ProcessingContext &context) {
   std::string address;
 
   socket_= std::make_unique<zmq::socket_t>(context.run().global().zmq(), ZMQ_REQ);
@@ -47,7 +47,7 @@ void NlxSink::Preprocess(ProcessingContext &context) {
   socket_->connect(address.c_str());
 }
 
-void NlxSink::Process(ProcessingContext &context) {
+void EventSink::Process(ProcessingContext &context) {
   std::vector<typename EventType::Data *> data;
   zmq_frames buffer;
   zmq_frames reply;
@@ -94,4 +94,4 @@ void NlxSink::Process(ProcessingContext &context) {
   }
 }
 
-REGISTERPROCESSOR(NlxSink)
+REGISTERPROCESSOR(EventSink)
