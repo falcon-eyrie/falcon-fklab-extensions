@@ -33,10 +33,11 @@ class EventSink : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
   EventSink();
+  void Configure(const GlobalContext &context);
   void CreatePorts() override;
   void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
-
+  void Postprocess(ProcessingContext &context) override;
   // DATA PORTS
  protected:
   PortIn<EventType> *data_port_;
@@ -48,6 +49,7 @@ class EventSink : public IProcessor {
   options::Value<unsigned int, false> eventid_{0};
   options::String address_{"*"};
   options::String system_{"oe"};
+  options::Bool interleave_{"true"};
 
   // VARIABLES
  protected:

@@ -32,40 +32,51 @@ EventSink::EventSink() : IProcessor() {
   add_option("ttl", ttl_,"TTL");
   add_option("event id", eventid_,"Event id.");
   add_option("system", system_, "could be oe or nlx");
+  add_option("interleave", interleave_, "always activate the same ttl or activate a ttl by input slots.");
+
 }
 
+void EventSink::Configure(const GlobalContext &context){
+    if(system_() != "oe" and system_() != "nlx"){
+        throw ProcessingConfigureError("System option can be only oe or nlx.", name());
+    }
+}
 void EventSink::CreatePorts() {
   data_port_ = create_input_port<EventType>("data", EventType::Capabilities(),
                                  PortInPolicy(SlotRange(1, 256), false));
 }
 
 void EventSink::Preprocess(ProcessingContext &context) {
-  std::string address;
 
   socket_= std::make_unique<zmq::socket_t>(context.run().global().zmq(), ZMQ_REQ);
-  address = "tcp://"+ address_() +":" + std::to_string(port_());
+  std::string address = "tcp://"+ address_() +":" + std::to_string(port_());
   socket_->connect(address.c_str());
+  int t  = 3000;
+  zmq_setsockopt(*(socket_), ZMQ_RCVTIMEO, &t, sizeof(t));
 }
 
 void EventSink::Process(ProcessingContext &context) {
   std::vector<typename EventType::Data *> data;
   zmq_frames buffer;
   zmq_frames reply;
+  int ttl;
   while (!context.terminated()) {
     for (int k = 0; k < data_port_->number_of_slots(); ++k) {
       if (!data_port_->slot(k)->RetrieveDataAll(data, 0)) {
         break;
       }
-
-      for (auto &it : data) {
-
         reply.clear();
         buffer.clear();
+        if(interleave_()){
+            ttl = ttl_() + k;
+        }else{
+            ttl = ttl_();
+        }
 
         if(system_() == "nlx"){
             buffer.push_back("event");
-            buffer.push_back(it->event());
-            buffer.push_back(std::to_string(ttl_()));
+            buffer.push_back(data[0]->event());
+            buffer.push_back(std::to_string(ttl));
             buffer.push_back(std::to_string(eventid_()));
 
             if (!s_send_multi(*(socket_), buffer)) {
@@ -76,22 +87,25 @@ void EventSink::Process(ProcessingContext &context) {
             LOG(DEBUG) << "nlx reply: " << reply[0];
 
         }else if(system_()== "oe"){
-            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl_())+" 1")) {
+
+            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=1")) {
                 LOG(DEBUG) << "failed to send zmq message.";
             }
             reply = s_blocking_recv_multi(*(socket_));
-            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl_())+" 0")) {
+            LOG(DEBUG) << "oe reply: " << reply[0];
+            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=0")) {
                 LOG(DEBUG) << "failed to send zmq message.";
             }
             reply = s_blocking_recv_multi(*(socket_));
             LOG(DEBUG) << "oe reply: " << reply[0];
         }
-
-
-      }
       data_port_->slot(k)->ReleaseData();
-    }
   }
+ }
 }
+  void EventSink::Postprocess(ProcessingContext &context) {
+      socket_->close();
+
+  }
 
 REGISTERPROCESSOR(EventSink)
