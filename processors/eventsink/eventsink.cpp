@@ -62,7 +62,7 @@ void EventSink::Process(ProcessingContext &context) {
         reply.clear();
         buffer.clear();
 
-        if(system_().compare("nlx")){
+        if(system_() == "nlx"){
             buffer.push_back("event");
             buffer.push_back(it->event());
             buffer.push_back(std::to_string(ttl_()));
@@ -75,7 +75,7 @@ void EventSink::Process(ProcessingContext &context) {
 
             LOG(DEBUG) << "nlx reply: " << reply[0];
 
-        }else if(system_().compare("oe")){
+        }else if(system_()== "oe"){
             if (!s_send(*(socket_), "TTL "+ std::to_string(ttl_())+" 1")) {
                 LOG(DEBUG) << "failed to send zmq message.";
             }
