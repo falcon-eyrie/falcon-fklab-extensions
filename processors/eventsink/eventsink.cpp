@@ -24,12 +24,14 @@
 
 #include "idata.hpp"
 #include "utilities/zmqutil.hpp"
+#include "utilities/string.hpp"
 
 NlxSink::NlxSink() : IProcessor() {
   add_option("address", address_, "Cheetah ip address");
   add_option("port", port_,"Cheetah network port.");
   add_option("ttl", ttl_,"TTL");
   add_option("event id", eventid_,"Event id.");
+  add_option("system", system_, "could be oe or nlx");
 }
 
 void NlxSink::CreatePorts() {
@@ -49,7 +51,6 @@ void NlxSink::Process(ProcessingContext &context) {
   std::vector<typename EventType::Data *> data;
   zmq_frames buffer;
   zmq_frames reply;
-
   while (!context.terminated()) {
     for (int k = 0; k < data_port_->number_of_slots(); ++k) {
       if (!data_port_->slot(k)->RetrieveDataAll(data, 0)) {
@@ -60,15 +61,32 @@ void NlxSink::Process(ProcessingContext &context) {
 
         reply.clear();
         buffer.clear();
-        buffer.push_back("event");
-        buffer.push_back(it->event());
-        buffer.push_back(std::to_string(ttl_()));
-        buffer.push_back(std::to_string(eventid_()));
 
-        if (!s_send_multi(*(socket_), buffer)) {
-            LOG(DEBUG) << "failed to send zmq message.";
+        if(system_().compare("nlx")){
+            buffer.push_back("event");
+            buffer.push_back(it->event());
+            buffer.push_back(std::to_string(ttl_()));
+            buffer.push_back(std::to_string(eventid_()));
+
+            if (!s_send_multi(*(socket_), buffer)) {
+                LOG(DEBUG) << "failed to send zmq message.";
+            }
+            reply = s_blocking_recv_multi(*(socket_));
+
+            LOG(DEBUG) << "nlx reply: " << reply[0];
+
+        }else if(system_().compare("oe")){
+            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl_())+" 1")) {
+                LOG(DEBUG) << "failed to send zmq message.";
+            }
+            reply = s_blocking_recv_multi(*(socket_));
+            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl_())+" 0")) {
+                LOG(DEBUG) << "failed to send zmq message.";
+            }
+            reply = s_blocking_recv_multi(*(socket_));
+            LOG(DEBUG) << "oe reply: " << reply[0];
         }
-        reply = s_blocking_recv_multi(*(socket_));
+
 
       }
       data_port_->slot(k)->ReleaseData();

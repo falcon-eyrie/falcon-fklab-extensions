@@ -29,10 +29,10 @@
 #include "yaml-cpp/yaml.h"
 #include "eventdata/eventdata.hpp"
 
-class NlxSink : public IProcessor {
+class EventSink : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
-  NlxSink();
+  EventSink();
   void CreatePorts() override;
   void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
@@ -47,6 +47,7 @@ class NlxSink : public IProcessor {
   options::Value<unsigned int, false> ttl_{0};
   options::Value<unsigned int, false> eventid_{0};
   options::String address_{"*"};
+  options::String system_{"oe"};
 
   // VARIABLES
  protected:
