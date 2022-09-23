@@ -36,7 +36,6 @@ class NlxSink : public IProcessor {
   void CreatePorts() override;
   void Preprocess(ProcessingContext &context) override;
   void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
 
   // DATA PORTS
  protected:
@@ -44,7 +43,7 @@ class NlxSink : public IProcessor {
 
   // OPTIONS
  protected:
-  options::Value<unsigned int, false> port_{7777};
+  options::Value<unsigned int, false> port_{5555};
   options::Value<unsigned int, false> ttl_{0};
   options::Value<unsigned int, false> eventid_{0};
   options::String address_{"*"};
