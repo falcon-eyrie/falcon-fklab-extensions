@@ -40,7 +40,8 @@ class EventSink : public IProcessor {
   void Postprocess(ProcessingContext &context) override;
   // DATA PORTS
  protected:
-  PortIn<EventType> *data_port_;
+  PortIn<AnyType> *data_port_;
+  std::unique_ptr<Serialization::Serializer> serializer_;
 
   // OPTIONS
  protected:

@@ -42,7 +42,7 @@ void EventSink::Configure(const GlobalContext &context){
     }
 }
 void EventSink::CreatePorts() {
-  data_port_ = create_input_port<EventType>("data", EventType::Capabilities(),
+  data_port_ = create_input_port<AnyType>("data", EventType::Capabilities(),
                                  PortInPolicy(SlotRange(1, 256), false));
 }
 
@@ -53,18 +53,22 @@ void EventSink::Preprocess(ProcessingContext &context) {
   socket_->connect(address.c_str());
   int t  = 3000;
   zmq_setsockopt(*(socket_), ZMQ_RCVTIMEO, &t, sizeof(t));
+  serializer_.reset(Serialization::serializer(Serialization::Encoding::YAML, Serialization::Format::FULL));
 }
 
 void EventSink::Process(ProcessingContext &context) {
-  std::vector<typename EventType::Data *> data;
+  std::vector<typename AnyType::Data *> data;
   zmq_frames buffer;
   zmq_frames reply;
+  std::stringstream buffer_serialization;
   int ttl;
   while (!context.terminated()) {
     for (int k = 0; k < data_port_->number_of_slots(); ++k) {
       if (!data_port_->slot(k)->RetrieveDataAll(data, 0)) {
         break;
       }
+
+      for (auto &it : data) {
         reply.clear();
         buffer.clear();
         if(interleave_()){
@@ -75,16 +79,27 @@ void EventSink::Process(ProcessingContext &context) {
 
         if(system_() == "nlx"){
             buffer.push_back("event");
-            buffer.push_back(data[0]->event());
-            buffer.push_back(std::to_string(ttl));
-            buffer.push_back(std::to_string(eventid_()));
 
-            if (!s_send_multi(*(socket_), buffer)) {
-                LOG(DEBUG) << "failed to send zmq message.";
+            buffer_serialization.str("");
+            buffer_serialization.clear();
+
+            if (serializer_->Serialize(buffer_serialization, it, k, 0,
+                                       data_port_->slot(k)->upstream_address().processor(),
+                                       data_port_->slot(k)->upstream_address().port(),
+                                       data_port_->slot(k)->upstream_address().slot())) {
+                buffer.push_back(buffer_serialization.str());
+                buffer.push_back(std::to_string(ttl));
+                buffer.push_back(std::to_string(eventid_()));
+                if (!s_send_multi(*(socket_), buffer)) {
+                    LOG(DEBUG) << "failed to send zmq message.";
+                }
+                reply = s_blocking_recv_multi(*(socket_));
+
+                LOG(DEBUG) << "nlx reply: " << reply[0];
+            } else {
+            LOG(WARNING) << name() << ": Unable to serialize data stream " << k;
             }
-            reply = s_blocking_recv_multi(*(socket_));
 
-            LOG(DEBUG) << "nlx reply: " << reply[0];
 
         }else if(system_()== "oe"){
 
@@ -99,6 +114,7 @@ void EventSink::Process(ProcessingContext &context) {
             reply = s_blocking_recv_multi(*(socket_));
             LOG(DEBUG) << "oe reply: " << reply[0];
         }
+      }
       data_port_->slot(k)->ReleaseData();
   }
  }
