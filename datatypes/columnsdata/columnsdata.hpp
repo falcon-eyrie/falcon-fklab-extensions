@@ -40,13 +40,13 @@ using ParentType = AnyType;
 
 struct Parameters{
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, bool expand = false)
-     : ncolumns(labels.size()), nsamples(nsamp), labels(labels), expand(expand) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, bool resizable = false)
+     : ncolumns(labels.size()), nsamples(nsamp), labels(labels), resizable(resizable) {}
 
   size_t ncolumns;
   size_t nsamples;
   std::vector<std::string> labels;
-  bool expand;
+  bool resizable;
 };
 
 template <typename T> class Data : public IData<Data<T>,ParentType> {
@@ -57,15 +57,15 @@ public:
      * @param labels give a label for each column
      * @param nsamples give the number of samples
      */
-    Data(const std::vector<std::string>& labels, size_t nsamples, bool expand=false){
-        if (labels.size() == 0 or (!expand and nsamples == 0)) {
+    Data(const std::vector<std::string>& labels, size_t nsamples, bool resizable=false){
+        if (labels.size() == 0 or (!resizable and nsamples == 0)) {
           throw std::runtime_error("Column Data::Initialize - number of "
                                    "columns/samples needs to be larger than 0.");
         }
         labels_ = labels;
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
-        expand_ = expand;
+        resizable_ = resizable;
         data_.resize(ncolumns_ * nsamples_);
     }
 
@@ -74,7 +74,7 @@ public:
      * @param parameters
      */
     Data(const Parameters &parameters)
-        : Data(parameters.labels, parameters.nsamples, parameters.expand){}
+        : Data(parameters.labels, parameters.nsamples, parameters.resizable){}
 
     static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
     static const std::string static_dataname() { return "data"; }
@@ -96,8 +96,8 @@ public:
    std::vector<std::string> labels() const{ return labels_; }
 
    void set_nsamples(size_t nsamples) {
-       if (!expand_) {
-           throw  std::out_of_range(". This data packet is not expandable. New sample size requested is " + std::to_string(nsamples) +
+       if (!resizable_) {
+           throw  std::out_of_range(". This data packet is not resizableable. New sample size requested is " + std::to_string(nsamples) +
                                         "Actual sample size is " + std::to_string(nsamples_));
 
        }
@@ -123,11 +123,11 @@ public:
     */
    void set_data_column(size_t column, const std::vector<T> &data){
      if(column >= ncolumns()){
-         throw  std::out_of_range(". Column index " + std::to_string(column) +
+         throw  std::out_of_range(". Column " +  labels()[column]+" / "+ std::to_string(column) +
                                   "should not be out of range. Max index is " + std::to_string(ncolumns() - 1));
      }
 
-     if(nsamples() <= data.size()){
+     if(nsamples() != data.size()){
            set_nsamples(data.size());
      }
 
@@ -161,7 +161,7 @@ public:
     */
    void set_data_sample(size_t sample, size_t column, T data) {
      if (column >= ncolumns_) {
-         throw std::out_of_range(". Channel index " + std::to_string(column) +
+         throw std::out_of_range(". Column " + labels()[column]+" / "+ std::to_string(column) +
                                  " out of range. Max index is " + std::to_string(ncolumns_ - 1));
      }
 
@@ -171,6 +171,7 @@ public:
 
      data_[flat_index(sample, column)] = data;
    }
+
 
    /**
     * @brief set_data_sample set one data for one column label and one sample index
@@ -185,11 +186,30 @@ public:
 
    /**
     * @brief clone_column clone a column from another dataset
-    * @param column - selected column to clone
+    * @param column - label of the selected column to clone
     * @param data_in - data packet to clone
     */
    void clone_column(std::string column, Data &data_in) {
-     std::copy(data_in.begin_column(column), data_in.end_column(column), begin_column(column));
+      auto index =  extract_index_from_column(column);
+      clone_column(index, data_in);
+   }
+
+   /**
+    * @brief clone_column clone a columnfrom another dataset
+    * @param column - index of the selected column to clone
+    * @param data_in - data packet to clone
+    */
+   void clone_column(size_t column, Data &data_in) {
+       if (column >= ncolumns_) {
+           throw std::out_of_range(". Column " + labels()[column]+" / "+ std::to_string(column) +
+                                   " out of range. Max index is " + std::to_string(ncolumns_ - 1));
+       }
+
+       if(nsamples() != data_in.nsamples()){
+          set_nsamples(data_in.nsamples());
+       }
+
+       std::copy(data_in.begin_column(column), data_in.end_column(column), begin_column(column));
    }
 
    /**
@@ -203,8 +223,8 @@ public:
        }
 
        int nsamples = data.size()/ncolumns_;
-       if(!expand_ and nsamples_ < nsamples){
-           throw std::runtime_error("The packet is not expandable "
+       if(!resizable_ and nsamples_ != nsamples){
+           throw std::runtime_error("The packet is not resizableable "
                                     "and the data packet to set has too many samples.");
        }
 
@@ -508,7 +528,7 @@ public:
  protected:
    size_t ncolumns_;
    size_t nsamples_;
-   bool expand_;
+   bool resizable_;
    std::vector<std::string> labels_;
    std::vector<T> data_;
 
