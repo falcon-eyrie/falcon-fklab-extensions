@@ -30,8 +30,9 @@ EventSink::EventSink() : IProcessor() {
   add_option("address", address_, "Cheetah ip address");
   add_option("port", port_,"Cheetah network port.");
   add_option("ttl", ttl_,"TTL");
+  add_option("message", event_message_,"event message");
   add_option("event id", eventid_,"Event id.");
-  add_option("system", system_, "could be oe or nlx");
+  add_option("system", system_, "could be oe, oe_ttl or nlx");
   add_option("interleave", interleave_, "always activate the same ttl or activate a ttl by input slots.");
 
 }
@@ -103,6 +104,13 @@ void EventSink::Process(ProcessingContext &context) {
 
         }else if(system_()== "oe"){
 
+            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on="+event_message_())) {
+                LOG(DEBUG) << "failed to send zmq message.";
+            }
+            reply = s_blocking_recv_multi(*(socket_));
+            LOG(DEBUG) << "oe reply: " << reply[0];
+
+        }else if(system_()== "oe_ttl"){
             if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=1")) {
                 LOG(DEBUG) << "failed to send zmq message.";
             }

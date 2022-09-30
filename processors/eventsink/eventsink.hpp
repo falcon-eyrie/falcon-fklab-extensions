@@ -50,6 +50,7 @@ class EventSink : public IProcessor {
   options::Value<unsigned int, false> eventid_{0};
   options::String address_{"*"};
   options::String system_{"oe"};
+ options::String event_message_{"events"};
   options::Bool interleave_{"true"};
 
   // VARIABLES
