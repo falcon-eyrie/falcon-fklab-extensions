@@ -51,7 +51,10 @@ struct Parameters{
 
 template <typename T> class Data : public IData<Data<T>,ParentType> {
 public:
+
     using BaseClass = IData<Data<T>,ParentType>;
+    typedef stride_iter<T *> sample_iterator;
+    typedef T *column_iterator;
     /**
      * @brief Data constructor with the labels for each column and the number of samples
      * @param labels give a label for each column
@@ -234,7 +237,7 @@ public:
    }
 
    /**
-    * @brief data - return full data with this format [c1s1, c1s2.., c1sn, c2s1, c2s2 ..., cns1,...cnsn]
+    * @brief data - return full data with this format [s1c1, s1c2.., s1cn, s2c1, s2c2 ..., snc1,...sncn]
     * @return
     */
    std::vector<T> &data() { return data_; }
@@ -282,7 +285,7 @@ public:
    }
 
    // operator based on index from the full dataset
-   // [column_index = index/ncolumns, sample_index = index%ncolumns]
+   // [column_index = index%ncolumns, sample_index = index/ncolumns]
    T &operator()(size_t index) { return data_[index]; }
    const T &operator()(size_t index) const { return data_[index]; }
 
@@ -293,18 +296,35 @@ public:
     * @param sample
     * @return
     */
-   T *begin_sample(size_t sample) { return &data_[flat_index(sample)]; }
+   T *begin_column(size_t column) { return &data_[flat_index(column)]; }
    /**
     * @brief end_sample iterator at the end of a sample index
     * @param sample
     * @return
     */
-   T *end_sample(size_t sample) { return begin_sample(sample) + ncolumns_; }
+   T *end_column(size_t column) { return begin_column(column) + nsamples_; }
 
-   const T *begin_sample(size_t sample) const {
-     return &data_[flat_index(sample)];
+   const T *begin_column(size_t column) const {
+     return &data_[flat_index(column)];
    }
-   const T *end_sample(size_t sample) const {
+   const T *end_column(size_t column) const {
+     return begin_column(column) + nsamples_;
+   }
+
+   /**
+    * @brief begin_column iterator at the start of the column based on the location in the dataset
+    * @param column - column index
+    * @return
+    */
+   stride_iter<T *> begin_sample(size_t sample) {
+     return stride_iter<T *>(&data_[sample], nsamples_);
+   }
+   /**
+    * @brief end_column - iterator at the end of the column based on the location in the dataset
+    * @param column - column index
+    * @return
+    */
+   stride_iter<T *> end_sample(size_t sample) {
      return begin_sample(sample) + ncolumns_;
    }
 
@@ -313,24 +333,25 @@ public:
     * @param column - column index
     * @return
     */
-   stride_iter<T *> begin_column(size_t column) {
-     return stride_iter<T *>(&data_[column], ncolumns_);
+   stride_iter<const  T *> begin_sample(size_t sample) const {
+     return stride_iter<const  T *>(&data_[sample], nsamples_);
    }
    /**
     * @brief end_column - iterator at the end of the column based on the location in the dataset
     * @param column - column index
     * @return
     */
-   stride_iter<T *> end_column(size_t column) {
-     return begin_column(column) + nsamples_;
+   stride_iter<const  T *> end_sample(size_t sample) const {
+     return begin_sample(sample) + ncolumns_;
    }
+
 
    /**
     * @brief begin_column - iterator at the start of the column based on name of the column
     * @param column - column label
     * @return
     */
-   stride_iter<T *> begin_column(std::string column) {
+   T * begin_column(std::string column) {
      auto index =  extract_index_from_column(column);
      return begin_column(index);
    }
@@ -339,8 +360,9 @@ public:
     * @param column - column label
     * @return
     */
-   stride_iter<T *> end_column(std::string column) {
-     return begin_column(column) + nsamples_;
+   T * end_column(std::string column) {
+     auto index =  extract_index_from_column(column);
+     return end_column(index);
    }
 
    /**
@@ -360,7 +382,7 @@ public:
 
      if (format == Serialization::Format::COMPACT) {
        for (size_t k = 0; k < nsamples_; ++k) {
-           stream.write(reinterpret_cast<const char *>(&data_[flat_index(k)]),
+           stream.write(reinterpret_cast<const char *>(&data_[k]),
                         sizeof(T) * ncolumns_);
        }
      }
@@ -520,10 +542,10 @@ public:
    }
 
  protected:
-   inline size_t flat_index(size_t sample, size_t channel) const {
-     return channel + sample * ncolumns_;
+   inline size_t flat_index(size_t sample, size_t column) const {
+     return sample + column * nsamples_;
    }
-   inline size_t flat_index(size_t sample) const { return sample * ncolumns_; }
+   inline size_t flat_index(size_t column) const { return column*nsamples(); }
 
  protected:
    size_t ncolumns_;

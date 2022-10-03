@@ -48,8 +48,6 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
  using BaseClass = IData<Data<T>,Base<T>>;
 
  public:
-  typedef stride_iter<T *> column_iterator;
-  typedef T *sample_iterator;
 
     /**
    * @brief Data constructor with the label of the columns, the number of samples and the sample rate.
