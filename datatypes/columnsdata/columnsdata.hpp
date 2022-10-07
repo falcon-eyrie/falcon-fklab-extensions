@@ -106,7 +106,8 @@ public:
        }
 
        nsamples_ = nsamples;
-       data_.resize(ncolumns_ * nsamples_);
+       data_.resize(nsamples*ncolumns());
+
    }
 
    /**
@@ -193,8 +194,9 @@ public:
     * @param data_in - data packet to clone
     */
    void clone_column(std::string column, Data &data_in) {
-      auto index =  extract_index_from_column(column);
-      clone_column(index, data_in);
+      auto index_in =  data_in.extract_index_from_column(column);
+      auto index_out =  extract_index_from_column(column);
+      clone_column(index_in, index_out, data_in);
    }
 
    /**
@@ -202,17 +204,27 @@ public:
     * @param column - index of the selected column to clone
     * @param data_in - data packet to clone
     */
-   void clone_column(size_t column, Data &data_in) {
-       if (column >= ncolumns_) {
-           throw std::out_of_range(". Column " + labels()[column]+" / "+ std::to_string(column) +
+   void clone_column(size_t column_in, size_t column_out, Data &data_in) {
+       if (column_out >= ncolumns_) {
+           throw std::out_of_range(". Column " + labels()[column_out]+" / "+ std::to_string(column_out) +
                                    " out of range. Max index is " + std::to_string(ncolumns_ - 1));
+       }
+
+       if (column_in >= data_in.ncolumns()) {
+           throw std::out_of_range(". Column " + data_in.labels()[column_in]+" / "+ std::to_string(column_in) +
+                                   " out of range. Max index is " + std::to_string(data_in.ncolumns() - 1));
+       }
+
+       if(data_in.nsamples() < nsamples()){
+           throw  std::out_of_range(". Column " +  labels()[column_out]+" / "+ std::to_string(column_out) +
+                                    "should contained at least " + std::to_string(nsamples() - 1));
        }
 
        if(nsamples() != data_in.nsamples()){
           set_nsamples(data_in.nsamples());
        }
 
-       std::copy(data_in.begin_column(column), data_in.end_column(column), begin_column(column));
+       std::copy(data_in.begin_column(column_in), data_in.end_column(column_in), begin_column(column_out));
    }
 
    /**
@@ -438,8 +450,8 @@ public:
       BaseClass::YAMLDescription(node, format);
       if (format == Serialization::Format::FULL) {
         node.push_back("signal " + get_type_string<T>() + " (" +
-                       std::to_string(nsColumn::Data<T>::nsamples()) + "," +
-                       std::to_string(nsColumn::Data<T>::ncolumns()) + ")");
+                       std::to_string(nsColumn::Data<T>::ncolumns()) + "," +
+                       std::to_string(nsColumn::Data<T>::nsamples()) + ")");
       }
 
       if (format == Serialization::Format::COMPACT) {
