@@ -40,30 +40,35 @@ using ParentType = AnyType;
 
 struct Parameters{
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0)
-     : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, bool resizable = false)
+     : ncolumns(labels.size()), nsamples(nsamp), labels(labels), resizable(resizable) {}
 
   size_t ncolumns;
   size_t nsamples;
   std::vector<std::string> labels;
+  bool resizable;
 };
 
 template <typename T> class Data : public IData<Data<T>,ParentType> {
 public:
+
     using BaseClass = IData<Data<T>,ParentType>;
+    typedef stride_iter<T *> sample_iterator;
+    typedef T *column_iterator;
     /**
      * @brief Data constructor with the labels for each column and the number of samples
      * @param labels give a label for each column
      * @param nsamples give the number of samples
      */
-    Data(const std::vector<std::string>& labels, size_t nsamples){
-        if (labels.size() == 0 || nsamples == 0) {
+    Data(const std::vector<std::string>& labels, size_t nsamples, bool resizable=false){
+        if (labels.size() == 0 or (!resizable and nsamples == 0)) {
           throw std::runtime_error("Column Data::Initialize - number of "
                                    "columns/samples needs to be larger than 0.");
         }
         labels_ = labels;
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
+        resizable_ = resizable;
         data_.resize(ncolumns_ * nsamples_);
     }
 
@@ -72,7 +77,7 @@ public:
      * @param parameters
      */
     Data(const Parameters &parameters)
-        : Data(parameters.labels, parameters.nsamples){}
+        : Data(parameters.labels, parameters.nsamples, parameters.resizable){}
 
     static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
     static const std::string static_dataname() { return "data"; }
@@ -88,9 +93,22 @@ public:
      return Parameters(labels_, nsamples_);
    }
 
-   size_t ncolumns() const { return ncolumns_; }
-   size_t nsamples() const { return nsamples_; }
+   size_t ncolumns() const { return ncolumns_;}
+   size_t nsamples() const {return nsamples_;}
+
    std::vector<std::string> labels() const{ return labels_; }
+
+   void set_nsamples(size_t nsamples) {
+       if (!resizable_) {
+           throw  std::out_of_range(". This data packet is not resizableable. New sample size requested is " + std::to_string(nsamples) +
+                                        "Actual sample size is " + std::to_string(nsamples_));
+
+       }
+
+       nsamples_ = nsamples;
+       data_.resize(nsamples*ncolumns());
+
+   }
 
    /**
     * @brief set_data_column set all samples for one column based on the name of the column
@@ -98,12 +116,8 @@ public:
     * @param data - vector containing data for all samples
     */
    void set_data_column(std::string column, const std::vector<T> &data){
-
-     if(data.size() !=  this->nsamples_){
-        throw  std::length_error(". the data vector to set should have the same size as the number of columns ("
-                                    + std::to_string(ncolumns_)+" columns)");
-     }
-     std::copy(data.begin(), data.end(), begin_column(column));
+     auto index =  extract_index_from_column(column);
+     set_data_column(index, data);
    }
 
    /**
@@ -112,11 +126,15 @@ public:
     * @param data - vector containing data for all samples
     */
    void set_data_column(size_t column, const std::vector<T> &data){
-
-     if(data.size() !=  this->nsamples_){
-         throw  std::length_error(". the data vector to set should have the same size as the number of samples ("
-                                  + std::to_string(nsamples_)+" samples)");
+     if(column >= ncolumns()){
+         throw  std::out_of_range(". Column " +  labels()[column]+" / "+ std::to_string(column) +
+                                  "should not be out of range. Max index is " + std::to_string(ncolumns() - 1));
      }
+
+     if(nsamples() != data.size()){
+           set_nsamples(data.size());
+     }
+
      std::copy(data.begin(), data.end(), begin_column(column));
    }
 
@@ -130,7 +148,13 @@ public:
          throw  std::length_error(". the data vector to set should have the same size as the number of column in the dataset ("
                                   + std::to_string(ncolumns_)+" columns)");
      }
+
+     if(nsamples() <= sample){
+        set_nsamples(sample+1);
+     }
+
      std::copy(data.begin(), data.end(), begin_sample(sample));
+
    }
 
    /**
@@ -140,18 +164,18 @@ public:
     * @param data
     */
    void set_data_sample(size_t sample, size_t column, T data) {
-     if (sample >= nsamples_) {
-       throw std::out_of_range(". Sample index " + std::to_string(sample) +
-                               " out of range. Max index is " +
-                               std::to_string(nsamples_ - 1));
-     }
      if (column >= ncolumns_) {
-       throw std::out_of_range(". Channel index " + std::to_string(sample) +
-                               " out of range. Max index is " +
-                               std::to_string(ncolumns_ - 1));
+         throw std::out_of_range(". Column " + labels()[column]+" / "+ std::to_string(column) +
+                                 " out of range. Max index is " + std::to_string(ncolumns_ - 1));
      }
+
+     if(nsamples() <= sample){
+        set_nsamples(sample+1);
+     }
+
      data_[flat_index(sample, column)] = data;
    }
+
 
    /**
     * @brief set_data_sample set one data for one column label and one sample index
@@ -165,8 +189,67 @@ public:
    }
 
    /**
-    * @brief data - return full data with this format [c1s1, c1s2.., c1sn, c2s1, c2s2 ..., cns1,...cnsn]
-    *
+    * @brief clone_column clone a column from another dataset
+    * @param column - label of the selected column to clone
+    * @param data_in - data packet to clone
+    */
+   void clone_column(std::string column, Data &data_in) {
+      auto index_in =  data_in.extract_index_from_column(column);
+      auto index_out =  extract_index_from_column(column);
+      clone_column(index_in, index_out, data_in);
+   }
+
+   /**
+    * @brief clone_column clone a columnfrom another dataset
+    * @param column - index of the selected column to clone
+    * @param data_in - data packet to clone
+    */
+   void clone_column(size_t column_in, size_t column_out, Data &data_in) {
+       if (column_out >= ncolumns_) {
+           throw std::out_of_range(". Column " + labels()[column_out]+" / "+ std::to_string(column_out) +
+                                   " out of range. Max index is " + std::to_string(ncolumns_ - 1));
+       }
+
+       if (column_in >= data_in.ncolumns()) {
+           throw std::out_of_range(". Column " + data_in.labels()[column_in]+" / "+ std::to_string(column_in) +
+                                   " out of range. Max index is " + std::to_string(data_in.ncolumns() - 1));
+       }
+
+       if(data_in.nsamples() < nsamples()){
+           throw  std::out_of_range(". Column " +  labels()[column_out]+" / "+ std::to_string(column_out) +
+                                    "should contained at least " + std::to_string(nsamples() - 1));
+       }
+
+       if(nsamples() != data_in.nsamples()){
+          set_nsamples(data_in.nsamples());
+       }
+
+       std::copy(data_in.begin_column(column_in), data_in.end_column(column_in), begin_column(column_out));
+   }
+
+   /**
+    * @brief set_data set data for all columns and all labels
+    * @param data
+    */
+   void set_data(std::vector<T> data) {
+       if(data.size() % ncolumns_ != 0){
+           throw std::runtime_error("Data packet to set cannot be split in "
+                                    + std::to_string(ncolumns) + " columns.");
+       }
+
+       int nsamples = data.size()/ncolumns_;
+       if(!resizable_ and nsamples_ != nsamples){
+           throw std::runtime_error("The packet is not resizableable "
+                                    "and the data packet to set has too many samples.");
+       }
+
+       nsamples_ = nsamples;
+       data_.clear();
+       std::copy(data.begin(), data.end(), data_.begin());
+   }
+
+   /**
+    * @brief data - return full data with this format [s1c1, s1c2.., s1cn, s2c1, s2c2 ..., snc1,...sncn]
     * @return
     */
    std::vector<T> &data() { return data_; }
@@ -214,7 +297,7 @@ public:
    }
 
    // operator based on index from the full dataset
-   // [column_index = index/ncolumns, sample_index = index%ncolumns]
+   // [column_index = index%ncolumns, sample_index = index/ncolumns]
    T &operator()(size_t index) { return data_[index]; }
    const T &operator()(size_t index) const { return data_[index]; }
 
@@ -225,18 +308,35 @@ public:
     * @param sample
     * @return
     */
-   T *begin_sample(size_t sample) { return &data_[flat_index(sample)]; }
+   T *begin_column(size_t column) { return &data_[flat_index(column)]; }
    /**
     * @brief end_sample iterator at the end of a sample index
     * @param sample
     * @return
     */
-   T *end_sample(size_t sample) { return begin_sample(sample) + ncolumns_; }
+   T *end_column(size_t column) { return begin_column(column) + nsamples_; }
 
-   const T *begin_sample(size_t sample) const {
-     return &data_[flat_index(sample)];
+   const T *begin_column(size_t column) const {
+     return &data_[flat_index(column)];
    }
-   const T *end_sample(size_t sample) const {
+   const T *end_column(size_t column) const {
+     return begin_column(column) + nsamples_;
+   }
+
+   /**
+    * @brief begin_column iterator at the start of the column based on the location in the dataset
+    * @param column - column index
+    * @return
+    */
+   stride_iter<T *> begin_sample(size_t sample) {
+     return stride_iter<T *>(&data_[sample], nsamples_);
+   }
+   /**
+    * @brief end_column - iterator at the end of the column based on the location in the dataset
+    * @param column - column index
+    * @return
+    */
+   stride_iter<T *> end_sample(size_t sample) {
      return begin_sample(sample) + ncolumns_;
    }
 
@@ -245,24 +345,25 @@ public:
     * @param column - column index
     * @return
     */
-   stride_iter<T *> begin_column(size_t column) {
-     return stride_iter<T *>(&data_[column], ncolumns_);
+   stride_iter<const  T *> begin_sample(size_t sample) const {
+     return stride_iter<const  T *>(&data_[sample], nsamples_);
    }
    /**
     * @brief end_column - iterator at the end of the column based on the location in the dataset
     * @param column - column index
     * @return
     */
-   stride_iter<T *> end_column(size_t column) {
-     return begin_column(column) + nsamples_;
+   stride_iter<const  T *> end_sample(size_t sample) const {
+     return begin_sample(sample) + ncolumns_;
    }
+
 
    /**
     * @brief begin_column - iterator at the start of the column based on name of the column
     * @param column - column label
     * @return
     */
-   stride_iter<T *> begin_column(std::string column) {
+   T * begin_column(std::string column) {
      auto index =  extract_index_from_column(column);
      return begin_column(index);
    }
@@ -271,8 +372,9 @@ public:
     * @param column - column label
     * @return
     */
-   stride_iter<T *> end_column(std::string column) {
-     return begin_column(column) + nsamples_;
+   T * end_column(std::string column) {
+     auto index =  extract_index_from_column(column);
+     return end_column(index);
    }
 
    /**
@@ -292,7 +394,7 @@ public:
 
      if (format == Serialization::Format::COMPACT) {
        for (size_t k = 0; k < nsamples_; ++k) {
-           stream.write(reinterpret_cast<const char *>(&data_[flat_index(k)]),
+           stream.write(reinterpret_cast<const char *>(&data_[k]),
                         sizeof(T) * ncolumns_);
        }
      }
@@ -348,8 +450,8 @@ public:
       BaseClass::YAMLDescription(node, format);
       if (format == Serialization::Format::FULL) {
         node.push_back("signal " + get_type_string<T>() + " (" +
-                       std::to_string(nsColumn::Data<T>::nsamples()) + "," +
-                       std::to_string(nsColumn::Data<T>::ncolumns()) + ")");
+                       std::to_string(nsColumn::Data<T>::ncolumns()) + "," +
+                       std::to_string(nsColumn::Data<T>::nsamples()) + ")");
       }
 
       if (format == Serialization::Format::COMPACT) {
@@ -452,15 +554,15 @@ public:
    }
 
  protected:
-   inline size_t flat_index(size_t sample, size_t channel) const {
-     return channel + sample * ncolumns_;
+   inline size_t flat_index(size_t sample, size_t column) const {
+     return sample + column * nsamples_;
    }
-   inline size_t flat_index(size_t sample) const { return sample * ncolumns_; }
+   inline size_t flat_index(size_t column) const { return column*nsamples(); }
 
  protected:
    size_t ncolumns_;
    size_t nsamples_;
-
+   bool resizable_;
    std::vector<std::string> labels_;
    std::vector<T> data_;
 

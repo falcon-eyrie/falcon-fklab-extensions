@@ -145,7 +145,7 @@ void SpikeDetector::Process(ProcessingContext &context) {
       // detect spikes sample by sample and collect each detected spike
       for (size_t sample = 0; sample < incoming_buffer_size_samples_;
            ++sample) {
-        if (spike_detector_->is_spike<double *>(
+        if (spike_detector_->is_spike<TimeSeriesType<double>::Data::sample_iterator>(
                 data_in_->sample_timestamp(sample),
                 signals->begin_sample(sample))) {
           spike_data_out_->add_spike(

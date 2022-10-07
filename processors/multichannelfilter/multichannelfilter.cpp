@@ -97,8 +97,11 @@ void MultiChannelFilter::Process(ProcessingContext &context) {
       data_out = data_out_port_->slot(k)->ClaimData(false);
 
       // filter incoming data
-      filters_[k]->process_by_channel(data_in->nsamples(), data_in->data(),
-                                      data_out->data());
+      for (unsigned int s = 0; s < data_in->nsamples(); ++s) {
+          for (unsigned int c = 0; c < data_in->ncolumns(); ++c) {
+            data_out->set_data_sample(s, c, filters_[k]->process_channel(data_in->data_sample(s,c), c));
+          }
+      }
 
       data_out->set_sample_timestamps(data_in->sample_timestamps());
       data_out->CloneTimestamps(*data_in);
