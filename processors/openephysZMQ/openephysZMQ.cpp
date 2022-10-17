@@ -82,7 +82,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
   TimeSeriesType<double>::Data::sample_iterator data_out_iter;
-  flatbuffers::VectorIterator<float, float> data_in_iter;
+  flatbuffers::VectorIterator<int16_t, int16_t> data_in_iter;
   TimeSeriesType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
   unsigned int nmissed = 0;
