@@ -113,13 +113,13 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           nmissed = 0;
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
-            LOG(INFO) << name() << ". Received first valid data packet"
+            LOG(DEBUG) << name() << ". Received first valid data packet"
                       << " (OE TS = " << data->timestamp() << ")";
             last_message_number_ = data->timestamp();
 
           } else if (last_message_number_ !=
                      data->timestamp()) {
-            LOG(UPDATE) << name() << ". "
+            LOG(DEBUG) << name() << ". "
                        <<  data->timestamp()  - last_message_number_
                        << " sample(s) losted - missing ts from " << last_message_number_
                        << " to " << data->timestamp();

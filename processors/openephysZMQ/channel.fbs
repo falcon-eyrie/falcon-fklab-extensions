@@ -5,7 +5,7 @@
 namespace openephysflatbuffer;
 
 table ContinuousData {
-    samples: [float];
+    samples: [int16];
     n_channels: uint32;
     n_samples: uint32;
     timestamp: uint64; 
