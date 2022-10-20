@@ -112,29 +112,29 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           valid_packets_counter_++;
 
           nmissed = 0;
-//          if (valid_packets_counter_ == 1) {
-//            first_valid_packet_arrival_time_ = Clock::now();
-//            LOG(DEBUG) << name() << ". Received first valid data packet"
-//                      << " (OE TS = " << data->timestamp() << ")";
-//            last_message_number_ = data->timestamp();
+          if (valid_packets_counter_ == 1) {
+            first_valid_packet_arrival_time_ = Clock::now();
+            LOG(DEBUG) << name() << ". Received first valid data packet"
+                      << " (OE TS = " << data->timestamp() << ")";
+            last_message_number_ = data->timestamp();
 
-//          } else if (last_message_number_ !=
-//                     data->timestamp()) {
-//            LOG(DEBUG) << name() << ". "
-//                       <<  data->timestamp()  - last_message_number_
-//                       << " sample(s) losted - missing ts from " << last_message_number_
-//                       << " to " << data->timestamp();
+          } else if (last_message_number_ !=
+                     data->timestamp()) {
+            LOG(DEBUG) << name() << ". "
+                       <<  data->timestamp()  - last_message_number_
+                       << " sample(s) losted - missing ts from " << last_message_number_
+                       << " to " << data->timestamp();
 
-//            if(missed_method_() == "fail"){
-//                throw ProcessingError("There are " + std::to_string(data->timestamp()  - last_message_number_)
-//                                      + " missing samples between received packets.");
-//            }
-//            else if(missed_method_() == "fill"){
-//                nmissed = data->timestamp()  - last_message_number_;
-//            }
+            if(missed_method_() == "fail"){
+                throw ProcessingError("There are " + std::to_string(data->timestamp()  - last_message_number_)
+                                      + " missing samples between received packets.");
+            }
+            else if(missed_method_() == "fill"){
+                nmissed = data->timestamp()  - last_message_number_;
+            }
 
-//            missing_packets_counter_+= data->timestamp()  - last_message_number_;
-//          }
+            missing_packets_counter_+= data->timestamp()  - last_message_number_;
+          }
 
           uint64_t n_samples = data->n_samples() ;
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
