@@ -1,0 +1,85 @@
+// ---------------------------------------------------------------------
+// This file is part of falcon-core.
+//
+// Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
+//
+// Falcon-server is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Falcon-server is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
+// ---------------------------------------------------------------------
+
+#include "eventmerger.hpp"
+
+EventMerger::EventMerger(): inputs_(nullptr) {
+  add_option("event name", binary_equation_, "New event name after conversion");
+}
+
+void EventMerger::CreatePorts() {
+  data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
+                                               PortInPolicy(SlotRange(386)));
+
+  data_out_port_ = create_output_port<EventType>(
+      EventType::Parameters(DEFAULT_EVENT),
+      PortOutPolicy(SlotRange(1)));
+}
+
+void EventMerger::CompleteStreamInfo(){
+    data_out_port_->streaminfo(0).set_stream_name(data_in_port_->streaminfo(0).stream_name());
+
+}
+
+void EventMerger::Prepare(GlobalContext &context){
+
+    inputs_->clear();
+    exprtk::symbol_table<double> symbol_table;
+
+    for (int k = 0; k <  data_in_port_->number_of_slots(); ++k) {
+        inputs_->push_back(0);
+        symbol_table.add_variable(std::to_string(k), *(inputs_->begin()+k));
+    }
+
+    equations_.register_symbol_table(symbol_table);
+
+    exprtk::parser<double>  parser;
+    parser.compile(binary_equation_(), equations_);
+}
+
+void EventMerger::Process(ProcessingContext &context) {
+  EventType::Data *data_in = nullptr;
+  EventType::Data *data_out = nullptr;
+
+  while (!context.terminated()) {
+    for (int k = 0; k <  data_in_port_->number_of_slots(); ++k) {
+        if (!data_in_port_->slot(0)->RetrieveData(data_in, 0)) {
+          break;
+        }
+
+
+    }
+
+
+
+    data_out = data_out_port_->slot(0)->ClaimData(true);
+    data_out->set_hardware_timestamp(data_in->hardware_timestamp());
+
+    data_in_port_->slot(0)->ReleaseData();
+    data_out->set_source_timestamp();
+    data_out_port_->slot(0)->PublishData();
+  }
+}
+
+void EventMerger::Postprocess(ProcessingContext &context) {
+  LOG(INFO) << name() << ". Streamed " << data_in_port_->slot(0)->status_read()
+            << " events";
+}
+
+REGISTERPROCESSOR(EventMerger)

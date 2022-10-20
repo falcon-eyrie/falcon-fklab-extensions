@@ -1,0 +1,24 @@
+Description: Convert incoming target event into another event.
+
+Input port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Output port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - name: event name
+    type: string
+    default: "o"
+    description: name for generating the event
+  - name: replace
+    type: bool
+    default: true
+    description: Either replace incoming events with new event name, or generate output events
+      by appending incoming event and new event name.
