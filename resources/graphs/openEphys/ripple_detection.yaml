@@ -1,0 +1,110 @@
+processors:
+    source:
+        class: OpenEphysZMQ
+        options:
+            port: 3335       
+            batch size: 100
+            nchannels: 384
+            unit: us
+    distributor:
+        class: Distributor
+        options:
+            channelmap:
+                hp: [0, 1]
+                cx: [3]
+            
+    ripple_filter (1-2):
+        class: MultiChannelFilter
+        options:
+            filter:
+                file: iir_ripple_low_delay/matlab_design/iir_ripple_low_delay.filter
+    HIPPOCAMPUS_detector:
+        class: RippleDetector
+        options:
+            threshold dev: 14
+            smooth time: 7 # in seconds
+            analysis lockout time: 50 #ms
+            stream events: true
+            stream statistics: true
+            statistics buffer size: 15000 # sec
+            statistics downsample factor: 4
+            use power: true
+    CORTEX_detector:
+        class: RippleDetector
+        options:
+            threshold dev: 12
+            smooth time: 8 #240000 # in seconds
+            analysis lockout time: 50 #1200 #ms
+            stream events: true
+            stream statistics: true
+            statistics buffer size: 15000 # sec
+            statistics downsample factor: 4
+            use power: true
+    eventfilter:
+        class: EventFilter
+        options:
+            target event: ripple
+            block duration: 40
+            sync time: 1.5
+            block wait time: 4 # below 3.5, asynch can occur
+            detection criterion: "any" # 'any', 'all' or number
+            discard warnings: false
+            
+    rebuffer(1-2):
+        class: Rebuffer
+        options:
+            downsample factor: 4
+            buffer size: 30000 
+        
+    networksink:
+        class: ZMQSerializer
+        options:
+            encoding: flatbuffer
+            format: compact
+            interleave: true
+            
+    eventsink:
+        class: EventLogger
+        options:
+            target event: ripple
+    stimulation_trigger:
+        class: EventDelayed
+        options:
+            detection only mode: false
+            delayed mode: true # switch for true if you want delayed events
+            event trigger lockout time:     # Stop the trigger of events but still are counted in the statistics of the ripple detector
+               period:  250
+               detection: false
+               stimulation: true
+   
+            analysis lockout time: # Stop the detection in the ripple detector after a stimulation
+               period: 50
+               starting time: [0]
+
+            delayed range: [150, 200]
+    #ttl_output:
+     #   class: SerialOutput
+connections:
+    - source =distributor
+    - distributor.hp=ripple_filter1.data
+    - distributor.cx=ripple_filter2.data
+    - ripple_filter1.data=HIPPOCAMPUS_detector.data
+    - ripple_filter2.data=CORTEX_detector.data
+    - HIPPOCAMPUS_detector.events=eventfilter.events
+    - HIPPOCAMPUS_detector.events=eventsink.events
+    - CORTEX_detector.events=eventfilter.blocking_events
+    - eventfilter.events=stimulation_trigger.events
+    - CORTEX_detector.events=eventfilter.blocking_events
+    #- stimulation_trigger.events=ttl_output.events
+    
+    - HIPPOCAMPUS_detector.statistics=networksink.data
+    - CORTEX_detector.statistics=networksink.data
+    - distributor.hp= rebuffer1
+    - rebuffer1 = networksink.data
+    - distributor.cx= rebuffer2
+    - rebuffer2 = networksink.data
+    - stimulation_trigger.events=networksink.data
+
+
+states:
+    - [stimulation_trigger.analysis enabled, HIPPOCAMPUS_detector.detection enabled]
