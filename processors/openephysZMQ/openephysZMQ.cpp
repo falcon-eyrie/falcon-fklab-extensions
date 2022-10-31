@@ -83,7 +83,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 void OpenEphysZMQ::Process(ProcessingContext &context) {
   unsigned int sample_counter_ = batch_size_();
   TimeSeriesType<double>::Data::sample_iterator data_out_iter;
-  flatbuffers::VectorIterator<int16_t, int16_t> data_in_iter;
+  flatbuffers::VectorIterator<float, float> data_in_iter;
   TimeSeriesType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
   unsigned int nmissed = 0;
@@ -115,25 +115,25 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
             LOG(DEBUG) << name() << ". Received first valid data packet"
-                      << " (OE TS = " << data->timestamp() << ")";
-            last_message_number_ = data->timestamp();
+                      << " (OE TS = " << data->sample_num() << ")";
+            last_message_number_ = data->sample_num();
 
           } else if (last_message_number_ !=
-                     data->timestamp()) {
+                     data->sample_num()) {
             LOG(DEBUG) << name() << ". "
-                       <<  data->timestamp()  - last_message_number_
+                       <<  data->sample_num()  - last_message_number_
                        << " sample(s) losted - missing ts from " << last_message_number_
-                       << " to " << data->timestamp();
+                       << " to " << data->sample_num();
 
             if(missed_method_() == "fail"){
-                throw ProcessingError("There are " + std::to_string(data->timestamp()  - last_message_number_)
+                throw ProcessingError("There are " + std::to_string(data->sample_num()  - last_message_number_)
                                       + " missing samples between received packets.");
             }
             else if(missed_method_() == "fill"){
-                nmissed = data->timestamp()  - last_message_number_;
+                nmissed = data->sample_num()  - last_message_number_;
             }
 
-            missing_packets_counter_+= data->timestamp()  - last_message_number_;
+            missing_packets_counter_+= data->sample_num()  - last_message_number_;
           }
 
           uint64_t n_samples = data->n_samples() ;
@@ -150,7 +150,6 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               }
 
               data_out->set_sample_timestamp(sample_counter_, last_message_number_+sample);
-
               data_out_iter = data_out->begin_sample(sample_counter_);
 
               for(uint64_t channel=0; channel<nchannels_(); channel++){
@@ -173,7 +172,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               }
           }
 
-          last_message_number_ =  data->timestamp() + n_samples;
+          last_message_number_ =  data->sample_num() + n_samples;
       }
       zmq_msg_close(&message);
   }
