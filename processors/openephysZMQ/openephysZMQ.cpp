@@ -113,26 +113,26 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           nmissed = 0;
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
-            LOG(INFO) << name() << ". Received first valid data packet"
-                      << " (OE TS = " << data->timestamp() << ")";
-            last_message_number_ = data->timestamp();
+            LOG(DEBUG) << name() << ". Received first valid data packet"
+                      << " (OE TS = " << data->sample_num() << ")";
+            last_message_number_ = data->sample_num();
 
           } else if (last_message_number_ !=
-                     data->timestamp()) {
-            LOG(UPDATE) << name() << ". "
-                       <<  data->timestamp()  - last_message_number_
+                     data->sample_num()) {
+            LOG(DEBUG) << name() << ". "
+                       <<  data->sample_num()  - last_message_number_
                        << " sample(s) losted - missing ts from " << last_message_number_
-                       << " to " << data->timestamp();
+                       << " to " << data->sample_num();
 
             if(missed_method_() == "fail"){
-                throw ProcessingError("There are " + std::to_string(data->timestamp()  - last_message_number_)
+                throw ProcessingError("There are " + std::to_string(data->sample_num()  - last_message_number_)
                                       + " missing samples between received packets.");
             }
             else if(missed_method_() == "fill"){
-                nmissed = data->timestamp()  - last_message_number_;
+                nmissed = data->sample_num()  - last_message_number_;
             }
 
-            missing_packets_counter_+= data->timestamp()  - last_message_number_;
+            missing_packets_counter_+= data->sample_num()  - last_message_number_;
           }
 
           uint64_t n_samples = data->n_samples() ;
@@ -172,7 +172,7 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
               }
           }
 
-          last_message_number_ =  data->timestamp() + n_samples;
+          last_message_number_ =  data->sample_num() + n_samples;
       }
       zmq_msg_close(&message);
   }

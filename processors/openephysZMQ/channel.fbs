@@ -1,14 +1,17 @@
  
 // IDL file for one channel 
 
-
 namespace openephysflatbuffer;
 
 table ContinuousData {
     samples: [float];
+<<<<<<< Updated upstream
+=======
+    stream: string;
+>>>>>>> Stashed changes
     n_channels: uint32;
     n_samples: uint32;
-    timestamp: uint64; 
+    sample_num: uint64; 
     message_id: uint64;
     sample_rate: uint32;
 }
