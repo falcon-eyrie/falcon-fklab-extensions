@@ -104,7 +104,7 @@ void EventSink::Process(ProcessingContext &context) {
 
         }else if(system_()== "oe"){
 
-            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on="+std::to_string(it->hardware_timestamp()))) {
+            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=1")) {
                 LOG(DEBUG) << "failed to send zmq message.";
             }
             reply = s_blocking_recv_multi(*(socket_));
