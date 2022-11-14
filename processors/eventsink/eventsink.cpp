@@ -32,7 +32,7 @@ EventSink::EventSink() : IProcessor() {
   add_option("ttl", ttl_,"TTL");
   add_option("message", event_message_,"event message");
   add_option("event id", eventid_,"Event id.");
-  add_option("system", system_, "could be oe, oe_ttl or nlx");
+  add_option("system", system_, "could be oe  or nlx");
   add_option("interleave", interleave_, "always activate the same ttl or activate a ttl by input slots.");
 
 }
@@ -91,36 +91,30 @@ void EventSink::Process(ProcessingContext &context) {
                 buffer.push_back(buffer_serialization.str());
                 buffer.push_back(std::to_string(ttl));
                 buffer.push_back(std::to_string(eventid_()));
+
                 if (!s_send_multi(*(socket_), buffer)) {
                     LOG(DEBUG) << "failed to send zmq message.";
+                }else{
+                    reply = s_blocking_recv_multi(*(socket_));
+                    LOG(DEBUG) << "nlx reply: " << reply[0];
                 }
-                reply = s_blocking_recv_multi(*(socket_));
-
-                LOG(DEBUG) << "nlx reply: " << reply[0];
             } else {
-            LOG(WARNING) << name() << ": Unable to serialize data stream " << k;
+                LOG(WARNING) << name() << ": Unable to serialize data stream " << k;
             }
-
 
         }else if(system_()== "oe"){
-
             if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=1")) {
                 LOG(DEBUG) << "failed to send zmq message.";
+            }else{
+                reply = s_blocking_recv_multi(*(socket_));
+                LOG(DEBUG) << "oe reply: " << reply[0];
             }
-            reply = s_blocking_recv_multi(*(socket_));
-            LOG(DEBUG) << "oe reply: " << reply[0];
-
-        }else if(system_()== "oe_ttl"){
-            if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=1")) {
-                LOG(DEBUG) << "failed to send zmq message.";
-            }
-            reply = s_blocking_recv_multi(*(socket_));
-            LOG(DEBUG) << "oe reply: " << reply[0];
             if (!s_send(*(socket_), "TTL "+ std::to_string(ttl)+" on=0")) {
                 LOG(DEBUG) << "failed to send zmq message.";
+            }else{
+                reply = s_blocking_recv_multi(*(socket_));
+                LOG(DEBUG) << "oe reply: " << reply[0];
             }
-            reply = s_blocking_recv_multi(*(socket_));
-            LOG(DEBUG) << "oe reply: " << reply[0];
         }
       }
       data_port_->slot(k)->ReleaseData();
