@@ -572,16 +572,16 @@ class Capabilities{
  public:
   Capabilities(ChannelRange column_range,
                SampleRange sample_range =
-               SampleRange(1, std::numeric_limits<uint32_t>::max()))
+               SampleRange(0, std::numeric_limits<uint32_t>::max()), bool resizable = false)
       : column_range_(column_range),
         sample_range_(sample_range),
-        labels_({}) {}
+        labels_({}), resizable_(resizable) {}
 
   Capabilities(std::vector<std::string> labels,
                SampleRange sample_range =
-                   SampleRange(1, std::numeric_limits<uint32_t>::max()))
+                   SampleRange(1, std::numeric_limits<uint32_t>::max()), bool resizable = false)
       : column_range_(ChannelRange(labels.size())),
-        sample_range_(sample_range), labels_(labels) {}
+        sample_range_(sample_range), labels_(labels), resizable_(resizable) {}
 
   ChannelRange column_range() const { return column_range_; }
   SampleRange sample_range() const { return sample_range_; }
@@ -589,9 +589,14 @@ class Capabilities{
   template <class T>
     void Validate(const Data<T> & prototype) {
 
+    if(prototype.nsamples() == 0 and not resizable_){
+        throw std::runtime_error(
+            "Number of samples cannot be zero if the data packet is not resizable.");
+    }
+
     if (!sample_range_.inrange(prototype.nsamples())) {
       throw std::runtime_error(
-          "Number of samples cannot be zero and needs to be in range " +
+          "Number of samples needs to be in range " +
           sample_range_.to_string());
     }
 
@@ -615,6 +620,7 @@ class Capabilities{
   ChannelRange column_range_;
   SampleRange sample_range_;
   std::vector<std::string> labels_;
+  bool resizable_;
 };
 
 } // namespace nsColumn
