@@ -80,17 +80,23 @@ void MultiChannelFilter::Prepare(GlobalContext &context) {
 }
 
 void MultiChannelFilter::Process(ProcessingContext &context) {
+
+#pragma omp parallel
+{
+  bool should_break = false;
   TimeSeriesType<double>::Data *data_in = nullptr;
   TimeSeriesType<double>::Data *data_out = nullptr;
   auto nslots = data_in_port_->number_of_slots();
   decltype(nslots) k = 0;
 
-  while (!context.terminated()) {
+  while (!context.terminated() and !should_break) {
     // go through all slots
+    #pragma omp for
     for (k = 0; k < nslots; ++k) {
       // retrieve new data
       if (!data_in_port_->slot(k)->RetrieveData(data_in)) {
-        break;
+          should_break = true;
+          continue;
       }
 
       // claim output data buckets
@@ -107,7 +113,9 @@ void MultiChannelFilter::Process(ProcessingContext &context) {
       data_out_port_->slot(k)->PublishData();
       data_in_port_->slot(k)->ReleaseData();
     }
+
   }
+   }
 }
 
 REGISTERPROCESSOR(MultiChannelFilter)
