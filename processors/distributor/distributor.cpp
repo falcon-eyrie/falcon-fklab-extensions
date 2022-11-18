@@ -129,22 +129,28 @@ void Distributor::Prepare(GlobalContext &context) {
 }
 
 void Distributor::Process(ProcessingContext &context) {
+    #pragma omp parallel
+    {
+
     TimeSeriesType<double>::Data *data_in = nullptr;
     std::vector<TimeSeriesType<double>::Data *> data_out_vector;
 
 
     while (!context.terminated()) {
+
         // retrieve new data packet
         if (!input_port_->slot(0)->RetrieveData(data_in)) {
             break;
         }
-
+#pragma omp single
+        {
         for (auto &it : data_ports_) {
             for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
                 data_out_vector.push_back(it.second->slot(slot_)->ClaimData(false));
             }
         }
-
+    }
+#pragma omp for
         for (auto &data_out : data_out_vector) {
             data_out->CloneTimestamps(*data_in);
             data_out->set_sample_timestamps(
@@ -155,8 +161,8 @@ void Distributor::Process(ProcessingContext &context) {
                 data_out->clone_column(ch, *data_in);
             }
         }
-
-        // publish data buckets
+#pragma omp single
+        {// publish data buckets
         for (auto &it : data_ports_) {
             for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
                 it.second->slot(slot_)->PublishData();
@@ -166,6 +172,8 @@ void Distributor::Process(ProcessingContext &context) {
         // release input data bucket
         input_port_->slot(0)->ReleaseData();
         data_out_vector.clear();
+        }
+    }
     }
 }
 
