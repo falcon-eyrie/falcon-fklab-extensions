@@ -95,6 +95,7 @@ public:
 
    size_t ncolumns() const { return ncolumns_;}
    size_t nsamples() const {return nsamples_;}
+   bool resizable() const {return resizable_;}
 
    std::vector<std::string> labels() const{ return labels_; }
 
