@@ -32,11 +32,11 @@ Rebuffer::Rebuffer() : IProcessor() {
 
 void Rebuffer::CreatePorts() {
   data_in_port_ = create_input_port<TimeSeriesType<double>>(
-      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
-      PortInPolicy(SlotRange(0, 256)));
+      "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
+      PortInPolicy(SlotRange(0, MAX_NCHANNELS)));
 
   data_out_port_ = create_output_port<TimeSeriesType<double>>(
-      "data", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(0, 256)));
+      "data", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
 }
 
 void Rebuffer::Configure(const GlobalContext &context) {
