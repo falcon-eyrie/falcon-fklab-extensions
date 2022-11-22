@@ -85,7 +85,8 @@ void Distributor::CompleteStreamInfo() {
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
                             incoming_batch_size,
-                            input_port_->prototype(0).sample_rate()));
+                            input_port_->prototype(0).sample_rate(),
+                            input_port_->prototype(0).resizable()));
 
              data_ports_[it.first]->streaminfo(0).set_stream_parameters(input_port_->streaminfo(0));
 
@@ -95,7 +96,8 @@ void Distributor::CompleteStreamInfo() {
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
                             incoming_batch_size,
-                            input_port_->prototype(0).sample_rate()));
+                            input_port_->prototype(0).sample_rate(),
+                            input_port_->prototype(0).resizable()));
 
              data_ports_["data"]->streaminfo(slot_).set_stream_parameters(
                         input_port_->streaminfo(0).stream_rate(), it.first);
@@ -129,8 +131,8 @@ void Distributor::Prepare(GlobalContext &context) {
 }
 
 void Distributor::Process(ProcessingContext &context) {
-    #pragma omp parallel
-    {
+   // #pragma omp parallel
+   // {
 
     TimeSeriesType<double>::Data *data_in = nullptr;
     std::vector<TimeSeriesType<double>::Data *> data_out_vector;
@@ -143,26 +145,25 @@ void Distributor::Process(ProcessingContext &context) {
             break;
         }
 #pragma omp single
-        {
+       {
         for (auto &it : data_ports_) {
             for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
                 data_out_vector.push_back(it.second->slot(slot_)->ClaimData(false));
             }
         }
-    }
+ }
 #pragma omp for
         for (auto &data_out : data_out_vector) {
-            data_out->CloneTimestamps(*data_in);
-            data_out->set_sample_timestamps(
-                        data_in->sample_timestamps());
-
             for (auto ch: data_out->labels()) {
                 // publish data buckets
                 data_out->clone_column(ch, *data_in);
             }
+            data_out->CloneTimestamps(*data_in);
+            data_out->set_sample_timestamps(
+                        data_in->sample_timestamps());
         }
 #pragma omp single
-        {// publish data buckets
+       {// publish data buckets
         for (auto &it : data_ports_) {
             for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
                 it.second->slot(slot_)->PublishData();
@@ -173,7 +174,7 @@ void Distributor::Process(ProcessingContext &context) {
         input_port_->slot(0)->ReleaseData();
         data_out_vector.clear();
         }
-    }
+    //}
     }
 }
 
