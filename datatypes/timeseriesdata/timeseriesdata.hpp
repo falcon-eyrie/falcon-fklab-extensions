@@ -30,11 +30,11 @@
 namespace nsTimeSeries {
 
 struct Parameters :  nsColumn::Parameters {
-  Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0)
-      :  nsColumn::Parameters(generate_labels(nchan), nsamp), sample_rate(rate) {}
+  Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0, bool resizable=false)
+      :  nsColumn::Parameters(generate_labels(nchan), nsamp, resizable), sample_rate(rate) {}
 
-  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, double rate = 1.0)
-      :  nsColumn::Parameters(labels, nsamp), sample_rate(rate) {}
+  Parameters(const std::vector<std::string> &labels, size_t nsamp = 0, double rate = 1.0, bool resizable=false)
+      :  nsColumn::Parameters(labels, nsamp, resizable), sample_rate(rate) {}
 
   double sample_rate;
 };
@@ -56,8 +56,8 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * @param nsamples  give the number of samples by column
    * @param sample_rate
    */
-  Data(const std::vector<std::string> &labels, size_t nsamples, double sample_rate)
-      :BaseClass(labels, nsamples) {
+  Data(const std::vector<std::string> &labels, size_t nsamples, double sample_rate, bool resizable)
+      :BaseClass(labels, nsamples, resizable) {
 
       if (sample_rate <= 0) {
         throw std::runtime_error("Time Series Data::Data - sample rate "
@@ -77,8 +77,8 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * @param nsamples
    * @param sample_rate
    */
-  Data(size_t ncolumns, size_t nsamples, double sample_rate)
-      : Data(generate_labels(ncolumns), ncolumns, nsamples, sample_rate) {}
+  Data(size_t ncolumns, size_t nsamples, double sample_rate, bool resizable)
+      : Data(generate_labels(ncolumns), ncolumns, nsamples, sample_rate, resizable) {}
 
   /**
    * @brief Data constructor based on the parameters object
@@ -87,7 +87,7 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
    * based on the number of columns or set directly.
    */
   Data(const Parameters &parameters)
-      : Data(parameters.labels, parameters.nsamples, parameters.sample_rate){}
+      : Data(parameters.labels, parameters.nsamples, parameters.sample_rate, parameters.resizable){}
 
   static const std::string static_datatype() { return "time series [" + get_type_string<T>() + "]"; }
   static const std::string static_dataname() { return "data"; }
@@ -101,11 +101,15 @@ template <typename T> class Data : public IData<Data<T>,Base<T>> {
   }
 
   Parameters parameters() const {
-    return Parameters(this->labels_, this->nsamples_, sample_rate_);
+    return Parameters(this->labels_, this->nsamples_, sample_rate_, this->resizable_);
   }
 
   double sample_rate() const { return sample_rate_; }
 
+  void set_nsamples(size_t nsamples){
+      BaseClass::set_nsamples(nsamples);
+      timestamps_.resize(nsamples);
+  }
   /**
    * @brief sample_timestamp - give the timestamp corresponding to a sample number
    * @param sample
