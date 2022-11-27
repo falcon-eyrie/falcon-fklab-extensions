@@ -70,6 +70,7 @@ public:
         nsamples_ = nsamples;
         resizable_ = resizable;
         data_.resize(ncolumns_ * nsamples_);
+        initial_nsample_ = nsamples;
     }
 
     /**
@@ -86,6 +87,10 @@ public:
     * @brief ClearData - clear the data
     */
    void ClearData() override {
+     if(initial_nsample_ != nsamples_){
+         nsamples_ = initial_nsample_;
+        data_.resize(nsamples_*ncolumns());
+     }
      std::fill(data_.begin(), data_.end(), 0);
    }
 
@@ -218,7 +223,7 @@ public:
 
        if(data_in.nsamples() < nsamples()){
            throw  std::out_of_range(". Column " +  labels()[column_out]+" / "+ std::to_string(column_out) +
-                                    "should contained at least " + std::to_string(nsamples() - 1));
+                                    " should contained at least " + std::to_string(nsamples()));
        }
 
        if(nsamples() != data_in.nsamples()){
@@ -563,6 +568,7 @@ public:
  protected:
    size_t ncolumns_;
    size_t nsamples_;
+   size_t initial_nsample_;
    bool resizable_;
    std::vector<std::string> labels_;
    std::vector<T> data_;
@@ -622,6 +628,7 @@ class Capabilities{
   SampleRange sample_range_;
   std::vector<std::string> labels_;
   bool resizable_;
+
 };
 
 } // namespace nsColumn
