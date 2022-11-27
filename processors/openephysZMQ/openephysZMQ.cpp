@@ -60,7 +60,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   try {
     socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
     zmq_setsockopt(socket_, ZMQ_SUBSCRIBE, nullptr, 0);
-    int t  = 3*(sample_rate_());
+    int t  = 3/(sample_rate_());
     zmq_setsockopt(socket_, ZMQ_RCVTIMEO, &t, sizeof(t));
 
     socket_.connect(tcp_address);
@@ -137,20 +137,22 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           uint64_t n_samples = data->n_samples() ;
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
 
-          data_out = data_port_->slot(0)->ClaimData(false);
-          data_out->set_nsamples(n_samples);
+          data_out = data_port_->slot(0)->ClaimData(true);
+          if(n_samples > 0){
+              data_out->set_nsamples(n_samples);
 
-          std::copy(data->samples()->begin(), data->samples()->end(), data_out->data().begin());
+              std::copy(data->samples()->begin(), data->samples()->end(), data_out->data().begin());
+              std::vector<uint64_t> ts(n_samples) ;
+              std::iota (std::begin(ts), std::end(ts), data->sample_num());
 
-          std::vector<uint64_t> ts(n_samples) ;
-          std::iota (std::begin(ts), std::end(ts), data->sample_num());
+              data_out->set_sample_timestamps(ts);
 
-          data_out->set_sample_timestamps(ts);
+              data_out->set_hardware_timestamp(data->sample_num());
+              data_out->set_source_timestamp();
+              data_port_->slot(0)->PublishData();
 
-          data_out->set_hardware_timestamp(data->sample_num());
-          data_out->set_source_timestamp();
-          data_port_->slot(0)->PublishData();
-          last_message_number_ = data->sample_num();
+              last_message_number_ = data->sample_num()+n_samples;
+          }
       }
       zmq_msg_close(&message);
   }
