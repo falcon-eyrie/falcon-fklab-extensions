@@ -78,7 +78,6 @@ void Rebuffer::CompleteStreamInfo() {
                            downsample_factor_())));
     }
   }
-
   // finalize
   for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
     data_out_port_->streaminfo(k).set_parameters(
@@ -96,9 +95,11 @@ void Rebuffer::CompleteStreamInfo() {
 }
 
 void Rebuffer::Process(ProcessingContext &context) {
+#pragma omp parallel
+{
   auto nslots = data_in_port_->number_of_slots();
+  bool should_break = false;
 
-  TimeSeriesType<double>::Data *data_in = nullptr;
   std::vector<TimeSeriesType<double>::Data *> data_out;
 
   data_out.assign(nslots, nullptr);
@@ -106,19 +107,22 @@ void Rebuffer::Process(ProcessingContext &context) {
   decltype(sample_buffer_) offset;
   offset.assign(nslots, 0);
 
-  unsigned int s = 0;
+  //unsigned int s = 0;
 
-  while (!context.terminated()) {
+  while (!context.terminated() and !should_break) {
     // go through all slots
+    #pragma omp for nowait
     for (int k = 0; k < nslots; ++k) {
       // retrieve new data
+      TimeSeriesType<double>::Data *data_in = nullptr;
       if (!data_in_port_->slot(k)->RetrieveData(data_in)) {
-        break;
+          should_break = true;
+          continue;
       }
 
-      s = 0;
+      unsigned int s=0 ;
 
-      while (s < data_in->nsamples()) {
+      while (s< data_in->nsamples()) {
         for (s = offset[k]; s < data_in->nsamples() &&
                             sample_out_counter[k] < sample_buffer_[k];
              s += downsample_factor_()) {
@@ -148,6 +152,7 @@ void Rebuffer::Process(ProcessingContext &context) {
       data_in_port_->slot(k)->ReleaseData();
     }
   }
+}
 }
 
 REGISTERPROCESSOR(Rebuffer)
