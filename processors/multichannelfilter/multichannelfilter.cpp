@@ -91,7 +91,7 @@ void MultiChannelFilter::Process(ProcessingContext &context) {
 
   while (!context.terminated() and !should_break) {
     // go through all slots
-    #pragma omp for
+    #pragma omp for nowait
     for (k = 0; k < nslots; ++k) {
       // retrieve new data
       if (!data_in_port_->slot(k)->RetrieveData(data_in)) {
@@ -100,7 +100,7 @@ void MultiChannelFilter::Process(ProcessingContext &context) {
       }
 
       // claim output data buckets
-      data_out = data_out_port_->slot(k)->ClaimData(false);
+      data_out = data_out_port_->slot(k)->ClaimData(true);
 
       // filter incoming data
       filters_[k]->process_by_channel(data_in->nsamples(), data_in->data(),
@@ -113,9 +113,8 @@ void MultiChannelFilter::Process(ProcessingContext &context) {
       data_out_port_->slot(k)->PublishData();
       data_in_port_->slot(k)->ReleaseData();
     }
-
   }
-   }
+ }
 }
 
 REGISTERPROCESSOR(MultiChannelFilter)
