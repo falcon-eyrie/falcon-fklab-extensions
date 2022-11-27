@@ -42,7 +42,7 @@ class Distributor : public IProcessor {
   // PORTS
  protected:
   PortIn<TimeSeriesType<double>> *input_port_;
-  std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
+  std::vector<PortOut<TimeSeriesType<double>> *> data_ports_;
 
   // variables
  protected:
