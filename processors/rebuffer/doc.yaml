@@ -1,5 +1,6 @@
 Description: Rebuffer and downsample multiple MultiChannelData streams. No anti-aliasing filter is applied before downsampling.
 
+Long description: OpenMP parallelization
 Input port:
   - name: data
     type: TimeSerieType <double>

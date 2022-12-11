@@ -1,4 +1,6 @@
-Description: Detect spikes in a MultiChannelData stream and emits a spike event and spike data in response
+Description: Detect spikes in a TimeSeries stream and emits a spike event and spike data in response
+
+Long description: A new version has been developed in the decoding extensions.
 
 Input ports:
   - name: data
