@@ -1,0 +1,41 @@
+Description: Send a ttl event in the open ephys software or cheetah (neuralynx) software each time a packet from anydatatype is received.
+
+Long Description: In the case of neuralynx, the data packet is serialized and send as string along the TTL. This needs a 
+                  specific software in cheetah side not open source.
+
+Input port:
+  - name: data
+    type: IData
+    slots: 1-256
+    description:
+
+Options:
+  - name: system
+    type: string
+    default: oe
+    description: Select the output system to use - oe (open ephys) or nlx (cheetah/neuralynx)
+
+  - name: address
+    type: string
+    default: *
+    description: Address of the open ephys or Cheetah computer
+
+  - name: port
+    type: unsigned int
+    default: 5555
+    description: Local network port for data streaming. If interleave is false, then this is the first port in a sequence of ports used for streaming.
+
+  - name: event_id
+    type: unsigned int
+    default: 0
+    description: id used in the neuralynx system
+
+  - name: ttl
+    type: unsigned int
+    default: 0
+    description: ttl channel use to register the event
+
+  - name: interleave
+    type: bool
+    default: false
+    description: Interleave data streams from all input slots and register the event on different ttl channels
