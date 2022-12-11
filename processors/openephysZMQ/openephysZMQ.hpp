@@ -42,12 +42,8 @@ protected:
   options::String address_{"127.0.0.1", options::notempty<std::string>()};
   options::Value<unsigned int, false> port_{5556, options::positive<unsigned int>(true)};
   options::Value<std::uint64_t, false> npackets_{0, options::zeroismax<std::uint64_t>()};
-  //options::Value<unsigned int, false> batch_size_{1, options::positive<unsigned int>(true)};
   options::Value<unsigned int, false> sample_rate_{30000, options::positive<unsigned int>(true)};
   options::Value<unsigned int, false> nchannels_{384, options::positive<unsigned int>(true)};
-
-  options::Value<double, false> fill_value_{0};
-  options::String missed_method_{"fill", options::notempty<std::string>()};
 
   // PORT
 protected:

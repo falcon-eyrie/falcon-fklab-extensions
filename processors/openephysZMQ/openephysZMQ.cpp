@@ -28,18 +28,12 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
-    /*add_option("batch size", batch_size_,
-               "The number of data packets to concatenate into "
-               "single multi-channel data bucket.");*/
 
     add_option("sample rate", sample_rate_,
                "Sample rate from Open-Ephys");
 
     add_option("nchannels", nchannels_,
                "The number of channels in the data packet sent by Open-Ephys.");
-    add_option("missed samples/method", missed_method_, "what to do in case of missed samples: 'fail', 'fill', 'ignore'");
-    add_option("missed samples/value", fill_value_, "if fill method chose, this value will be use to replace the missing samples.");
-
 }
 
 void OpenEphysZMQ::CreatePorts() {
@@ -78,10 +72,6 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 }
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
-  /*unsigned int sample_counter_ = batch_size_();
-  TimeSeriesType<double>::Data::sample_iterator data_out_iter;
-  TimeSeriesType<double>::Data::column_iterator data_out_iter_channel;
-  flatbuffers::VectorIterator<float, float> data_in_iter;*/
   TimeSeriesType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
   unsigned int nmissed = 0;
@@ -118,18 +108,10 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
 
           } else if (last_message_number_ !=
                      data->sample_num()) {
-            LOG(DEBUG) << name() << ". "
+            LOG(INFO) << name() << ". "
                        <<  data->sample_num()  - last_message_number_
                        << " sample(s) losted - missing ts from " << last_message_number_
                        << " to " << data->sample_num();
-
-            if(missed_method_() == "fail"){
-                throw ProcessingError("There are " + std::to_string(data->sample_num()  - last_message_number_)
-                                      + " missing samples between received packets.");
-            }
-            else if(missed_method_() == "fill"){
-                nmissed = data->sample_num()  - last_message_number_;
-            }
 
             missing_packets_counter_+= data->sample_num()  - last_message_number_;
           }
