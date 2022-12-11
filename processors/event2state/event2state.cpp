@@ -45,14 +45,15 @@ void Event2State::Process(ProcessingContext &context) {
       break;
     }
     ++event_counter_.all_received;
-    if (*data_in == target_event_()){
+    if (*data_in == target_event_() and not enabled_->get()){
       ++event_counter_.target;
-      LOG_IF(INFO, enabled_->exchange(true)) << name() << ". Mode True.";
+      LOG(INFO) << name() << ". Mode True.";
+
       enabled_->set(true);
 
-    } else {
+    } else if( enabled_->get())  {
       ++event_counter_.non_target;
-      LOG_IF(DEBUG, enabled_->exchange(true)) << name() << ". Mode False.";
+      LOG(DEBUG) << name() << ". Mode False.";
       enabled_->set(false);
     }
     
