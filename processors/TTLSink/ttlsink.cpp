@@ -17,7 +17,7 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "eventsink.hpp"
+#include "ttlsink.hpp"
 
 #include <string>
 #include <utility>
@@ -26,28 +26,27 @@
 #include "utilities/zmqutil.hpp"
 #include "utilities/string.hpp"
 
-EventSink::EventSink() : IProcessor() {
-  add_option("address", address_, "Cheetah ip address");
+TTLSink::TTLSink() : IProcessor() {
+  add_option("address", address_, "Cheetah or Open ephys ip address");
   add_option("port", port_,"Cheetah network port.");
   add_option("ttl", ttl_,"TTL");
-  add_option("message", event_message_,"event message");
   add_option("event id", eventid_,"Event id.");
   add_option("system", system_, "could be oe  or nlx");
   add_option("interleave", interleave_, "always activate the same ttl or activate a ttl by input slots.");
 
 }
 
-void EventSink::Configure(const GlobalContext &context){
+void TTLSink::Configure(const GlobalContext &context){
     if(system_() != "oe" and system_() != "nlx"){
         throw ProcessingConfigureError("System option can be only oe or nlx.", name());
     }
 }
-void EventSink::CreatePorts() {
-  data_port_ = create_input_port<AnyType>("data", EventType::Capabilities(),
+void TTLSink::CreatePorts() {
+  data_port_ = create_input_port<AnyType>("data", AnyType::Capabilities(),
                                  PortInPolicy(SlotRange(1, 256), false));
 }
 
-void EventSink::Preprocess(ProcessingContext &context) {
+void TTLSink::Preprocess(ProcessingContext &context) {
 
   socket_= std::make_unique<zmq::socket_t>(context.run().global().zmq(), ZMQ_REQ);
   std::string address = "tcp://"+ address_() +":" + std::to_string(port_());
@@ -57,7 +56,7 @@ void EventSink::Preprocess(ProcessingContext &context) {
   serializer_.reset(Serialization::serializer(Serialization::Encoding::YAML, Serialization::Format::FULL));
 }
 
-void EventSink::Process(ProcessingContext &context) {
+void TTLSink::Process(ProcessingContext &context) {
   std::vector<typename AnyType::Data *> data;
   zmq_frames buffer;
   zmq_frames reply;
@@ -121,9 +120,9 @@ void EventSink::Process(ProcessingContext &context) {
   }
  }
 }
-  void EventSink::Postprocess(ProcessingContext &context) {
+  void TTLSink::Postprocess(ProcessingContext &context) {
       socket_->close();
 
   }
 
-REGISTERPROCESSOR(EventSink)
+REGISTERPROCESSOR(TTLSink)

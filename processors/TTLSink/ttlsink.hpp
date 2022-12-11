@@ -27,12 +27,11 @@
 #include "options/options.hpp"
 #include "serializer.hpp"
 #include "yaml-cpp/yaml.h"
-#include "eventdata/eventdata.hpp"
 
-class EventSink : public IProcessor {
+class TTLSink : public IProcessor {
   // CONSTRUCTOR and OVERLOADED METHODS
  public:
-  EventSink();
+  TTLSink();
   void Configure(const GlobalContext &context);
   void CreatePorts() override;
   void Preprocess(ProcessingContext &context) override;
@@ -50,7 +49,6 @@ class EventSink : public IProcessor {
   options::Value<unsigned int, false> eventid_{0};
   options::String address_{"*"};
   options::String system_{"oe"};
- options::String event_message_{"events"};
   options::Bool interleave_{"true"};
 
   // VARIABLES
