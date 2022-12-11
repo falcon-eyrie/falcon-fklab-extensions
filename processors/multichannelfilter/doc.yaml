@@ -1,5 +1,7 @@
 Description: Filter each channels from a multichannel datastream
 
+Long description: OpenMP parallelization added since 1.4. One thread is created by slot input/output.
+
 Input port:
   - name: data
     type: TimeSerieType <double>

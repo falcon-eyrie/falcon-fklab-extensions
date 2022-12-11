@@ -1,5 +1,8 @@
 Description: Serialize data streams to file
 
+Long descriotion: Since the version 1.4 and the introduction of resizable buffer in timeseries/column data type, the binary format 
+                  won't work if used with resizable packets.
+
 Input port:
   - name: data
     type: IData

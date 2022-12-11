@@ -1,7 +1,8 @@
 Description: Read column-type data stream and splits the data across multiple output streams based on a channel mapping. The split is done over ports or slots.
 
 Long description: The channelmap defines the output port names and for each port lists the channels that will be copied to the data buckets on that port.
-                  In case of distribution over the slot, the channelmap define the
+                  In case of distribution over the slot, the channelmap define the stream name. An openMP parallelization has been added in the new version. 
+                  Each slot is running in its own thread.
 
 Example:
 
@@ -40,5 +41,5 @@ Options:
   - name: distribution mode
     type: string
     default: ports
-    description: Select distribution over the ports (keyword: ports) or over the slots (keyword: slots).
+    description: Select distribution over the ports (keyword - ports) or over the slots (keyword - slots).
 
