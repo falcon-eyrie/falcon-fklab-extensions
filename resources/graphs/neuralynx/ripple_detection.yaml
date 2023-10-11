@@ -93,7 +93,6 @@ connections:
     - HIPPOCAMPUS_detector.events=eventfilter.events
     - HIPPOCAMPUS_detector.events=eventsink.events
     - eventfilter.events=datasink_ev.data
-    - stimulation_trigger.events=networksink.data
     - HIPPOCAMPUS_detector.statistics=datasink_ripplestats.data
     - HIPPOCAMPUS_detector.statistics=networksink.data
     - CORTEX_detector.statistics=networksink.data
