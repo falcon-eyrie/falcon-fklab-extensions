@@ -1,5 +1,9 @@
 Description: Reads raw data from Open-Ephys acquisition software and converts it to a single stream of multi-channel data
 
+Long description: Warning. The data format changed in the new version of open-ephys (0.6.x). 1.4 version of the processor is 
+                  only compatible with this new version. Also, as the addition of resizable data packet allows to more flexibility 
+                  when reading the data, the batch_size parameter has been removed. 
+                  If you want a data fixed size, use a rebuffer processor after this one.
 Output port:
   - name: data
     type: TimeSerieType <double>
@@ -19,10 +23,7 @@ Options:
     type: uint64_t
     default: 0
     description: The total number of data packets to read (0 means continuous recording).
-  - name: batch size
-    type: unsigned int
-    default: 1
-    description: The number of data packets to concatenate into single multi-channel data bucket.
+
   - name: nchannels
     type: unsigned int
     default: 384

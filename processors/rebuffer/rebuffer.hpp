@@ -45,6 +45,7 @@ class Rebuffer : public IProcessor {
   // VARIABLES
  protected:
   std::vector<unsigned int> sample_buffer_;
+  const uint16_t MAX_NCHANNELS = 385;
 
   // OPTIONS
  protected:

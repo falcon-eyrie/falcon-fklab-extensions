@@ -28,32 +28,23 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
-    add_option("batch size", batch_size_,
-               "The number of data packets to concatenate into "
-               "single multi-channel data bucket.");
 
     add_option("sample rate", sample_rate_,
                "Sample rate from Open-Ephys");
 
     add_option("nchannels", nchannels_,
                "The number of channels in the data packet sent by Open-Ephys.");
-    add_option("missed samples/method", missed_method_, "what to do in case of missed samples: 'fail', 'fill', 'ignore'");
-    add_option("missed samples/value", fill_value_, "if fill method chose, this value will be use to replace the missing samples.");
-
 }
 
 void OpenEphysZMQ::CreatePorts() {
     data_port_= create_output_port<TimeSeriesType<double>>(
-          "data", TimeSeriesType<double>::Parameters(),
+          "data", TimeSeriesType<double>::Parameters(nchannels_(), 1, sample_rate_(), true),
           PortOutPolicy(SlotRange(1), 500, WaitStrategy::kBlockingStrategy));
 }
 
 
 void OpenEphysZMQ::CompleteStreamInfo() {
-    data_port_->streaminfo(0).set_parameters(
-          TimeSeriesType<double>::Parameters(
-              nchannels_(), batch_size_()));
-    data_port_->streaminfo(0).set_stream_rate(sample_rate_()/batch_size_());
+    data_port_->streaminfo(0).set_stream_rate(sample_rate_());
 
 }
 
@@ -63,7 +54,7 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
   try {
     socket_ = zmq::socket_t(context.run().global().zmq(), ZMQ_SUB);
     zmq_setsockopt(socket_, ZMQ_SUBSCRIBE, nullptr, 0);
-    int t  = 3*(sample_rate_()/batch_size_());
+    int t  = 3/(sample_rate_());
     zmq_setsockopt(socket_, ZMQ_RCVTIMEO, &t, sizeof(t));
 
     socket_.connect(tcp_address);
@@ -80,9 +71,6 @@ void OpenEphysZMQ::Preprocess(ProcessingContext &context) {
 }
 
 void OpenEphysZMQ::Process(ProcessingContext &context) {
-  unsigned int sample_counter_ = batch_size_();
-  TimeSeriesType<double>::Data::sample_iterator data_out_iter;
-  flatbuffers::VectorIterator<float, float> data_in_iter;
   TimeSeriesType<double>::Data* data_out;
   const openephysflatbuffer::ContinuousData* data;
   unsigned int nmissed = 0;
@@ -113,66 +101,39 @@ void OpenEphysZMQ::Process(ProcessingContext &context) {
           nmissed = 0;
           if (valid_packets_counter_ == 1) {
             first_valid_packet_arrival_time_ = Clock::now();
-            LOG(INFO) << name() << ". Received first valid data packet"
-                      << " (OE TS = " << data->timestamp() << ")";
-            last_message_number_ = data->timestamp();
+            LOG(DEBUG) << name() << ". Received first valid data packet"
+                      << " (OE TS = " << data->sample_num() << ")";
+            last_message_number_ = data->sample_num();
 
           } else if (last_message_number_ !=
-                     data->timestamp()) {
-            LOG(UPDATE) << name() << ". "
-                       <<  data->timestamp()  - last_message_number_
+                     data->sample_num()) {
+            LOG(INFO) << name() << ". "
+                       <<  data->sample_num()  - last_message_number_
                        << " sample(s) losted - missing ts from " << last_message_number_
-                       << " to " << data->timestamp();
+                       << " to " << data->sample_num();
 
-            if(missed_method_() == "fail"){
-                throw ProcessingError("There are " + std::to_string(data->timestamp()  - last_message_number_)
-                                      + " missing samples between received packets.");
-            }
-            else if(missed_method_() == "fill"){
-                nmissed = data->timestamp()  - last_message_number_;
-            }
-
-            missing_packets_counter_+= data->timestamp()  - last_message_number_;
+            missing_packets_counter_+= data->sample_num()  - last_message_number_;
           }
 
           uint64_t n_samples = data->n_samples() ;
           LOG(DEBUG) << name() << ". Number of samples in the packet: " << n_samples;
-          data_in_iter = data->samples()->begin();
 
-          for(uint64_t sample=0; sample<n_samples+nmissed; sample++){
-              if (sample_counter_ == batch_size_()) {
-                 data_out= data_port_->slot(0)->ClaimData(false);
-                 // set data bucket metadata
-                 data_out->set_hardware_timestamp(last_message_number_+sample);
+          data_out = data_port_->slot(0)->ClaimData(true);
+          if(n_samples > 0){
+              data_out->set_nsamples(n_samples);
 
-                 sample_counter_ = 0;
-              }
+              std::copy(data->samples()->begin(), data->samples()->end(), data_out->data().begin());
+              std::vector<uint64_t> ts(n_samples) ;
+              std::iota (std::begin(ts), std::end(ts), data->sample_num());
 
-              data_out->set_sample_timestamp(sample_counter_, last_message_number_+sample);
+              data_out->set_sample_timestamps(ts);
 
-              data_out_iter = data_out->begin_sample(sample_counter_);
+              data_out->set_hardware_timestamp(data->sample_num());
+              data_out->set_source_timestamp();
+              data_port_->slot(0)->PublishData();
 
-              for(uint64_t channel=0; channel<nchannels_(); channel++){
-                  if(sample>=nmissed){
-                    (*data_out_iter) = *(data_in_iter + n_samples*channel);
-                  }else{
-                    (*data_out_iter) = fill_value_();
-                  }
-                  ++data_out_iter;
-              }
-
-              if(sample>=nmissed){
-                ++data_in_iter;
-              }
-              ++sample_counter_;
-
-              if (sample_counter_ == batch_size_()) {
-                  data_out->set_source_timestamp();
-                  data_port_->slot(0)->PublishData();
-              }
+              last_message_number_ = data->sample_num()+n_samples;
           }
-
-          last_message_number_ =  data->timestamp() + n_samples;
       }
       zmq_msg_close(&message);
   }
