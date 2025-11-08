@@ -60,44 +60,50 @@ void Distributor::CreatePorts() {
 
     if(distribution_type_()== "ports"){   // N port with 1 slot each (N = channelmap size)
         for (auto &it : channelmap_()) {
-            data_ports_[it.first] = create_output_port<TimeSeriesType<double>>(
+            data_ports_.push_back(create_output_port<TimeSeriesType<double>>(
                                     it.first,
                                     TimeSeriesType<double>::Parameters(),
-                                    PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY));
+                                    PortOutPolicy(SlotRange(1), BUFFER_SIZE, WAIT_STRATEGY)));
         }
      } else if(distribution_type_() == "slots"){   // 1 port with N slots (N = channelmap size)
-        data_ports_["data"] = create_output_port<TimeSeriesType<double>>(
+        data_ports_.push_back(create_output_port<TimeSeriesType<double>>(
                                      TimeSeriesType<double>::Parameters(),
-                                     PortOutPolicy(SlotRange(channelmap_().size()), BUFFER_SIZE, WAIT_STRATEGY));
+                                     PortOutPolicy(SlotRange(channelmap_().size()), BUFFER_SIZE, WAIT_STRATEGY)));
     }
 }
 
 void Distributor::CompleteStreamInfo() {
     auto incoming_batch_size = input_port_->prototype(0).nsamples();
 
-    LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size << ".";
+    LOG_IF(INFO, !input_port_->prototype(0).resizable()) << name() << ". Incoming batch size: " << incoming_batch_size << ".";
 
     slot_ = 0;
+    int port = 0;
+
+    LOG(INFO)<< name() << ": Data is splitted in " << channelmap_().size() << " parallel packets.";
     for (auto &it : channelmap_()) {
         if(distribution_type_() == "ports"){   // N port with 1 slot each (N = channelmap size)
 
-            data_ports_[it.first]->streaminfo(0).set_parameters(
+            data_ports_[port]->streaminfo(0).set_parameters(
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
                             incoming_batch_size,
-                            input_port_->prototype(0).sample_rate()));
+                            input_port_->prototype(0).sample_rate(),
+                            input_port_->prototype(0).resizable()));
 
-             data_ports_[it.first]->streaminfo(0).set_stream_parameters(input_port_->streaminfo(0));
+             data_ports_[port]->streaminfo(0).set_stream_parameters(input_port_->streaminfo(0));
+             port++;
 
 
         } else if(distribution_type_() == "slots"){  // 1 port with N slots (N = channelmap size)
-            data_ports_["data"]->streaminfo(slot_).set_parameters(
+            data_ports_[0]->streaminfo(slot_).set_parameters(
                         TimeSeriesType<double>::Parameters(
                             it.second.get_labels(),
                             incoming_batch_size,
-                            input_port_->prototype(0).sample_rate()));
+                            input_port_->prototype(0).sample_rate(),
+                            input_port_->prototype(0).resizable()));
 
-             data_ports_["data"]->streaminfo(slot_).set_stream_parameters(
+             data_ports_[0]->streaminfo(slot_).set_stream_parameters(
                         input_port_->streaminfo(0).stream_rate(), it.first);
 
              slot_++;
@@ -129,53 +135,39 @@ void Distributor::Prepare(GlobalContext &context) {
 }
 
 void Distributor::Process(ProcessingContext &context) {
+
     TimeSeriesType<double>::Data *data_in = nullptr;
-    std::vector<TimeSeriesType<double>::Data *> data_out_vector;
-
-
     while (!context.terminated()) {
+
         // retrieve new data packet
+
         if (!input_port_->slot(0)->RetrieveData(data_in)) {
             break;
         }
 
         for (auto &it : data_ports_) {
-            for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
-                data_out_vector.push_back(it.second->slot(slot_)->ClaimData(false));
-            }
-        }
+            for (slot_ = 0; slot_ < it->number_of_slots(); slot_++) {
+                auto data_out=it->slot(slot_)->ClaimData(true);
 
-        for (auto &data_out : data_out_vector) {
-            data_out->CloneTimestamps(*data_in);
-            data_out->set_sample_timestamps(
-                        data_in->sample_timestamps());
-
-            for (auto ch: data_out->labels()) {
-                // publish data buckets
-                data_out->clone_column(ch, *data_in);
-            }
-        }
-
-        // publish data buckets
-        for (auto &it : data_ports_) {
-            for (slot_ = 0; slot_ < it.second->number_of_slots(); slot_++) {
-                it.second->slot(slot_)->PublishData();
+                for (auto ch: data_out->labels()) {
+                    // publish data buckets
+                    data_out->clone_column(ch, *data_in);
+                }
+                data_out->CloneTimestamps(*data_in);
+                data_out->set_sample_timestamps(
+                            data_in->sample_timestamps());
+                it->slot(slot_)->PublishData();
             }
         }
 
         // release input data bucket
         input_port_->slot(0)->ReleaseData();
-        data_out_vector.clear();
-    }
+        }
 }
 
 void Distributor::Postprocess(ProcessingContext &context) {
-    for (auto &it : data_ports_) {
-        LOG(INFO) << name() << ". Port " << it.first
-                      << ". Streamed " << it.second->slot(0)->nitems_produced()
-                      << " data packets. ";
-
-    }
+    LOG(INFO) << name() << " Streamed "
+              << data_ports_[0]->slot(0)->nitems_produced()<< " data packets.";
 }
 
 REGISTERPROCESSOR(Distributor)
