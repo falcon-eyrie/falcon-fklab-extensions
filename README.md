@@ -1,5 +1,5 @@
 ![Falcon version](https://img.shields.io/badge/Falcon-v1.3.0-blue)
-
+test
 # Falcon extensions
 
 The extension does not work as standalone and needs to be integrated with [Falcon](https://falcon-core.readthedocs.io)
