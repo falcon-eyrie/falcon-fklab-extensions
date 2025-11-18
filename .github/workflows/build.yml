@@ -57,10 +57,8 @@ jobs:
         run: |
           cd ../falcon-core
 
-          cat <<EOF > extensions.txt
-            enable , extension name , extension path , extension version (optional)
-            dev , core , extensions/falcon-fklab-extensions
-            EOF
+          # Enable falcon-fklab-extensions
+          printf 'enable , extension name , extension path , extension version (optional)\ndev , core , extensions/falcon-fklab-extensions\n' > extensions.txt
 
           cat extenstions.txt
 
