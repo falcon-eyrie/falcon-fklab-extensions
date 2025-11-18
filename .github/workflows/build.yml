@@ -20,6 +20,7 @@ jobs:
           # $GITHUB_WORKSPACE/falcon-fklab-extensions. We clone the
           # falcon-core into a sibling directory called "falcon-core".
           cd $GITHUB_WORKSPACE
+          ls
           git clone https://github.com/falcon-eyrie/falcon-core.git
 
           # Copy current repo into falcon-core/extensions
