@@ -15,12 +15,7 @@ jobs:
 
       - name: Clone falcon-core repository
         run: |
-          # The runner's workspace is $GITHUB_WORKSPACE.
-          # By default, the falcon-fklab-extensions is checked out into
-          # $GITHUB_WORKSPACE/falcon-fklab-extensions. We clone the
-          # falcon-core into a sibling directory called "falcon-core".
-          cd $GITHUB_WORKSPACE/..
-          ls
+          cd ..
           git clone https://github.com/falcon-eyrie/falcon-core.git
 
           # Copy current repo into falcon-core/extensions
@@ -30,7 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ls
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
@@ -40,6 +34,7 @@ jobs:
             wget \
             xz-utils
 
+          cd ../falcon-core
           sh scripts/setup/install_cmake.sh
           sh scripts/setup/install_clang_format.sh
 
@@ -57,11 +52,13 @@ jobs:
 
       - name: Configure CMake
         run: |
+          cd ../falcon-core
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Debug -DIGNORE_EXTENSIONS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: Build project
         run: |
+          cd ../falcon-core
           cd build
           make -j$(nproc)
