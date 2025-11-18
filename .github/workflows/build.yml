@@ -16,7 +16,10 @@ jobs:
       - name: Clone falcon-core repository
         run: |
           cd ..
-          git clone https://github.com/falcon-eyrie/falcon-core.git
+          git clone --depth 1 https://github.com/falcon-eyrie/falcon-core.git
+          cd repo
+          git checkout 06c07c1218a29d1420867556317b543b98d2a28b
+          cd ..
 
           # Copy current repo into falcon-core/extensions
           mkdir -p falcon-core/extensions
@@ -53,6 +56,14 @@ jobs:
       - name: Configure CMake
         run: |
           cd ../falcon-core
+
+          cat <<EOF > extensions.txt
+            enable , extension name , extension path , extension version (optional)
+            dev , core , extensions/falcon-fklab-extensions
+            EOF
+
+          cat extenstions.txt
+
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POLICY_VERSION_MINIMUM=3.5
