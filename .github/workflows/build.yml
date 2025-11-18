@@ -19,7 +19,7 @@ jobs:
           # By default, the falcon-fklab-extensions is checked out into
           # $GITHUB_WORKSPACE/falcon-fklab-extensions. We clone the
           # falcon-core into a sibling directory called "falcon-core".
-          cd $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE/..
           ls
           git clone https://github.com/falcon-eyrie/falcon-core.git
 
