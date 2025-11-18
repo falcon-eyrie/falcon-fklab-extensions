@@ -17,7 +17,7 @@ jobs:
         run: |
           cd ..
           git clone --depth 1 https://github.com/falcon-eyrie/falcon-core.git
-          cd repo
+          cd falcon-core
           git checkout 06c07c1218a29d1420867556317b543b98d2a28b
           cd ..
 
