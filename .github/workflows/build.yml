@@ -1,0 +1,65 @@
+name: Format and Compile
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build-linux:
+    name: Format and Compile
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clone falcon-core repository
+        run: |
+          # The runner's workspace is $GITHUB_WORKSPACE.
+          # By default, the falcon-fklab-extensions is checked out into
+          # $GITHUB_WORKSPACE/falcon-fklab-extensions. We clone the
+          # falcon-core into a sibling directory called "falcon-core".
+          cd $GITHUB_WORKSPACE
+          git clone https://github.com/falcon-eyrie/falcon-core.git
+
+          # Copy current repo into falcon-core/extensions
+          mkdir -p falcon-core/extensions
+          cp -a falcon-fklab-extensions falcon-core/extensions/
+
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libzmq3-dev \
+            pkg-config \
+            git \
+            wget \
+            xz-utils
+
+          sh scripts/setup/install_cmake.sh
+          sh scripts/setup/install_clang_format.sh
+
+
+      # Disabled for now, will enable in another PR
+      # - name: Run format check
+      #   run: |
+      #     sh scripts/format.sh
+      #     # Check for any changes caused by formatting
+      #     if [[ -n "$(git status --porcelain)" ]]; then
+      #       echo "Following files seems to be not formatted. Please run './scripts/format.sh' locally and commit the changes."
+      #       git --no-pager diff --name-only
+      #       exit 1
+      #     fi
+
+      - name: Configure CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DIGNORE_EXTENSIONS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+      - name: Build project
+        run: |
+          cd build
+          make -j$(nproc)

@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 // to be used for port names using spike data
 const std::string SPIKEDATA = "spikes";
