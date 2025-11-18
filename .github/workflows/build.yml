@@ -60,7 +60,7 @@ jobs:
           # Enable falcon-fklab-extensions
           printf 'enable , extension name , extension path , extension version (optional)\ndev , core , extensions/falcon-fklab-extensions\n' > extensions.txt
 
-          cat extenstions.txt
+          cat extensions.txt
 
           mkdir -p build
           cd build
