@@ -152,7 +152,8 @@ void Distributor::Process(ProcessingContext &context) {
 
             for (auto ch: data_out->labels()) {
                 // publish data buckets
-                data_out->clone_column(ch, *data_in);
+                // TODO: revert back
+                // data_out->clone_column(ch, *data_in);
             }
         }
 
