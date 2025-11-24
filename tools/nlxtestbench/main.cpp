@@ -106,24 +106,9 @@ int main(int argc, char **argv) {
     config.npackets = parser.get<int64_t>("npackets");
   }
 
-  // auto start
-  // find source with specified name
-  unsigned int idx = 0;
-  bool autostart = false;
 
   if (parser.get<int>("autostart") >= 0) {
     config.autostart = parser.get<int>("autostart");
-  }
-
-  if (config.autostart() >= 0) {
-    if (idx >= sources.size()) {
-      std::cout << "Warning: cannot auto start non-existing stream " << idx
-                << std::endl
-                << std::endl;
-      idx = 0;
-    } else {
-      autostart = true;
-    }
   }
 
   std::cout << "NlxTestBench configuration:" << std::endl;
@@ -138,12 +123,24 @@ int main(int argc, char **argv) {
                              nlx::NLX_SIGNAL_SAMPLING_FREQUENCY)
               << " s)" << std::endl;
   }
-  if (autostart) {
-    std::cout << "auto start = " << static_cast<char>('a' + idx) << std::endl;
+
+  if (config.autostart() > -1) {
+    if (config.autostart() >= sources.size()) {
+      std::cout << "Warning: input source at index " << config.autostart()
+                << " does not exist. Available sources are 0 to "
+                << (sources.size() - 1)
+                << ". Setting autostart index to 0."
+                << std::endl
+                << std::endl;
+      config.autostart = 0;
+    }
+    std::cout << "Auto-start source = "
+              << static_cast<char>('a' + config.autostart())
+              << std::endl;
   }
 
   // create data streaming object
-  DataStreamer streamer(sources[idx].get(), config.stream_rate(),
+  DataStreamer streamer(sources[config.autostart()].get(), config.stream_rate(),
                         config.ip_address(), config.port(), config.npackets());
 
   // print all available sources
@@ -156,7 +153,7 @@ int main(int argc, char **argv) {
   int hit;
   char c;
 
-  if (autostart) {
+  if (config.autostart() > -1) {
     streamer.Start();
   }
 
