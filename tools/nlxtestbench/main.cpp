@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
   }
 
   if (config.autostart() > -1) {
-    if (config.autostart() >= sources.size()) {
+    if (static_cast<size_t>(config.autostart()) >= sources.size()) {
       std::cout << "Warning: input source at index " << config.autostart()
                 << " does not exist. Available sources are 0 to "
                 << (sources.size() - 1)
