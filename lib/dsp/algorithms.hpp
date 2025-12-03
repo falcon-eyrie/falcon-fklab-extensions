@@ -26,6 +26,7 @@
 #include <limits>
 #include <stdexcept>
 #include <vector>
+#include <cstdint>
 
 namespace dsp {
 namespace algorithms {

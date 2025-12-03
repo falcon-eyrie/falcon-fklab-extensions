@@ -1,0 +1,71 @@
+name: Format and Compile
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build-linux:
+    name: Format and Compile
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clone falcon-core repository
+        run: |
+          cd ..
+          git clone --depth 1 https://github.com/falcon-eyrie/falcon-core.git
+          cd falcon-core
+          git checkout develop
+          cd ..
+
+          # Copy current repo into falcon-core/extensions
+          mkdir -p falcon-core/extensions
+          cp -a falcon-fklab-extensions falcon-core/extensions/
+
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libzmq3-dev \
+            pkg-config \
+            git \
+            wget \
+            xz-utils
+
+          cd ../falcon-core
+          sh scripts/setup/install_cmake.sh
+          sh scripts/setup/install_clang_format.sh
+
+
+      # Disabled for now, will enable in another PR
+      # - name: Run format check
+      #   run: |
+      #     sh scripts/format.sh
+      #     # Check for any changes caused by formatting
+      #     if [[ -n "$(git status --porcelain)" ]]; then
+      #       echo "Following files seems to be not formatted. Please run './scripts/format.sh' locally and commit the changes."
+      #       git --no-pager diff --name-only
+      #       exit 1
+      #     fi
+
+      - name: Configure CMake
+        run: |
+          cd ../falcon-core
+
+          # Enable falcon-fklab-extensions
+          printf 'enable, extension name, extension path, extension version (optional)\ndev, core, extensions/falcon-fklab-extensions\n' > extensions.txt
+
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+      - name: Build project
+        run: |
+          cd ../falcon-core
+          cd build
+          make -j$(nproc)
