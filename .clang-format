@@ -2,7 +2,7 @@ BasedOnStyle: Google
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-AllowShortFunctionsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
 ColumnLimit: 100
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true

@@ -23,8 +23,7 @@
 
 class DummyDIO : public DigitalDevice {
    public:
-    DummyDIO(uint32_t nchannels) : DigitalDevice("dummy"), state_(nchannels) {
-    }
+    DummyDIO(uint32_t nchannels) : DigitalDevice("dummy"), state_(nchannels) {}
 
     uint32_t nchannels() const;
 

@@ -26,15 +26,9 @@ class TestEvent2State : public Event2State {
    public:
     using Event2State::event_counter_;
 
-    std::string get_target() {
-        return target_event_().event();
-    }
-    PortIn<EventType>* getDataInPort() {
-        return data_in_port_;
-    };
-    PortOut<EventType>* getDataOutPort() {
-        return data_out_port_;
-    };
+    std::string         get_target() { return target_event_().event(); }
+    PortIn<EventType>*  getDataInPort() { return data_in_port_; };
+    PortOut<EventType>* getDataOutPort() { return data_out_port_; };
 };
 
 namespace {

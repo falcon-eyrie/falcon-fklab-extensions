@@ -33,8 +33,7 @@ using ParentType = AnyType;
 
 struct Parameters {
     Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
-        : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {
-    }
+        : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
 
     double       buffer_size;
     unsigned int nchannels;
@@ -48,28 +47,19 @@ class Data : public IData<Data, ParentType> {
     Data(unsigned int nchannels, double buffer_size, double sample_rate, size_t max_nspikes = 0);
 
     Data(const Parameters& parameters)
-        : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {
-    }
+        : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {}
 
-    static const std::string static_datatype() {
-        return "spike";
-    }
-    static const std::string static_dataname() {
-        return "spikes";
-    }
+    static const std::string static_datatype() { return "spike"; }
+    static const std::string static_dataname() { return "spikes"; }
 
-    Parameters parameters() const {
-        return Parameters(buffer_size_, n_channels_, sample_rate_);
-    }
+    Parameters parameters() const { return Parameters(buffer_size_, n_channels_, sample_rate_); }
 
     void ClearData() override;
 
     unsigned int n_channels() const;
 
     double sample_rate() const;
-    double buffer_size() const {
-        return buffer_size_;
-    }
+    double buffer_size() const { return buffer_size_; }
 
     void add_spike(const std::vector<double>& amplitudes,
                    uint64_t                   hw_timestamp); // 1st argument will change to a
@@ -126,12 +116,9 @@ class Data : public IData<Data, ParentType> {
 class Capabilities {
    public:
     Capabilities(ChannelRange channel_range = ChannelRange(1, MAX_N_CHANNELS_SPIKE_DETECTION))
-        : channel_range_(channel_range) {
-    }
+        : channel_range_(channel_range) {}
 
-    ChannelRange channel_range() const {
-        return channel_range_;
-    }
+    ChannelRange channel_range() const { return channel_range_; }
 
     void Validate(const Data& prototype) const {
         if (!channel_range_.inrange(prototype.n_channels())) {

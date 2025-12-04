@@ -40,8 +40,7 @@ using ParentType = AnyType;
 
 struct Parameters {
     Parameters(const std::vector<std::string>& labels, size_t nsamp = 0)
-        : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {
-    }
+        : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
 
     size_t                   ncolumns;
     size_t                   nsamples;
@@ -74,36 +73,21 @@ class Data : public IData<Data<T>, ParentType> {
      * @brief Data constructor from the parameters object
      * @param parameters
      */
-    Data(const Parameters& parameters) : Data(parameters.labels, parameters.nsamples) {
-    }
+    Data(const Parameters& parameters) : Data(parameters.labels, parameters.nsamples) {}
 
-    static const std::string static_datatype() {
-        return "columnar [" + get_type_string<T>() + "]";
-    }
-    static const std::string static_dataname() {
-        return "data";
-    }
+    static const std::string static_datatype() { return "columnar [" + get_type_string<T>() + "]"; }
+    static const std::string static_dataname() { return "data"; }
 
     /**
      * @brief ClearData - clear the data
      */
-    void ClearData() override {
-        std::fill(data_.begin(), data_.end(), 0);
-    }
+    void ClearData() override { std::fill(data_.begin(), data_.end(), 0); }
 
-    Parameters parameters() const {
-        return Parameters(labels_, nsamples_);
-    }
+    Parameters parameters() const { return Parameters(labels_, nsamples_); }
 
-    size_t ncolumns() const {
-        return ncolumns_;
-    }
-    size_t nsamples() const {
-        return nsamples_;
-    }
-    std::vector<std::string> labels() const {
-        return labels_;
-    }
+    size_t                   ncolumns() const { return ncolumns_; }
+    size_t                   nsamples() const { return nsamples_; }
+    std::vector<std::string> labels() const { return labels_; }
 
     /**
      * @brief set_data_column set all samples for one column based on the name
@@ -189,12 +173,8 @@ class Data : public IData<Data<T>, ParentType> {
      *
      * @return
      */
-    std::vector<T>& data() {
-        return data_;
-    }
-    const std::vector<T>& data() const {
-        return data_;
-    }
+    std::vector<T>&       data() { return data_; }
+    const std::vector<T>& data() const { return data_; }
 
     /**
      * @brief data_sample - return the data for one sample index and one column
@@ -220,9 +200,7 @@ class Data : public IData<Data<T>, ParentType> {
 
     // Operator based on sample index / column index
 
-    T& operator()(size_t sample, size_t column = 0) {
-        return data_[flat_index(sample, column)];
-    }
+    T& operator()(size_t sample, size_t column = 0) { return data_[flat_index(sample, column)]; }
     const T& operator()(size_t sample, size_t column = 0) const {
         return data_[flat_index(sample, column)];
     }
@@ -240,12 +218,8 @@ class Data : public IData<Data<T>, ParentType> {
 
     // operator based on index from the full dataset
     // [column_index = index/ncolumns, sample_index = index%ncolumns]
-    T& operator()(size_t index) {
-        return data_[index];
-    }
-    const T& operator()(size_t index) const {
-        return data_[index];
-    }
+    T&       operator()(size_t index) { return data_[index]; }
+    const T& operator()(size_t index) const { return data_[index]; }
 
     // iterators
     /**
@@ -253,24 +227,16 @@ class Data : public IData<Data<T>, ParentType> {
      * @param sample
      * @return
      */
-    T* begin_sample(size_t sample) {
-        return &data_[flat_index(sample)];
-    }
+    T* begin_sample(size_t sample) { return &data_[flat_index(sample)]; }
     /**
      * @brief end_sample iterator at the end of a sample index
      * @param sample
      * @return
      */
-    T* end_sample(size_t sample) {
-        return begin_sample(sample) + ncolumns_;
-    }
+    T* end_sample(size_t sample) { return begin_sample(sample) + ncolumns_; }
 
-    const T* begin_sample(size_t sample) const {
-        return &data_[flat_index(sample)];
-    }
-    const T* end_sample(size_t sample) const {
-        return begin_sample(sample) + ncolumns_;
-    }
+    const T* begin_sample(size_t sample) const { return &data_[flat_index(sample)]; }
+    const T* end_sample(size_t sample) const { return begin_sample(sample) + ncolumns_; }
 
     /**
      * @brief begin_column iterator at the start of the column based on the
@@ -287,9 +253,7 @@ class Data : public IData<Data<T>, ParentType> {
      * @param column - column index
      * @return
      */
-    stride_iter<T*> end_column(size_t column) {
-        return begin_column(column) + nsamples_;
-    }
+    stride_iter<T*> end_column(size_t column) { return begin_column(column) + nsamples_; }
 
     /**
      * @brief begin_column - iterator at the start of the column based on name
@@ -307,9 +271,7 @@ class Data : public IData<Data<T>, ParentType> {
      * @param column - column label
      * @return
      */
-    stride_iter<T*> end_column(std::string column) {
-        return begin_column(column) + nsamples_;
-    }
+    stride_iter<T*> end_column(std::string column) { return begin_column(column) + nsamples_; }
 
     /**
      * @brief SerializeBinary - add to the binary stream the data
@@ -485,9 +447,7 @@ class Data : public IData<Data<T>, ParentType> {
     inline size_t flat_index(size_t sample, size_t channel) const {
         return channel + sample * ncolumns_;
     }
-    inline size_t flat_index(size_t sample) const {
-        return sample * ncolumns_;
-    }
+    inline size_t flat_index(size_t sample) const { return sample * ncolumns_; }
 
    protected:
     size_t ncolumns_;
@@ -501,20 +461,16 @@ class Capabilities {
    public:
     Capabilities(ChannelRange column_range,
                  SampleRange  sample_range = SampleRange(1, std::numeric_limits<uint32_t>::max()))
-        : column_range_(column_range), sample_range_(sample_range), labels_({}) {
-    }
+        : column_range_(column_range), sample_range_(sample_range), labels_({}) {}
 
     Capabilities(std::vector<std::string> labels,
                  SampleRange sample_range = SampleRange(1, std::numeric_limits<uint32_t>::max()))
-        : column_range_(ChannelRange(labels.size())), sample_range_(sample_range), labels_(labels) {
-    }
+        : column_range_(ChannelRange(labels.size())),
+          sample_range_(sample_range),
+          labels_(labels) {}
 
-    ChannelRange column_range() const {
-        return column_range_;
-    }
-    SampleRange sample_range() const {
-        return sample_range_;
-    }
+    ChannelRange column_range() const { return column_range_; }
+    SampleRange  sample_range() const { return sample_range_; }
 
     template <class T>
     void Validate(const Data<T>& prototype) {

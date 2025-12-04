@@ -31,30 +31,14 @@ class TestEventDelayed : EventDelayed {
     using EventDelayed::Process;
     using IProcessor::load_fake_options;
 
-    bool get_default_enabled() {
-        return default_enabled_();
-    };
-    int get_lockout_period() {
-        return initial_lockout_period_();
-    }
-    bool get_delayed_event() {
-        return initial_delayed_event_();
-    }
-    std::vector<long int> get_delayed_range() {
-        return initial_delayed_range_();
-    }
-    bool get_save_event() {
-        return save_events_();
-    }
-    std::string get_prefix() {
-        return prefix_();
-    }
-    PortIn<EventType>* getDataInPort() {
-        return data_in_port_;
-    };
-    PortOut<EventType>* getDataOutPort() {
-        return data_out_port_;
-    };
+    bool                  get_default_enabled() { return default_enabled_(); };
+    int                   get_lockout_period() { return initial_lockout_period_(); }
+    bool                  get_delayed_event() { return initial_delayed_event_(); }
+    std::vector<long int> get_delayed_range() { return initial_delayed_range_(); }
+    bool                  get_save_event() { return save_events_(); }
+    std::string           get_prefix() { return prefix_(); }
+    PortIn<EventType>*    getDataInPort() { return data_in_port_; };
+    PortOut<EventType>*   getDataOutPort() { return data_out_port_; };
 };
 
 namespace {

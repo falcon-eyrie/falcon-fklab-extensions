@@ -34,56 +34,35 @@ using Base = AnyType;
 
 template <typename TYPE>
 struct Parameters {
-    Parameters(TYPE value) : default_value(value) {
-    }
+    Parameters(TYPE value) : default_value(value) {}
     TYPE default_value;
 };
 
 template <typename TYPE>
 class Data : public IData<Data<TYPE>, Base> {
    public:
-    ScalarData(TYPE data = DEFAULT_SCALAR_VALUE) : default_value_(data), data_(data) {
-    }
-    ScalarData(const Parameters<TYPE>& parameters) : ScalarData(parameters.default_value) {
-    }
+    ScalarData(TYPE data = DEFAULT_SCALAR_VALUE) : default_value_(data), data_(data) {}
+    ScalarData(const Parameters<TYPE>& parameters) : ScalarData(parameters.default_value) {}
 
     static const std::string static_datatype() {
         return "scalar [" + get_type_string<TYPE>() + "]";
     }
-    static const std::string static_dataname() {
-        return "data";
-    }
+    static const std::string static_dataname() { return "data"; }
 
-    Parameters parameters() const {
-        return Parameters(default_value_);
-    }
+    Parameters parameters() const { return Parameters(default_value_); }
 
-    void ClearData() override {
-        data_ = default_value_;
-    }
+    void ClearData() override { data_ = default_value_; }
 
-    TYPE const& default_value() const {
-        return default_value_;
-    }
-    TYPE const& data() const {
-        return data_;
-    }
+    TYPE const& default_value() const { return default_value_; }
+    TYPE const& data() const { return data_; }
 
-    void set_data(const TYPE& data) {
-        data_ = data;
-    }
+    void set_data(const TYPE& data) { data_ = data; }
 
-    void set_data(const Data<TYPE>& source) {
-        data_ = source.data();
-    }
+    void set_data(const Data<TYPE>& source) { data_ = source.data(); }
 
-    friend bool operator==(Data<TYPE>& a, Data<TYPE>& b) {
-        return a.data == b.data;
-    }
+    friend bool operator==(Data<TYPE>& a, Data<TYPE>& b) { return a.data == b.data; }
 
-    friend bool operator!=(Data<TYPE>& a, Data<TYPE>& b) {
-        return a.data != b.data;
-    }
+    friend bool operator!=(Data<TYPE>& a, Data<TYPE>& b) { return a.data != b.data; }
 
     void SerializeBinary(std::ostream& stream, Serialization::Format format =
                                                    Serialization::Format::FULL) const override {

@@ -32,8 +32,7 @@ class ChannelValidityMask {
     ChannelValidityMask(unsigned int               n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
                         ChannelDetection::Validity validity = ChannelDetection::Validity::UNKNOWN);
 
-    ~ChannelValidityMask() {
-    }
+    ~ChannelValidityMask() {}
 
     unsigned int n_channels() const;
 

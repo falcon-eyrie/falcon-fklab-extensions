@@ -32,12 +32,10 @@ namespace nsTimeSeries {
 
 struct Parameters : nsColumn::Parameters {
     Parameters(size_t nchan = 0, size_t nsamp = 0, double rate = 1.0)
-        : nsColumn::Parameters(generate_labels(nchan), nsamp), sample_rate(rate) {
-    }
+        : nsColumn::Parameters(generate_labels(nchan), nsamp), sample_rate(rate) {}
 
     Parameters(const std::vector<std::string>& labels, size_t nsamp = 0, double rate = 1.0)
-        : nsColumn::Parameters(labels, nsamp), sample_rate(rate) {
-    }
+        : nsColumn::Parameters(labels, nsamp), sample_rate(rate) {}
 
     double sample_rate;
 };
@@ -85,8 +83,7 @@ class Data : public IData<Data<T>, Base<T>> {
      * @param sample_rate
      */
     Data(size_t ncolumns, size_t nsamples, double sample_rate)
-        : Data(generate_labels(ncolumns), ncolumns, nsamples, sample_rate) {
-    }
+        : Data(generate_labels(ncolumns), ncolumns, nsamples, sample_rate) {}
 
     /**
      * @brief Data constructor based on the parameters object
@@ -95,15 +92,12 @@ class Data : public IData<Data<T>, Base<T>> {
      * automatically generated based on the number of columns or set directly.
      */
     Data(const Parameters& parameters)
-        : Data(parameters.labels, parameters.nsamples, parameters.sample_rate) {
-    }
+        : Data(parameters.labels, parameters.nsamples, parameters.sample_rate) {}
 
     static const std::string static_datatype() {
         return "time series [" + get_type_string<T>() + "]";
     }
-    static const std::string static_dataname() {
-        return "data";
-    }
+    static const std::string static_dataname() { return "data"; }
 
     /**
      * @brief ClearData - clear the timestamps and the data (done in the
@@ -118,9 +112,7 @@ class Data : public IData<Data<T>, Base<T>> {
         return Parameters(this->labels_, this->nsamples_, sample_rate_);
     }
 
-    double sample_rate() const {
-        return sample_rate_;
-    }
+    double sample_rate() const { return sample_rate_; }
 
     /**
      * @brief sample_timestamp - give the timestamp corresponding to a sample
@@ -128,20 +120,14 @@ class Data : public IData<Data<T>, Base<T>> {
      * @param sample
      * @return one timestamp
      */
-    uint64_t sample_timestamp(size_t sample = 0) const {
-        return timestamps_[sample];
-    }
+    uint64_t sample_timestamp(size_t sample = 0) const { return timestamps_[sample]; }
 
     /**
      * @brief sample_timestamps - give all the timestamps in the packet
      * @return  all timestamps
      */
-    const std::vector<uint64_t>& sample_timestamps() const {
-        return timestamps_;
-    }
-    std::vector<uint64_t>& sample_timestamps() {
-        return timestamps_;
-    }
+    const std::vector<uint64_t>& sample_timestamps() const { return timestamps_; }
+    std::vector<uint64_t>&       sample_timestamps() { return timestamps_; }
 
     /**
      * @brief set_sample_timestamp - set one timestamp for a given sample number

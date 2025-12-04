@@ -36,8 +36,7 @@ enum class Slope { UP, DOWN };
 class ThresholdCrosser {
    public:
     ThresholdCrosser(double threshold, Slope slope = Slope::UP)
-        : threshold_(threshold), slope_(slope) {
-    }
+        : threshold_(threshold), slope_(slope) {}
 
     double threshold() const;
     void   set_threshold(double value);
@@ -116,8 +115,7 @@ class RunningMeanMAD : public RunningStatistics {
                    double outlier_zscore = 3, double outlier_half_life = 1, double mean = 0.0,
                    double mad = 0.0)
         : RunningStatistics(alpha, burn_in, outlier_protection, outlier_zscore, outlier_half_life,
-                            mean, mad) {
-    }
+                            mean, mad) {}
 
     double mean() const;
     double mad() const;
@@ -134,8 +132,7 @@ class PeakDetector {
           previous_timestamp_(init_timestamp),
           npeaks_found_(0),
           last_peak_amplitude_(0),
-          last_peak_timestamp_(0) {
-    }
+          last_peak_timestamp_(0) {}
 
     void reset(uint64_t init_timestamp = 0, double init_value = 0.0);
 
@@ -185,8 +182,7 @@ class SpikeDetector {
     SpikeDetector(unsigned int nchannels, double threshold, unsigned int peak_life_time,
                   SpikeDetectionSign sign = SpikeDetectionSign::UP);
 
-    ~SpikeDetector() {
-    }
+    ~SpikeDetector() {}
 
     void reset();
 

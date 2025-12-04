@@ -33,11 +33,8 @@ struct Delayed {
     TimePoint        ts;
     EventType::Data* data_in;
 
-    Delayed(TimePoint ts, EventType::Data* data_in) : ts(ts), data_in(data_in) {
-    }
-    bool operator>(const Delayed& test) const {
-        return (ts > test.ts);
-    }
+    Delayed(TimePoint ts, EventType::Data* data_in) : ts(ts), data_in(data_in) {}
+    bool operator>(const Delayed& test) const { return (ts > test.ts); }
 };
 
 class EventDelayed : public IProcessor {

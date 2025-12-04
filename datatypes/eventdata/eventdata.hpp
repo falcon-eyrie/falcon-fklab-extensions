@@ -33,8 +33,7 @@ namespace nsEventType {
 using ParentType = AnyType;
 
 struct Parameters {
-    Parameters(std::string event = DEFAULT_EVENT) : default_event(event) {
-    }
+    Parameters(std::string event = DEFAULT_EVENT) : default_event(event) {}
 
     std::string default_event;
 };
@@ -44,19 +43,12 @@ class Data : public IData<Data, ParentType> {
     using BaseClass = IData<Data, ParentType>;
 
     Data(std::string event = DEFAULT_EVENT);
-    Data(const Parameters& parameters) : Data(parameters.default_event) {
-    }
+    Data(const Parameters& parameters) : Data(parameters.default_event) {}
 
-    static const std::string static_datatype() {
-        return "event";
-    }
-    static const std::string static_dataname() {
-        return "events";
-    }
+    static const std::string static_datatype() { return "event"; }
+    static const std::string static_dataname() { return "events"; }
 
-    Parameters parameters() const {
-        return Parameters(default_event_);
-    }
+    Parameters parameters() const { return Parameters(default_event_); }
 
     void        ClearData() override;
     std::string event() const;

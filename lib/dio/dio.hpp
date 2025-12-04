@@ -28,23 +28,19 @@ enum class DigitalOutputMode { NONE, HIGH, LOW, TOGGLE, PULSE };
 
 class DigitalDeviceError : public std::runtime_error {
    public:
-    DigitalDeviceError(std::string msg) : runtime_error(msg) {
-    }
+    DigitalDeviceError(std::string msg) : runtime_error(msg) {}
     DigitalDeviceError(std::string const command, std::string error)
-        : std::runtime_error("Error executing command " + command + " (error = " + error + ").") {
-    }
+        : std::runtime_error("Error executing command " + command + " (error = " + error + ").") {}
 };
 
 class DigitalStateError : public std::runtime_error {
    public:
-    DigitalStateError(std::string msg) : runtime_error(msg) {
-    }
+    DigitalStateError(std::string msg) : runtime_error(msg) {}
 };
 
 class DigitalState {
    public:
-    DigitalState(uint32_t nchannels = 0) : state_(nchannels, false) {
-    }
+    DigitalState(uint32_t nchannels = 0) : state_(nchannels, false) {}
 
     uint32_t nchannels() const;
 
@@ -72,8 +68,7 @@ class DigitalState {
 
 class DigitalDevice {
    public:
-    DigitalDevice(std::string type) : type_(type) {
-    }
+    DigitalDevice(std::string type) : type_(type) {}
     std::string          type() const;
     virtual std::string  description() const;
     virtual uint32_t     nchannels() const                = 0;
@@ -88,9 +83,7 @@ class DigitalOutputProtocol {
    public:
     DigitalOutputProtocol(uint32_t nchannels, unsigned int pulse_width,
                           DigitalOutputMode default_mode = DigitalOutputMode::NONE);
-    DigitalOutputMode mode(uint32_t channel) const {
-        return mode_[channel];
-    }
+    DigitalOutputMode mode(uint32_t channel) const { return mode_[channel]; }
 
     void set_mode(uint32_t channel, DigitalOutputMode mode = DigitalOutputMode::NONE);
     void set_mode(std::vector<uint32_t> channels, DigitalOutputMode mode = DigitalOutputMode::NONE);

@@ -28,8 +28,7 @@ namespace nsMUAType {
 using ParentType = AnyType;
 
 struct Parameters {
-    Parameters(double bin = 0) : bin_size(bin) {
-    }
+    Parameters(double bin = 0) : bin_size(bin) {}
     double bin_size;
 };
 
@@ -39,16 +38,10 @@ class Data : public IData<Data, ParentType> {
     Data(double bin_size);
     Data(const Parameters& parameters);
 
-    static const std::string static_datatype() {
-        return "mua";
-    }
-    static const std::string static_dataname() {
-        return "mua";
-    }
+    static const std::string static_datatype() { return "mua"; }
+    static const std::string static_dataname() { return "mua"; }
 
-    Parameters parameters() const {
-        return Parameters(bin_size_);
-    }
+    Parameters parameters() const { return Parameters(bin_size_); }
 
     void         ClearData() override;
     void         set_n_spikes(unsigned int n_spikes);

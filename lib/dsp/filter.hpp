@@ -40,8 +40,7 @@ namespace filter {
 
 class IFilter {
    public:
-    IFilter(std::string description) : description_(description) {
-    }
+    IFilter(std::string description) : description_(description) {}
 
     virtual ~IFilter();
 
@@ -163,9 +162,7 @@ class SlopeFilter : public FirFilter {
 
     static SlopeFilter* FromStream(std::istream& stream, std::string description, bool binary);
 
-    virtual IFilter* clone() {
-        return new SlopeFilter(window_size_, order_, derivative_order_);
-    };
+    virtual IFilter* clone() { return new SlopeFilter(window_size_, order_, derivative_order_); };
 
    protected:
     size_t   window_size_;

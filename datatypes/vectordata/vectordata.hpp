@@ -29,8 +29,7 @@ namespace nsVectorType {
 using ParentType = AnyType;
 
 struct Parameters {
-    Parameters(unsigned int n) : size(n) {
-    }
+    Parameters(unsigned int n) : size(n) {}
     unsigned int size;
 };
 
@@ -45,19 +44,12 @@ class Data : public IData<Data<T>, ParentType> {
         }
         data_.resize(n);
     }
-    Data(const Parameters& parameters) : Data(parameters.size) {
-    }
+    Data(const Parameters& parameters) : Data(parameters.size) {}
 
-    static const std::string static_datatype() {
-        return "vector [" + get_type_string<T>() + "]";
-    }
-    static const std::string static_dataname() {
-        return "data";
-    }
+    static const std::string static_datatype() { return "vector [" + get_type_string<T>() + "]"; }
+    static const std::string static_dataname() { return "data"; }
 
-    Parameters parameters() const {
-        return Parameters(data_.size());
-    }
+    Parameters parameters() const { return Parameters(data_.size()); }
 
     void setData(const std::vector<T>& data) {
         if (data.size() != data_.size()) {
@@ -73,13 +65,9 @@ class Data : public IData<Data<T>, ParentType> {
         std::copy(data, data + len, data_.begin());
     }
 
-    void setSample(int index, const T& data) {
-        data_[index] = data;
-    }
+    void setSample(int index, const T& data) { data_[index] = data; }
 
-    std::vector<T>& data() {
-        return data_;
-    }
+    std::vector<T>& data() { return data_; }
 
     void SerializeBinary(std::ostream& stream, Serialization::Format format =
                                                    Serialization::Format::FULL) const override {

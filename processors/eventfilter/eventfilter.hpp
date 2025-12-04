@@ -68,9 +68,7 @@ class EventFilter : public EventSync {
     }
 
     // return the time in milliseconds past from a given time point t
-    inline double time_since(TimePoint t) {
-        return time_between(Clock::now(), t);
-    }
+    inline double time_since(TimePoint t) { return time_between(Clock::now(), t); }
 
     // DATA PORTS
    protected:

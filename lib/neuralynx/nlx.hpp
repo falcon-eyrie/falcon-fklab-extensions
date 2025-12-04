@@ -241,8 +241,7 @@ constexpr uint64_t INVALID_TIMESTAMP = std::numeric_limits<uint64_t>::max();
 
 class NlxStatistics {
    public:
-    NlxStatistics() : n_invalid(0), n_duplicated(0), n_outoforder(0), n_missed(0), n_gaps(0) {
-    }
+    NlxStatistics() : n_invalid(0), n_duplicated(0), n_outoforder(0), n_missed(0), n_gaps(0) {}
 
    public:
     uint64_t n_invalid;

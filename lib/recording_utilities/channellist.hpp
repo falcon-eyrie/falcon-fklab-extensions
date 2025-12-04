@@ -31,9 +31,7 @@ class ChannelList {
    public:
     ChannelList() {};
 
-    std::vector<std::pair<T, std::string>> get_channels() const {
-        return channels_;
-    }
+    std::vector<std::pair<T, std::string>> get_channels() const { return channels_; }
 
     std::vector<T> get_channel_numbers() const {
         std::vector<T> channel_numbers;
@@ -106,30 +104,16 @@ class ChannelList {
         channels_.erase(to_remove, channels_.end());
     }
 
-    auto size() const {
-        return channels_.size();
-    };
+    auto size() const { return channels_.size(); };
 
-    T& operator[](size_t index) {
-        return channels_[index];
-    };
-    const T& operator[](size_t index) const {
-        return channels_[index];
-    };
+    T&       operator[](size_t index) { return channels_[index]; };
+    const T& operator[](size_t index) const { return channels_[index]; };
 
-    auto begin() const {
-        return channels_.begin();
-    };
-    auto end() const {
-        return channels_.end();
-    };
+    auto begin() const { return channels_.begin(); };
+    auto end() const { return channels_.end(); };
 
-    auto begin() {
-        return channels_.begin();
-    };
-    auto end() {
-        return channels_.end();
-    };
+    auto begin() { return channels_.begin(); };
+    auto end() { return channels_.end(); };
 
     /**
      * @brief to_string print the channel list in a yaml format understood by
