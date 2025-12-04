@@ -1,18 +1,18 @@
 /*!
 \file    serialib.h
-\brief   Header file of the class serialib. This class is used for communication
-over a serial device.
+\brief   Header file of the class serialib. This class is used for
+communication over a serial device.
 \author  Philippe Lucidarme (University of Angers)
 \version 2.0
 \date    december the 27th of 2019
 This Serial library is used to communicate through serial port.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE X CONSORTIUM
-BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE X
+CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 This is a licence-free software, it can be used by anyone who try to build a
 better world.
@@ -36,6 +36,7 @@ better world.
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <termios.h>
+
 #include <iostream>
 // File control definitions
 #include <fcntl.h>
@@ -44,122 +45,116 @@ better world.
 #endif
 
 /*! To avoid unused parameters */
-#define UNUSED(x) (void)(x)
+#define UNUSED(x) (void) (x)
 
 /*!  \class     serialib
      \brief     This class is used for communication over a serial device.
 */
 class serialib {
- public:
-  //_____________________________________
-  // ::: Constructors and destructors :::
+   public:
+    //_____________________________________
+    // ::: Constructors and destructors :::
 
-  // Constructor of the class
-  serialib();
+    // Constructor of the class
+    serialib();
 
-  // Destructor
-  ~serialib();
+    // Destructor
+    ~serialib();
 
-  //_________________________________________
-  // ::: Configuration and initialization :::
+    //_________________________________________
+    // ::: Configuration and initialization :::
 
-  // Open a device
-  char openDevice(const char* Device, const unsigned int Bauds);
+    // Open a device
+    char openDevice(const char* Device, const unsigned int Bauds);
 
-  // Close the current device
-  void closeDevice();
+    // Close the current device
+    void closeDevice();
 
-  //___________________________________________
-  // ::: Read/Write operation on characters :::
+    //___________________________________________
+    // ::: Read/Write operation on characters :::
 
-  // Write a char
-  char writeChar(char);
+    // Write a char
+    char writeChar(char);
 
-  // Read a char (with timeout)
-  char readChar(char* pByte, const unsigned int timeOut_ms = 0);
+    // Read a char (with timeout)
+    char readChar(char* pByte, const unsigned int timeOut_ms = 0);
 
-  //________________________________________
-  // ::: Read/Write operation on strings :::
+    //________________________________________
+    // ::: Read/Write operation on strings :::
 
-  // Write a string
-  char writeString(const char* String);
+    // Write a string
+    char writeString(const char* String);
 
-  // Read a string (with timeout)
-  int readString(char* receivedString,
-                 char finalChar,
-                 unsigned int maxNbBytes,
-                 const unsigned int timeOut_ms = 0);
+    // Read a string (with timeout)
+    int readString(char* receivedString, char finalChar, unsigned int maxNbBytes,
+                   const unsigned int timeOut_ms = 0);
 
-  // _____________________________________
-  // ::: Read/Write operation on bytes :::
+    // _____________________________________
+    // ::: Read/Write operation on bytes :::
 
-  // Write an array of bytes
-  char writeBytes(const void* Buffer, const unsigned int NbBytes);
+    // Write an array of bytes
+    char writeBytes(const void* Buffer, const unsigned int NbBytes);
 
-  // Read an array of byte (with timeout)
-  int readBytes(void* buffer,
-                unsigned int maxNbBytes,
-                const unsigned int timeOut_ms = 0,
-                unsigned int sleepDuration_us = 100);
+    // Read an array of byte (with timeout)
+    int readBytes(void* buffer, unsigned int maxNbBytes, const unsigned int timeOut_ms = 0,
+                  unsigned int sleepDuration_us = 100);
 
-  // _________________________
-  // ::: Special operation :::
+    // _________________________
+    // ::: Special operation :::
 
-  // Empty the received buffer
-  char flushReceiver();
+    // Empty the received buffer
+    char flushReceiver();
 
-  // Return the number of bytes in the received buffer
-  int available();
+    // Return the number of bytes in the received buffer
+    int available();
 
-  // _________________________
-  // ::: Access to IO bits :::
+    // _________________________
+    // ::: Access to IO bits :::
 
-  // Set CTR status (Data Terminal Ready, pin 4)
-  bool DTR(bool status);
-  bool setDTR();
-  bool clearDTR();
+    // Set CTR status (Data Terminal Ready, pin 4)
+    bool DTR(bool status);
+    bool setDTR();
+    bool clearDTR();
 
-  // Set RTS status (Request To Send, pin 7)
-  bool RTS(bool status);
-  bool setRTS();
-  bool clearRTS();
+    // Set RTS status (Request To Send, pin 7)
+    bool RTS(bool status);
+    bool setRTS();
+    bool clearRTS();
 
-  // Get RI status (Ring Indicator, pin 9)
-  bool isRI();
+    // Get RI status (Ring Indicator, pin 9)
+    bool isRI();
 
-  // Get DCD status (Data Carrier Detect, pin 1)
-  bool isDCD();
+    // Get DCD status (Data Carrier Detect, pin 1)
+    bool isDCD();
 
-  // Get CTS status (Clear To Send, pin 8)
-  bool isCTS();
+    // Get CTS status (Clear To Send, pin 8)
+    bool isCTS();
 
-  // Get DSR status (Data Set Ready, pin 9)
-  bool isDSR();
+    // Get DSR status (Data Set Ready, pin 9)
+    bool isDSR();
 
-  // Get RTS status (Request To Send, pin 7)
-  bool isRTS();
+    // Get RTS status (Request To Send, pin 7)
+    bool isRTS();
 
-  // Get CTR status (Data Terminal Ready, pin 4)
-  bool isDTR();
+    // Get CTR status (Data Terminal Ready, pin 4)
+    bool isDTR();
 
- private:
-  // Read a string (no timeout)
-  int readStringNoTimeOut(char* String,
-                          char FinalChar,
-                          unsigned int MaxNbBytes);
+   private:
+    // Read a string (no timeout)
+    int readStringNoTimeOut(char* String, char FinalChar, unsigned int MaxNbBytes);
 
-  // Current DTR and RTS state (can't be read on WIndows)
-  bool currentStateRTS;
-  bool currentStateDTR;
+    // Current DTR and RTS state (can't be read on WIndows)
+    bool currentStateRTS;
+    bool currentStateDTR;
 
 #if defined(_WIN32) || defined(_WIN64)
-  // Handle on serial device
-  HANDLE hSerial;
-  // For setting serial port timeouts
-  COMMTIMEOUTS timeouts;
+    // Handle on serial device
+    HANDLE hSerial;
+    // For setting serial port timeouts
+    COMMTIMEOUTS timeouts;
 #endif
 #ifdef __linux__
-  int fd;
+    int fd;
 #endif
 };
 
@@ -168,19 +163,19 @@ class serialib {
    */
 // Class timeOut
 class timeOut {
- public:
-  // Constructor
-  timeOut();
+   public:
+    // Constructor
+    timeOut();
 
-  // Init the timer
-  void initTimer();
+    // Init the timer
+    void initTimer();
 
-  // Return the elapsed time since initialization
-  unsigned long int elapsedTime_ms();
+    // Return the elapsed time since initialization
+    unsigned long int elapsedTime_ms();
 
- private:
-  // Used to store the previous time (for computing timeout)
-  struct timeval previousTime;
+   private:
+    // Used to store the previous time (for computing timeout)
+    struct timeval previousTime;
 };
 
-#endif  // serialib_H
+#endif // serialib_H

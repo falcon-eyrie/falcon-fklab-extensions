@@ -25,21 +25,21 @@
 #include "iprocessor.hpp"
 
 class EventConverter : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  EventConverter();
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Process(ProcessingContext& context) override;
-  void Postprocess(ProcessingContext& context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+   public:
+    EventConverter();
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Process(ProcessingContext& context) override;
+    void Postprocess(ProcessingContext& context) override;
 
-  // DATA PORTS
- protected:
-  PortIn<EventType>* data_in_port_;
-  PortOut<EventType>* data_out_port_;
+    // DATA PORTS
+   protected:
+    PortIn<EventType>*  data_in_port_;
+    PortOut<EventType>* data_out_port_;
 
-  // OPTIONS
- protected:
-  options::String event_name_{"stimulation", options::notempty<std::string>()};
-  options::Bool replace_{true};
+    // OPTIONS
+   protected:
+    options::String event_name_{"stimulation", options::notempty<std::string>()};
+    options::Bool   replace_{true};
 };

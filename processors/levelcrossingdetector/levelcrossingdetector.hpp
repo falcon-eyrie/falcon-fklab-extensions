@@ -24,63 +24,61 @@
 
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
+#include "options/units.hpp"
 #include "timeseriesdata/timeseriesdata.hpp"
 
-#include "options/units.hpp"
-
 class LevelCrossingDetector : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  LevelCrossingDetector();
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Preprocess(ProcessingContext& context) override;
-  void Process(ProcessingContext& context) override;
-  void Postprocess(ProcessingContext& context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+   public:
+    LevelCrossingDetector();
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Preprocess(ProcessingContext& context) override;
+    void Process(ProcessingContext& context) override;
+    void Postprocess(ProcessingContext& context) override;
 
-  // DATA PORTS
- protected:
-  PortIn<TimeSeriesType<double>>* data_in_port_;
-  PortOut<EventType>* data_out_port_;
+    // DATA PORTS
+   protected:
+    PortIn<TimeSeriesType<double>>* data_in_port_;
+    PortOut<EventType>*             data_out_port_;
 
-  // STATES
- protected:
-  StaticState<double>* threshold_;
-  StaticState<bool>* upslope_;
-  StaticState<unsigned int>* post_detect_block_;
+    // STATES
+   protected:
+    StaticState<double>*       threshold_;
+    StaticState<bool>*         upslope_;
+    StaticState<unsigned int>* post_detect_block_;
 
-  // VARIABLES
- protected:
-  std::vector<double> previous_sample_;
-  uint64_t n_detections_;
-  TimeSeriesType<double>::Data* data_in_;
-  EventType::Data* data_out_;
+    // VARIABLES
+   protected:
+    std::vector<double>           previous_sample_;
+    uint64_t                      n_detections_;
+    TimeSeriesType<double>::Data* data_in_;
+    EventType::Data*              data_out_;
 
-  // METHODS
- protected:
-  /* When the post detection block state is updated, it checks if it is
-   * upper a certain level, log the info, and transform it in microsecs
-   *
-   * @input post_detection_block new value from the post detection block state
-   */
-  void post_detection_block_update(unsigned int post_detection_block);
+    // METHODS
+   protected:
+    /* When the post detection block state is updated, it checks if it is
+     * upper a certain level, log the info, and transform it in microsecs
+     *
+     * @input post_detection_block new value from the post detection block state
+     */
+    void post_detection_block_update(unsigned int post_detection_block);
 
-  // CONSTANTS
- public:
-  const std::string DEFAULT_EVENT = "threshold_crossing";
-  const unsigned int LOW_POST_DETECTION_BLOCK_US = 30;
-  const std::string THRESHOLD = "threshold";
-  const std::string UPSLOPE = "upslope";
-  const std::string POST_DETECT_BLOCK = "post detect block";
+    // CONSTANTS
+   public:
+    const std::string  DEFAULT_EVENT               = "threshold_crossing";
+    const unsigned int LOW_POST_DETECTION_BLOCK_US = 30;
+    const std::string  THRESHOLD                   = "threshold";
+    const std::string  UPSLOPE                     = "upslope";
+    const std::string  POST_DETECT_BLOCK           = "post detect block";
 
-  // OPTIONS
- protected:
-  options::Double initial_threshold_{0.0};
-  options::Bool initial_upslope_{true};
+    // OPTIONS
+   protected:
+    options::Double initial_threshold_{0.0};
+    options::Bool   initial_upslope_{true};
 
-  options::Measurement<unsigned int, false> initial_post_detect_block_{
-      2, "sample"};
+    options::Measurement<unsigned int, false> initial_post_detect_block_{2, "sample"};
 
-  options::Value<EventType::Data, false> event_prototype_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
+    options::Value<EventType::Data, false> event_prototype_{DEFAULT_EVENT,
+                                                            options::notempty<EventType::Data>()};
 };
