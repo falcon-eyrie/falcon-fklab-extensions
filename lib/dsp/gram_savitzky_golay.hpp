@@ -39,52 +39,59 @@
 
 namespace gram_sg {
 
-inline double compute_gram_polynomial(const int i, const int m, const int k,
+inline double compute_gram_polynomial(const int i,
+                                      const int m,
+                                      const int k,
                                       const int s) {
-    if (k > 0) {
-        return (4. * k - 2.) / (k * (2. * m - k + 1.)) *
-                   (i * compute_gram_polynomial(i, m, k - 1, s) +
-                    s * compute_gram_polynomial(i, m, k - 1, s - 1)) -
-               ((k - 1.) * (2. * m + k)) / (k * (2. * m - k + 1.)) *
-                   compute_gram_polynomial(i, m, k - 2, s);
-    }
+  if (k > 0) {
+    return (4. * k - 2.) / (k * (2. * m - k + 1.)) *
+               (i * compute_gram_polynomial(i, m, k - 1, s) +
+                s * compute_gram_polynomial(i, m, k - 1, s - 1)) -
+           ((k - 1.) * (2. * m + k)) / (k * (2. * m - k + 1.)) *
+               compute_gram_polynomial(i, m, k - 2, s);
+  }
 
-    if (k == 0 && s == 0) {
-        return 1.;
-    } else {
-        return 0.;
-    }
+  if (k == 0 && s == 0) {
+    return 1.;
+  } else {
+    return 0.;
+  }
 };
 
 inline double compute_generalized_factorial(const int a, const int b) {
-    double gf = 1.;
+  double gf = 1.;
 
-    for (int j = (a - b) + 1; j <= a; j++) {
-        gf *= j;
-    }
-    return gf;
+  for (int j = (a - b) + 1; j <= a; j++) {
+    gf *= j;
+  }
+  return gf;
 };
 
-inline double compute_weight(const int i, const int t, const int m, const int n,
+inline double compute_weight(const int i,
+                             const int t,
+                             const int m,
+                             const int n,
                              const int s) {
-    double w = 0;
-    for (int k = 0; k <= n; ++k) {
-        w = w + (2 * k + 1) *
-                    (compute_generalized_factorial(2 * m, k) /
-                     compute_generalized_factorial(2 * m + k + 1, k + 1)) *
-                    compute_gram_polynomial(i, m, k, 0) *
-                    compute_gram_polynomial(t, m, k, s);
-    }
-    return w;
+  double w = 0;
+  for (int k = 0; k <= n; ++k) {
+    w = w + (2 * k + 1) *
+                (compute_generalized_factorial(2 * m, k) /
+                 compute_generalized_factorial(2 * m + k + 1, k + 1)) *
+                compute_gram_polynomial(i, m, k, 0) *
+                compute_gram_polynomial(t, m, k, s);
+  }
+  return w;
 };
 
-inline std::vector<double> compute_weights(const int m, const int t,
-                                           const int n, const int s) {
-    std::vector<double> weights(2 * static_cast<size_t>(m) + 1);
+inline std::vector<double> compute_weights(const int m,
+                                           const int t,
+                                           const int n,
+                                           const int s) {
+  std::vector<double> weights(2 * static_cast<size_t>(m) + 1);
 
-    for (int i = 0; i < 2 * m + 1; ++i) {
-        weights[static_cast<size_t>(i)] = compute_weight(i - m, t, m, n, s);
-    }
-    return weights;
+  for (int i = 0; i < 2 * m + 1; ++i) {
+    weights[static_cast<size_t>(i)] = compute_weight(i - m, t, m, n, s);
+  }
+  return weights;
 };
-} // namespace gram_sg
+}  // namespace gram_sg

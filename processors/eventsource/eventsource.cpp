@@ -24,49 +24,49 @@
 #include <thread>
 
 EventSource::EventSource() : IProcessor() {
-    add_option("events", event_list_, "List of events to generate.");
-    add_option("rate", event_rate_,
-               "Rate (in Hz) at which events are generated.");
+  add_option("events", event_list_, "List of events to generate.");
+  add_option("rate", event_rate_,
+             "Rate (in Hz) at which events are generated.");
 }
 
-void EventSource::Configure(const GlobalContext &context) {
-    for (auto &el : event_list_()) {
-        LOG(INFO) << name() << ". Event " << el << " configured for streaming.";
-    }
+void EventSource::Configure(const GlobalContext& context) {
+  for (auto& el : event_list_()) {
+    LOG(INFO) << name() << ". Event " << el << " configured for streaming.";
+  }
 
-    LOG(INFO) << name() << ". Event rate set to " << event_rate_.to_string();
+  LOG(INFO) << name() << ". Event rate set to " << event_rate_.to_string();
 }
 
 void EventSource::CreatePorts() {
-    event_port_ = create_output_port<EventType>(
-        EVENTDATA, EventType::Parameters(DEFAULT_EVENT),
-        PortOutPolicy(SlotRange(1)));
+  event_port_ = create_output_port<EventType>(
+      EVENTDATA, EventType::Parameters(DEFAULT_EVENT),
+      PortOutPolicy(SlotRange(1)));
 }
 
-void EventSource::Process(ProcessingContext &context) {
-    EventType::Data *data = nullptr;
+void EventSource::Process(ProcessingContext& context) {
+  EventType::Data* data = nullptr;
 
-    if (event_list_().size() == 0) {
-        return;
-    }
+  if (event_list_().size() == 0) {
+    return;
+  }
 
-    std::default_random_engine generator;
-    std::uniform_int_distribution<unsigned int> distribution(
-        0, event_list_().size() - 1);
+  std::default_random_engine generator;
+  std::uniform_int_distribution<unsigned int> distribution(
+      0, event_list_().size() - 1);
 
-    auto delay = std::chrono::milliseconds(
-        static_cast<unsigned int>(1000.0 / event_rate_()));
+  auto delay = std::chrono::milliseconds(
+      static_cast<unsigned int>(1000.0 / event_rate_()));
 
-    while (!context.terminated()) {
-        std::this_thread::sleep_for(delay);
-        data = event_port_->slot(0)->ClaimData(false);
-        data->set_source_timestamp();
-        data->set_hardware_timestamp(static_cast<uint64_t>(
-            data->time_since(context.run().start_time()).count()));
+  while (!context.terminated()) {
+    std::this_thread::sleep_for(delay);
+    data = event_port_->slot(0)->ClaimData(false);
+    data->set_source_timestamp();
+    data->set_hardware_timestamp(static_cast<uint64_t>(
+        data->time_since(context.run().start_time()).count()));
 
-        data->set_event(event_list_()[distribution(generator)]);
-        event_port_->slot(0)->PublishData();
-    }
+    data->set_event(event_list_()[distribution(generator)]);
+    event_port_->slot(0)->PublishData();
+  }
 }
 
 REGISTERPROCESSOR(EventSource)

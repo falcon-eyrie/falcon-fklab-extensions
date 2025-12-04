@@ -28,30 +28,30 @@
 #include "timeseriesdata/timeseriesdata.hpp"
 
 class RunningStats : public IProcessor {
-    // CONSTRUCTOR and OVERLOADED METHODS
-  public:
-    RunningStats();
-    void CreatePorts() override;
-    void CompleteStreamInfo() override;
-    void Preprocess(ProcessingContext &context) override;
-    void Process(ProcessingContext &context) override;
+  // CONSTRUCTOR and OVERLOADED METHODS
+ public:
+  RunningStats();
+  void CreatePorts() override;
+  void CompleteStreamInfo() override;
+  void Preprocess(ProcessingContext& context) override;
+  void Process(ProcessingContext& context) override;
 
-    // DATA PORTS
-  protected:
-    PortIn<TimeSeriesType<double>> *data_in_port_;
-    PortOut<TimeSeriesType<double>> *data_out_port_;
+  // DATA PORTS
+ protected:
+  PortIn<TimeSeriesType<double>>* data_in_port_;
+  PortOut<TimeSeriesType<double>>* data_out_port_;
 
-    // OPTIONS
-  protected:
-    options::Measurement<double, false> integration_time_{
-        1., "second", options::positive<double>(true)};
-    options::Bool outlier_protection_{false};
-    options::Double outlier_zscore_{
-        6.0,
-    };
-    options::Double outlier_half_life_{2.0};
+  // OPTIONS
+ protected:
+  options::Measurement<double, false> integration_time_{
+      1., "second", options::positive<double>(true)};
+  options::Bool outlier_protection_{false};
+  options::Double outlier_zscore_{
+      6.0,
+  };
+  options::Double outlier_half_life_{2.0};
 
-    // OTHER
-  protected:
-    std::unique_ptr<dsp::algorithms::RunningMeanMAD> stats_;
+  // OTHER
+ protected:
+  std::unique_ptr<dsp::algorithms::RunningMeanMAD> stats_;
 };

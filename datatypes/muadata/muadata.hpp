@@ -19,58 +19,61 @@
 
 #pragma once
 
-#include "idata.hpp"
 #include <string>
+#include "idata.hpp"
 
 namespace nsMUAType {
 
 using ParentType = AnyType;
 
 struct Parameters {
-    Parameters(double bin = 0) : bin_size(bin) {}
-    double bin_size;
+  Parameters(double bin = 0) : bin_size(bin) {}
+  double bin_size;
 };
 
 class Data : public IData<Data, ParentType> {
-  public:
-    using BaseClass = IData<Data, ParentType>;
-    Data(double bin_size);
-    Data(const Parameters &parameters);
+ public:
+  using BaseClass = IData<Data, ParentType>;
+  Data(double bin_size);
+  Data(const Parameters& parameters);
 
-    static const std::string static_datatype() { return "mua"; }
-    static const std::string static_dataname() { return "mua"; }
+  static const std::string static_datatype() { return "mua"; }
+  static const std::string static_dataname() { return "mua"; }
 
-    Parameters parameters() const { return Parameters(bin_size_); }
+  Parameters parameters() const { return Parameters(bin_size_); }
 
-    void ClearData() override;
-    void set_n_spikes(unsigned int n_spikes);
-    double mua() const;
-    void set_bin_size(double bin_size);
-    double bin_size() const;
-    unsigned int n_spikes();
+  void ClearData() override;
+  void set_n_spikes(unsigned int n_spikes);
+  double mua() const;
+  void set_bin_size(double bin_size);
+  double bin_size() const;
+  unsigned int n_spikes();
 
-    void SerializeBinary(
-        std::ostream &stream,
-        Serialization::Format format = Serialization::Format::FULL) const final;
+  void SerializeBinary(
+      std::ostream& stream,
+      Serialization::Format format = Serialization::Format::FULL) const final;
 
-    void SerializeYAML(
-        YAML::Node &node,
-        Serialization::Format format = Serialization::Format::FULL) const final;
+  void SerializeYAML(
+      YAML::Node& node,
+      Serialization::Format format = Serialization::Format::FULL) const final;
 
-    void YAMLDescription(
-        YAML::Node &node,
-        Serialization::Format format = Serialization::Format::FULL) const final;
+  void YAMLDescription(
+      YAML::Node& node,
+      Serialization::Format format = Serialization::Format::FULL) const final;
 
-    void SerializeFlatBuffer(flexbuffers::Builder &flex_builder) final;
+  void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
 
-  protected:
-    double bin_size_; // in ms
-    unsigned int n_spikes_;
+ protected:
+  double bin_size_;  // in ms
+  unsigned int n_spikes_;
 };
 
 using Capabilities = ParentType::Capabilities;
 
-} // namespace nsMUAType
+}  // namespace nsMUAType
 
-using MUAType = DefineType<nsMUAType::Data, AnyType, true,
-                           nsMUAType::Capabilities, nsMUAType::Parameters>;
+using MUAType = DefineType<nsMUAType::Data,
+                           AnyType,
+                           true,
+                           nsMUAType::Capabilities,
+                           nsMUAType::Parameters>;

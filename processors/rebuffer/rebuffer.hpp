@@ -29,28 +29,30 @@
 #include "utilities/time.hpp"
 
 class Rebuffer : public IProcessor {
-    // CONSTRUCTOR and OVERLOADED METHODS
-  public:
-    Rebuffer();
-    void Configure(const GlobalContext &context) override;
-    void CreatePorts() override;
-    void Process(ProcessingContext &context) override;
-    void CompleteStreamInfo() override;
+  // CONSTRUCTOR and OVERLOADED METHODS
+ public:
+  Rebuffer();
+  void Configure(const GlobalContext& context) override;
+  void CreatePorts() override;
+  void Process(ProcessingContext& context) override;
+  void CompleteStreamInfo() override;
 
-    // DATA PORTS
-  protected:
-    PortIn<TimeSeriesType<double>> *data_in_port_;
-    PortOut<TimeSeriesType<double>> *data_out_port_;
+  // DATA PORTS
+ protected:
+  PortIn<TimeSeriesType<double>>* data_in_port_;
+  PortOut<TimeSeriesType<double>>* data_out_port_;
 
-    // VARIABLES
-  protected:
-    std::vector<unsigned int> sample_buffer_;
+  // VARIABLES
+ protected:
+  std::vector<unsigned int> sample_buffer_;
 
-    // OPTIONS
-  protected:
-    options::Value<unsigned int, false> downsample_factor_{
-        1, options::positive<unsigned int>(true)};
+  // OPTIONS
+ protected:
+  options::Value<unsigned int, false> downsample_factor_{
+      1, options::positive<unsigned int>(true)};
 
-    options::Measurement<double, false> buffer_size_{
-        10., "sample", options::positive<double>(), {"second"}};
+  options::Measurement<double, false> buffer_size_{10.,
+                                                   "sample",
+                                                   options::positive<double>(),
+                                                   {"second"}};
 };

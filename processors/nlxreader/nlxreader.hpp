@@ -40,69 +40,69 @@
 typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
 
 class NlxReader : public IProcessor {
-    // CONSTRUCTOR and OVERLOADED METHODS
-  public:
-    NlxReader();
-    void Configure(const GlobalContext &context) override;
-    void CreatePorts() override;
-    void CompleteStreamInfo() override;
-    void Prepare(GlobalContext &context) override;
-    void Preprocess(ProcessingContext &context) override;
-    void Process(ProcessingContext &context) override;
-    void Postprocess(ProcessingContext &context) override;
+  // CONSTRUCTOR and OVERLOADED METHODS
+ public:
+  NlxReader();
+  void Configure(const GlobalContext& context) override;
+  void CreatePorts() override;
+  void CompleteStreamInfo() override;
+  void Prepare(GlobalContext& context) override;
+  void Preprocess(ProcessingContext& context) override;
+  void Process(ProcessingContext& context) override;
+  void Postprocess(ProcessingContext& context) override;
 
-    // METHODS
-  protected:
-    /* log statistics (packet invalid, duplicated, out of order,
-     * missed, gaps, filled + synchronous lag in ms) if update
-     * @input condition log only when true
-     */
-    void print_stats(bool condition = true);
+  // METHODS
+ protected:
+  /* log statistics (packet invalid, duplicated, out of order,
+   * missed, gaps, filled + synchronous lag in ms) if update
+   * @input condition log only when true
+   */
+  void print_stats(bool condition = true);
 
-    // PORT
-  protected:
-    std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
+  // PORT
+ protected:
+  std::map<std::string, PortOut<TimeSeriesType<double>>*> data_ports_;
 
-    // CONSTANTS
-  public:
-    struct timeval timeout_;
-    const decltype(timeout_.tv_sec) TIMEOUT_SEC = 3;
-    static constexpr uint16_t MAX_NCHANNELS = 128;
-    static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
-        nlx::NLX_PACKETBYTESIZE(MAX_NCHANNELS);
+  // CONSTANTS
+ public:
+  struct timeval timeout_;
+  const decltype(timeout_.tv_sec) TIMEOUT_SEC = 3;
+  static constexpr uint16_t MAX_NCHANNELS = 128;
+  static constexpr decltype(MAX_NCHANNELS) UDP_BUFFER_SIZE =
+      nlx::NLX_PACKETBYTESIZE(MAX_NCHANNELS);
 
-    // VARIABLES
-  protected:
-    fd_set file_descriptor_set_;
-    int udp_socket_;
-    struct sockaddr_in server_addr_;
+  // VARIABLES
+ protected:
+  fd_set file_descriptor_set_;
+  int udp_socket_;
+  struct sockaddr_in server_addr_;
 
-    unsigned int sample_counter_;
-    uint64_t valid_packet_counter_;
+  unsigned int sample_counter_;
+  uint64_t valid_packet_counter_;
 
-    TimePoint first_valid_packet_arrival_time_;
-    uint64_t timestamp_;
-    uint64_t last_timestamp_;
+  TimePoint first_valid_packet_arrival_time_;
+  uint64_t timestamp_;
+  uint64_t last_timestamp_;
 
-    // UDP_BUFFER_SIZE is in bytes, so divide by size of int32_t
-    char buffer_[UDP_BUFFER_SIZE];
+  // UDP_BUFFER_SIZE is in bytes, so divide by size of int32_t
+  char buffer_[UDP_BUFFER_SIZE];
 
-    nlx::NlxSignalRecord nlxrecord_;
-    nlx::NlxStatistics stats_;
+  nlx::NlxSignalRecord nlxrecord_;
+  nlx::NlxStatistics stats_;
 
-    // OPTIONS
-  protected:
-    options::Value<ChannelMap, false> channelmap_;
-    options::String address_{"127.0.0.1"};
-    options::Value<unsigned int, false> port_{5000};
-    options::Value<std::uint64_t, false> npackets_{
-        0, options::zeroismax<std::uint64_t>()};
-    options::Value<unsigned int, false> batch_size_{1};
-    options::Value<unsigned int, false> nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
-    options::Measurement<std::uint64_t, false> update_interval_{
-        20, "second",
-        options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
-            options::zeroismax<std::uint64_t>()};
-    options::Bool triggered_{false};
-    options::Value<uint32_t, false> hardware_trigger_channel_{0};
+  // OPTIONS
+ protected:
+  options::Value<ChannelMap, false> channelmap_;
+  options::String address_{"127.0.0.1"};
+  options::Value<unsigned int, false> port_{5000};
+  options::Value<std::uint64_t, false> npackets_{
+      0, options::zeroismax<std::uint64_t>()};
+  options::Value<unsigned int, false> batch_size_{1};
+  options::Value<unsigned int, false> nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
+  options::Measurement<std::uint64_t, false> update_interval_{
+      20, "second",
+      options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
+          options::zeroismax<std::uint64_t>()};
+  options::Bool triggered_{false};
+  options::Value<uint32_t, false> hardware_trigger_channel_{0};
 };

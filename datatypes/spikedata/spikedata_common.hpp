@@ -30,5 +30,6 @@ static const double DEFAULT_BUFFER_SIZE = 12.75;
 static const unsigned int MAX_N_CHANNELS_SPIKE_DETECTION = 16;
 static const unsigned int MAX_N_SPIKES_IN_BUFFER = 100;
 static std::vector<uint64_t> zero_timestamps(MAX_N_SPIKES_IN_BUFFER, 0);
-static std::vector<double>
-zero_amplitudes(MAX_N_SPIKES_IN_BUFFER *MAX_N_CHANNELS_SPIKE_DETECTION, 0);
+static std::vector<double> zero_amplitudes(
+    MAX_N_SPIKES_IN_BUFFER* MAX_N_CHANNELS_SPIKE_DETECTION,
+    0);
