@@ -43,15 +43,15 @@ jobs:
 
 
       # Disabled for now, will enable in another PR
-      # - name: Run format check
-      #   run: |
-      #     sh scripts/format.sh
-      #     # Check for any changes caused by formatting
-      #     if [[ -n "$(git status --porcelain)" ]]; then
-      #       echo "Following files seems to be not formatted. Please run './scripts/format.sh' locally and commit the changes."
-      #       git --no-pager diff --name-only
-      #       exit 1
-      #     fi
+      - name: Run format check
+        run: |
+          sh scripts/format.sh
+          # Check for any changes caused by formatting
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Following files seems to be not formatted. Please run './scripts/format.sh' locally and commit the changes."
+            git --no-pager diff --name-only
+            exit 1
+          fi
 
       - name: Configure CMake
         run: |

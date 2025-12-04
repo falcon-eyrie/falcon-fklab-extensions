@@ -32,119 +32,106 @@ namespace nsSpikeType {
 using ParentType = AnyType;
 
 struct Parameters {
-  Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
-      : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
+    Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
+        : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
 
-  double buffer_size;
-  unsigned int nchannels;
-  double sample_rate;
+    double       buffer_size;
+    unsigned int nchannels;
+    double       sample_rate;
 };
 
+class Data : public IData<Data, ParentType> {
+   public:
+    using BaseClass = IData<Data, ParentType>;
 
-class Data : public IData<Data,ParentType> {
- public:
-  using BaseClass = IData<Data,ParentType>;
+    Data(unsigned int nchannels, double buffer_size, double sample_rate, size_t max_nspikes = 0);
 
-  Data(unsigned int nchannels, double buffer_size,
-            double sample_rate, size_t max_nspikes=0);
+    Data(const Parameters& parameters)
+        : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {}
 
-  Data(const Parameters &parameters)
-  : Data(parameters.nchannels, parameters.buffer_size, parameters.sample_rate) {}
+    static const std::string static_datatype() { return "spike"; }
+    static const std::string static_dataname() { return "spikes"; }
 
-  static const std::string static_datatype() { return "spike"; }
-  static const std::string static_dataname() { return "spikes"; }
+    Parameters parameters() const { return Parameters(buffer_size_, n_channels_, sample_rate_); }
 
-  Parameters parameters() const {
-    return Parameters(buffer_size_, n_channels_, sample_rate_);
-  }
+    void ClearData() override;
 
-  void ClearData() override;
+    unsigned int n_channels() const;
 
-  unsigned int n_channels() const;
+    double sample_rate() const;
+    double buffer_size() const { return buffer_size_; }
 
-  double sample_rate() const;
-  double buffer_size() const {return buffer_size_;}
-  
-  void add_spike(const std::vector<double> &amplitudes,
-                 uint64_t hw_timestamp);  // 1st argument will change to a better
-                                          // interface for matrices
+    void add_spike(const std::vector<double>& amplitudes,
+                   uint64_t                   hw_timestamp); // 1st argument will change to a
+                                           // better interface for matrices
 
-  void add_spike(double *amplitudes, uint64_t hw_timestamp);
+    void add_spike(double* amplitudes, uint64_t hw_timestamp);
 
-  unsigned int n_detected_spikes() const;
+    unsigned int n_detected_spikes() const;
 
-  std::vector<double> &amplitudes();
+    std::vector<double>& amplitudes();
 
-  ChannelValidityMask &validity_mask();
+    ChannelValidityMask& validity_mask();
 
-  const std::vector<uint64_t> &ts_detected_spikes() const;
+    const std::vector<uint64_t>& ts_detected_spikes() const;
 
-  const uint64_t ts_detected_spikes(int index) const;
+    const uint64_t ts_detected_spikes(int index) const;
 
-  std::vector<double>::const_iterator
-  spike_amplitudes(std::size_t spike_index) const;
+    std::vector<double>::const_iterator spike_amplitudes(std::size_t spike_index) const;
 
-  void SerializeBinary(std::ostream &stream,
-                       Serialization::Format format =
-                       Serialization::Format::FULL) const final;
+    void SerializeBinary(std::ostream&         stream,
+                         Serialization::Format format = Serialization::Format::FULL) const final;
 
-  void SerializeYAML(YAML::Node &node,
-                     Serialization::Format format =
-                     Serialization::Format::FULL) const final;
+    void SerializeYAML(YAML::Node&           node,
+                       Serialization::Format format = Serialization::Format::FULL) const final;
 
-  void YAMLDescription(YAML::Node &node,
-                       Serialization::Format format =
-                       Serialization::Format::FULL) const final;
+    void YAMLDescription(YAML::Node&           node,
+                         Serialization::Format format = Serialization::Format::FULL) const final;
 
-  void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
+    void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
 
- protected:
-  uint8_t n_channels_;
-  unsigned int n_detected_spikes_;
-  std::vector<double> amplitudes_;
-  // std::vector<double> widths_;
-  std::vector<uint64_t> hw_ts_detected_spikes_;
-  double buffer_size_;
-  double sample_rate_;
-  ChannelValidityMask validity_mask_;
-  ChannelValidityMask
-      default_validity_mask_;  // independent of spike detection outcome
+   protected:
+    uint8_t             n_channels_;
+    unsigned int        n_detected_spikes_;
+    std::vector<double> amplitudes_;
+    // std::vector<double> widths_;
+    std::vector<uint64_t> hw_ts_detected_spikes_;
+    double                buffer_size_;
+    double                sample_rate_;
+    ChannelValidityMask   validity_mask_;
+    ChannelValidityMask   default_validity_mask_; // independent of spike detection outcome
 
- public:
-  static constexpr unsigned int DEFAULT_MAX_NSPIKES =
-      MAX_N_SPIKES_IN_BUFFER;  // max expected # of spikes in a buffer
+   public:
+    static constexpr unsigned int DEFAULT_MAX_NSPIKES =
+        MAX_N_SPIKES_IN_BUFFER; // max expected # of spikes in a buffer
 
- protected:
-  // for serialization
-  const std::string N_CHANNELS = "n_channels";
-  const std::string N_DETECTED_SPIKES = "n_detected_spikes";
-  const std::string TS_DETECTED_SPIKES = "TS_detected_spikes";
-  const std::string SPIKE_AMPLITUDES = "spike_amplitudes";
+   protected:
+    // for serialization
+    const std::string N_CHANNELS         = "n_channels";
+    const std::string N_DETECTED_SPIKES  = "n_detected_spikes";
+    const std::string TS_DETECTED_SPIKES = "TS_detected_spikes";
+    const std::string SPIKE_AMPLITUDES   = "spike_amplitudes";
 };
 
 class Capabilities {
- public:
-  Capabilities(ChannelRange channel_range =
-                   ChannelRange(1, MAX_N_CHANNELS_SPIKE_DETECTION))
-      : channel_range_(channel_range) {}
+   public:
+    Capabilities(ChannelRange channel_range = ChannelRange(1, MAX_N_CHANNELS_SPIKE_DETECTION))
+        : channel_range_(channel_range) {}
 
-  ChannelRange channel_range() const { return channel_range_; }
+    ChannelRange channel_range() const { return channel_range_; }
 
-  void Validate(const Data &prototype) const {
-    if (!channel_range_.inrange(prototype.n_channels())) {
-      throw std::runtime_error(
-          "Number of channels cannot be zero and needs to be in range " +
-          channel_range_.to_string());
+    void Validate(const Data& prototype) const {
+        if (!channel_range_.inrange(prototype.n_channels())) {
+            throw std::runtime_error("Number of channels cannot be zero and needs to be in range " +
+                                     channel_range_.to_string());
+        }
     }
-  }
 
- protected:
-  ChannelRange channel_range_;
+   protected:
+    ChannelRange channel_range_;
 };
 
-}  // namespace nsSpikeType
+} // namespace nsSpikeType
 
-using SpikeType = DefineType<
-  nsSpikeType::Data, AnyType, true,
-  nsSpikeType::Capabilities, nsSpikeType::Parameters
-  >;
+using SpikeType = DefineType<nsSpikeType::Data, AnyType, true, nsSpikeType::Capabilities,
+                             nsSpikeType::Parameters>;

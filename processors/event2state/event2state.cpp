@@ -20,71 +20,64 @@
 #include "event2state.hpp"
 
 Event2State::Event2State() : IProcessor() {
-  add_option("target event", target_event_, "The target event that sets the state to true");
+    add_option("target event", target_event_, "The target event that sets the state to true");
 }
 
 void Event2State::CreatePorts() {
-  data_in_port_ = create_input_port<EventType>(
-      EVENTDATA, EventType::Capabilities(), PortInPolicy(SlotRange(1, 256)));
+    data_in_port_ = create_input_port<EventType>(EVENTDATA, EventType::Capabilities(),
+                                                 PortInPolicy(SlotRange(1, 256)));
 
-  data_out_port_ = create_output_port<EventType>(
-      EVENTDATA,
-      EventType::Parameters(target_event_().event()),
-      PortOutPolicy(SlotRange(1)));
+    data_out_port_ = create_output_port<EventType>(
+        EVENTDATA, EventType::Parameters(target_event_().event()), PortOutPolicy(SlotRange(1)));
 
-  enabled_ = create_broadcaster_state(
-      "enabled", false, Permission::READ);
+    enabled_ = create_broadcaster_state("enabled", false, Permission::READ);
 }
 
-void Event2State::Process(ProcessingContext &context) {
-  EventType::Data *data_in = nullptr;
-  EventType::Data *data_out;
+void Event2State::Process(ProcessingContext& context) {
+    EventType::Data* data_in = nullptr;
+    EventType::Data* data_out;
 
-  while (!context.terminated()) {
-    if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
-      break;
+    while (!context.terminated()) {
+        if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
+            break;
+        }
+        ++event_counter_.all_received;
+        if (*data_in == target_event_()) {
+            ++event_counter_.target;
+            LOG_IF(INFO, enabled_->exchange(true)) << name() << ". Mode True.";
+            enabled_->set(true);
+        } else {
+            ++event_counter_.non_target;
+            LOG_IF(DEBUG, enabled_->exchange(true)) << name() << ". Mode False.";
+            enabled_->set(false);
+        }
+
+        data_out = data_out_port_->slot(0)->ClaimData(false);
+        data_out->set_source_timestamp();
+        data_out->set_hardware_timestamp(data_in->hardware_timestamp());
+        data_out->set_event(target_event_());
+        data_out_port_->slot(0)->PublishData();
+
+        data_in_port_->slot(0)->ReleaseData();
     }
-    ++event_counter_.all_received;
-    if (*data_in == target_event_()){
-      ++event_counter_.target;
-      LOG_IF(INFO, enabled_->exchange(true)) << name() << ". Mode True.";
-      enabled_->set(true);
+}
 
+void Event2State::Postprocess(ProcessingContext& context) {
+    log_and_reset_counters(data_in_port_->name(), event_counter_);
+}
+
+void Event2State::log_and_reset_counters(std::string port_name, EventCounter& counter) {
+    auto msg = ". '" + port_name + "' counters.\n\t\t\t\t" + std::to_string(counter.all_received) +
+               " events received.\n\t\t\t\t" + std::to_string(counter.target) +
+               " target events received.\n\t\t\t\t" + std::to_string(counter.non_target) +
+               " non-target events received";
+    if (counter.consistent_counters()) {
+        LOG(INFO) << name() << msg << ". Counters are consistent.";
     } else {
-      ++event_counter_.non_target;
-      LOG_IF(DEBUG, enabled_->exchange(true)) << name() << ". Mode False.";
-      enabled_->set(false);
+        LOG(WARNING) << name() << ". Counters are inconsistent.";
     }
-    
 
-    data_out = data_out_port_->slot(0)->ClaimData(false);
-    data_out->set_source_timestamp();
-    data_out->set_hardware_timestamp(data_in->hardware_timestamp());
-    data_out->set_event(target_event_());
-    data_out_port_->slot(0)->PublishData();
-
-    data_in_port_->slot(0)->ReleaseData();
-  }
-}
-
-void Event2State::Postprocess(ProcessingContext &context) {
-  log_and_reset_counters(data_in_port_->name(), event_counter_);
-}
-
-void Event2State::log_and_reset_counters(std::string port_name,
-                                      EventCounter &counter) {
-  auto msg = ". '" + port_name + "' counters.\n\t\t\t\t" +
-             std::to_string(counter.all_received) +
-             " events received.\n\t\t\t\t" + std::to_string(counter.target) +
-             " target events received.\n\t\t\t\t" +
-             std::to_string(counter.non_target) + " non-target events received";
-  if (counter.consistent_counters()) {
-    LOG(INFO) << name() << msg << ". Counters are consistent.";
-  } else {
-    LOG(WARNING) << name() << ". Counters are inconsistent.";
-  }
-
-  counter.reset();
+    counter.reset();
 }
 
 REGISTERPROCESSOR(Event2State)

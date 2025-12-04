@@ -25,54 +25,53 @@
 #include "dsp/algorithms.hpp"
 #include "eventdata/eventdata.hpp"
 #include "iprocessor.hpp"
-#include "timeseriesdata/timeseriesdata.hpp"
 #include "options/options.hpp"
 #include "spikedata/spikedata.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 
 class SpikeDetector : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  SpikeDetector();
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Prepare(GlobalContext &context) override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+   public:
+    SpikeDetector();
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Prepare(GlobalContext& context) override;
+    void Process(ProcessingContext& context) override;
+    void Postprocess(ProcessingContext& context) override;
 
-  // PORTS
- protected:
-  PortIn<TimeSeriesType<double>> *data_in_port_;
-  PortOut<SpikeType> *data_out_port_spikes_;
-  PortOut<EventType> *data_out_port_events_;
+    // PORTS
+   protected:
+    PortIn<TimeSeriesType<double>>* data_in_port_;
+    PortOut<SpikeType>*             data_out_port_spikes_;
+    PortOut<EventType>*             data_out_port_events_;
 
-  // STATES
- protected:
-  StaticState<double> *threshold_;
-  StaticState<unsigned int> *peak_lifetime_;
+    // STATES
+   protected:
+    StaticState<double>*       threshold_;
+    StaticState<unsigned int>* peak_lifetime_;
 
-  // VARIABLES
- protected:
-  unsigned int n_channels_;
-  size_t n_incoming_;
-  size_t incoming_buffer_size_samples_;
-  uint64_t n_streamed_events_;
+    // VARIABLES
+   protected:
+    unsigned int n_channels_;
+    size_t       n_incoming_;
+    size_t       incoming_buffer_size_samples_;
+    uint64_t     n_streamed_events_;
 
-  std::unique_ptr<dsp::algorithms::SpikeDetector> spike_detector_;
-  std::unique_ptr<TimeSeriesType<double>::Data> inverted_signals_;
+    std::unique_ptr<dsp::algorithms::SpikeDetector> spike_detector_;
+    std::unique_ptr<TimeSeriesType<double>::Data>   inverted_signals_;
 
-  // CONSTANTS
- public:
-  unsigned int MAX_N_CHANNELS = 8;
-  const std::string PEAK_LIFETIME = "peak lifetime";
-  const std::string THRESHOLD = "threshold";
-  const int RINGBUFFER_SIZE = 1e5;
+    // CONSTANTS
+   public:
+    unsigned int      MAX_N_CHANNELS  = 8;
+    const std::string PEAK_LIFETIME   = "peak lifetime";
+    const std::string THRESHOLD       = "threshold";
+    const int         RINGBUFFER_SIZE = 1e5;
 
-  // OPTIONS
- protected:
-  options::Double initial_threshold_{60.};
-  options::Bool invert_signal_{true};
-  options::Measurement<double, false> buffer_size_{
-      0.5, "ms", options::positive<double>(true)};
-  options::Bool strict_time_bin_check_{true};
-  options::Measurement<unsigned int, false> initial_peak_lifetime_{8, "sample"};
+    // OPTIONS
+   protected:
+    options::Double                     initial_threshold_{60.};
+    options::Bool                       invert_signal_{true};
+    options::Measurement<double, false> buffer_size_{0.5, "ms", options::positive<double>(true)};
+    options::Bool                       strict_time_bin_check_{true};
+    options::Measurement<unsigned int, false> initial_peak_lifetime_{8, "sample"};
 };

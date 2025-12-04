@@ -22,69 +22,59 @@
 #include <iostream>
 
 SerialOutput::SerialOutput() {
-  add_option("port address", port_address_, "Address of serial port");
-  add_option("baud rate", baudrate_, "Serial rate exchange");
-  add_option("event logging", event_log_, "Log message (UPDATE level) if true");
+    add_option("port address", port_address_, "Address of serial port");
+    add_option("baud rate", baudrate_, "Serial rate exchange");
+    add_option("event logging", event_log_, "Log message (UPDATE level) if true");
 }
 
 void SerialOutput::CreatePorts() {
-
-  data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
-                                               PortInPolicy(SlotRange(1, 10), false));
+    data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
+                                                 PortInPolicy(SlotRange(1, 10), false));
 }
 
-void SerialOutput::Preprocess(ProcessingContext &context) {
-  if (fd_.openDevice(port_address_().c_str(), baudrate_()) != 1) {
-    throw ProcessingPreprocessingError(
-        "Impossible to open the serial port specified: " + port_address_(), name());
-  }
+void SerialOutput::Preprocess(ProcessingContext& context) {
+    if (fd_.openDevice(port_address_().c_str(), baudrate_()) != 1) {
+        throw ProcessingPreprocessingError(
+            "Impossible to open the serial port specified: " + port_address_(), name());
+    }
 
-  LOG(INFO) << name() <<"Serial port " << port_address_() << " opened.";
+    LOG(INFO) << name() << "Serial port " << port_address_() << " opened.";
 }
 
-void SerialOutput::Process(ProcessingContext &context) {
-
-  EventType::Data *data_in = nullptr;
-  auto nslots = data_in_port_->number_of_slots();
-  while (!context.terminated()) {
-
-
-      while (!context.terminated()) {
-
-          for (int k = 0; k < nslots; ++k) {
-              // retrieve new data
-              if (!data_in_port_->slot(k)->RetrieveData(data_in, 1))
-                {
-                  break;
+void SerialOutput::Process(ProcessingContext& context) {
+    EventType::Data* data_in = nullptr;
+    auto             nslots  = data_in_port_->number_of_slots();
+    while (!context.terminated()) {
+        while (!context.terminated()) {
+            for (int k = 0; k < nslots; ++k) {
+                // retrieve new data
+                if (!data_in_port_->slot(k)->RetrieveData(data_in, 1)) {
+                    break;
                 }
 
                 auto nread = data_in_port_->slot(k)->status_read();
 
-                if (nread == 0)
-                {
-                  data_in_port_->slot(k)->ReleaseData();
-                  continue;
+                if (nread == 0) {
+                    data_in_port_->slot(k)->ReleaseData();
+                    continue;
                 }
-              std::string message = data_in->event()+ "\0";
+                std::string message = data_in->event() + "\0";
 
-              if ((fd_.writeString(message.c_str())) != 1) {
-                  LOG(INFO) << name() << ". Serial message " << message
-                            << " not delivered.";
-              } else {
-                  LOG(INFO) << name() << ". Message " << data_in->event()
-                            << " transmitted serially.";
-              }
+                if ((fd_.writeString(message.c_str())) != 1) {
+                    LOG(INFO) << name() << ". Serial message " << message << " not delivered.";
+                } else {
+                    LOG(INFO) << name() << ". Message " << data_in->event()
+                              << " transmitted serially.";
+                }
 
-              data_in_port_->slot(k)->ReleaseData();
-          }
-      }
-  }
-
+                data_in_port_->slot(k)->ReleaseData();
+            }
+        }
+    }
 }
 
-
-void SerialOutput::Postprocess(ProcessingContext &context) {
-  fd_.closeDevice();
+void SerialOutput::Postprocess(ProcessingContext& context) {
+    fd_.closeDevice();
 }
 
 REGISTERPROCESSOR(SerialOutput)

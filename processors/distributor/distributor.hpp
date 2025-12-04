@@ -24,40 +24,40 @@
 #include <vector>
 
 #include "iprocessor.hpp"
-#include "timeseriesdata/timeseriesdata.hpp"
-#include "recording_utilities/channellist.hpp"
 #include "options/options.hpp"
+#include "recording_utilities/channellist.hpp"
+#include "timeseriesdata/timeseriesdata.hpp"
 
 typedef std::map<std::string, ChannelList<unsigned int>> ChannelMap;
 
 class Distributor : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  Distributor();
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Prepare(GlobalContext &context) override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+   public:
+    Distributor();
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Prepare(GlobalContext& context) override;
+    void Process(ProcessingContext& context) override;
+    void Postprocess(ProcessingContext& context) override;
 
-  // PORTS
- protected:
-  PortIn<TimeSeriesType<double>> *input_port_;
-  std::map<std::string, PortOut<TimeSeriesType<double>> *> data_ports_;
+    // PORTS
+   protected:
+    PortIn<TimeSeriesType<double>>*                         input_port_;
+    std::map<std::string, PortOut<TimeSeriesType<double>>*> data_ports_;
 
-  // variables
- protected:
-  unsigned int incoming_batch_size_;
-  unsigned int max_n_channels_;
+    // variables
+   protected:
+    unsigned int incoming_batch_size_;
+    unsigned int max_n_channels_;
 
-  // constants
- protected:
-  const unsigned int MAX_N_CHANNELS = 4096;
-  // maximum number of channels that the distributor can handle
-  const int BUFFER_SIZE = 2000;  // ring buffer size on the output ports
-  const WaitStrategy WAIT_STRATEGY = WaitStrategy::kBlockingStrategy;
+    // constants
+   protected:
+    const unsigned int MAX_N_CHANNELS = 4096;
+    // maximum number of channels that the distributor can handle
+    const int          BUFFER_SIZE   = 2000; // ring buffer size on the output ports
+    const WaitStrategy WAIT_STRATEGY = WaitStrategy::kBlockingStrategy;
 
-  // OPTIONS
- protected:
-  options::Value<ChannelMap, false> channelmap_;
+    // OPTIONS
+   protected:
+    options::Value<ChannelMap, false> channelmap_;
 };
