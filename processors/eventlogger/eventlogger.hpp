@@ -26,20 +26,20 @@
 #include "utilities/general.hpp"
 
 class EventLogger : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  EventLogger();
-  void CreatePorts() override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    EventLogger();
+    void CreatePorts() override;
+    void Process(ProcessingContext &context) override;
+    void Postprocess(ProcessingContext &context) override;
 
-  // DATA PORTS
- protected:
-  PortIn<EventType> *event_port_;
-  EventCounter event_counter_;
+    // DATA PORTS
+  protected:
+    PortIn<EventType> *event_port_;
+    EventCounter event_counter_;
 
-  // OPTIONS
- protected:
-  options::Value<EventType::Data, false> target_event_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
+    // OPTIONS
+  protected:
+    options::Value<EventType::Data, false> target_event_{
+        DEFAULT_EVENT, options::notempty<EventType::Data>()};
 };

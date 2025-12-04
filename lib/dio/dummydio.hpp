@@ -22,14 +22,14 @@
 #include "dio.hpp"
 
 class DummyDIO : public DigitalDevice {
- public:
-  DummyDIO(uint32_t nchannels) : DigitalDevice("dummy"), state_(nchannels) {}
+  public:
+    DummyDIO(uint32_t nchannels) : DigitalDevice("dummy"), state_(nchannels) {}
 
-  uint32_t nchannels() const;
+    uint32_t nchannels() const;
 
-  DigitalState read_state() const;
-  void write_state(DigitalState &state);
+    DigitalState read_state() const;
+    void write_state(DigitalState &state);
 
- protected:
-  DigitalState state_;
+  protected:
+    DigitalState state_;
 };

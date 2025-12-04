@@ -28,28 +28,29 @@
 #include "utilities/configuration.hpp"
 
 class TestBenchConfiguration : public Configuration {
-public:
-  TestBenchConfiguration() : Configuration() {
-    add_option("network/ip", ip_address,
-               "Network IP address to stream data packets to.");
-    add_option("network/port", port, "Network port to stream data packets to.");
-    add_option("stream/rate", stream_rate, "Data stream rate in Hz");
-    add_option("stream/npackets", npackets,
-               "The total number of data packets to stream. "
-               "A value of 0 means continuous streaming.");
-    add_option("stream/autostart", autostart,
-               "The data source index that will be streamed immediately after "
-               "start-up.");
-    add_option("sources", sources, "A list of data source definitions.");
-  }
+  public:
+    TestBenchConfiguration() : Configuration() {
+        add_option("network/ip", ip_address,
+                   "Network IP address to stream data packets to.");
+        add_option("network/port", port,
+                   "Network port to stream data packets to.");
+        add_option("stream/rate", stream_rate, "Data stream rate in Hz");
+        add_option("stream/npackets", npackets,
+                   "The total number of data packets to stream. "
+                   "A value of 0 means continuous streaming.");
+        add_option(
+            "stream/autostart", autostart,
+            "The data source index that will be streamed immediately after "
+            "start-up.");
+        add_option("sources", sources, "A list of data source definitions.");
+    }
 
-
-public:
-  options::String ip_address{"127.0.0.1"};
-  options::Int port{5000};
-  options::Measurement<double> stream_rate{5000, "Hz",
-                                           options::positive<double>(true)};
-  options::Value<uint64_t, false> npackets{0};
-  options::Int autostart{-1};
-  options::Value<YAML::Node, true> sources{YAML::Load("class: default")};
+  public:
+    options::String ip_address{"127.0.0.1"};
+    options::Int port{5000};
+    options::Measurement<double> stream_rate{5000, "Hz",
+                                             options::positive<double>(true)};
+    options::Value<uint64_t, false> npackets{0};
+    options::Int autostart{-1};
+    options::Value<YAML::Node, true> sources{YAML::Load("class: default")};
 };

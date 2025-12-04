@@ -22,33 +22,33 @@
 
 ChannelValidityMask::ChannelValidityMask(unsigned int n_channels,
                                          ChannelDetection::Validity validity) {
-  mask_.assign(n_channels, validity);
+    mask_.assign(n_channels, validity);
 }
 
 unsigned int ChannelValidityMask::n_channels() const { return mask_.size(); }
 
 std::vector<ChannelDetection::Validity> &ChannelValidityMask::validity_mask() {
-  return mask_;
+    return mask_;
 }
 
 void ChannelValidityMask::set_validity(size_t channel_index,
                                        ChannelDetection::Validity value) {
-  mask_[channel_index] = value;
+    mask_[channel_index] = value;
 }
 
 bool ChannelValidityMask::is_channel_valid(size_t channel_index) const {
-  return mask_[channel_index] == ChannelDetection::Validity::VALID;
+    return mask_[channel_index] == ChannelDetection::Validity::VALID;
 }
 
 bool ChannelValidityMask::all_channels_valid() const {
-  for (auto m : mask_) {
-    if (m != ChannelDetection::Validity::VALID) {
-      return false;
+    for (auto m : mask_) {
+        if (m != ChannelDetection::Validity::VALID) {
+            return false;
+        }
     }
-  }
-  return true;
+    return true;
 }
 
 void ChannelValidityMask::reset(ChannelDetection::Validity validity_value) {
-  mask_.assign(this->n_channels(), validity_value);
+    mask_.assign(this->n_channels(), validity_value);
 }

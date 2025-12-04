@@ -27,44 +27,44 @@
 #include "utilities/time.hpp"
 
 class EventSync : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  EventSync();
-  void CreatePorts() override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    EventSync();
+    void CreatePorts() override;
+    void Process(ProcessingContext &context) override;
+    void Postprocess(ProcessingContext &context) override;
 
-  // METHODS
- protected:
-  /* Keep in memory the latest source and hardware timestamps
-   * @input data_in Current event data from the input port
-   */
-  void update_latest_ts(EventType::Data *data_in);
+    // METHODS
+  protected:
+    /* Keep in memory the latest source and hardware timestamps
+     * @input data_in Current event data from the input port
+     */
+    void update_latest_ts(EventType::Data *data_in);
 
-  /*
-   * During post-processing, log as info if all counters are consistent
-   * and as warning if not, all counters used: number of events received,
-   * with the number of targeted, and non-target and finally reset them.
-   *
-   * @input port_name name of the input port
-   * @input counter counter structure with three counters to log (all_received,
-   * target, non_target)
-   */
-  void log_and_reset_counters(std::string port_name, EventCounter &counter);
+    /*
+     * During post-processing, log as info if all counters are consistent
+     * and as warning if not, all counters used: number of events received,
+     * with the number of targeted, and non-target and finally reset them.
+     *
+     * @input port_name name of the input port
+     * @input counter counter structure with three counters to log
+     * (all_received, target, non_target)
+     */
+    void log_and_reset_counters(std::string port_name, EventCounter &counter);
 
-  // DATA PORTS
- protected:
-  PortIn<EventType> *data_in_port_;
-  PortOut<EventType> *data_out_port_;
+    // DATA PORTS
+  protected:
+    PortIn<EventType> *data_in_port_;
+    PortOut<EventType> *data_out_port_;
 
-  // variables
- protected:
-  EventCounter event_counter_;
-  uint64_t n_events_synced_;
-  TimestampRegister timestamps_;
+    // variables
+  protected:
+    EventCounter event_counter_;
+    uint64_t n_events_synced_;
+    TimestampRegister timestamps_;
 
-  // OPTIONS
- protected:
-  options::Value<EventType::Data, false> target_event_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
+    // OPTIONS
+  protected:
+    options::Value<EventType::Data, false> target_event_{
+        DEFAULT_EVENT, options::notempty<EventType::Data>()};
 };

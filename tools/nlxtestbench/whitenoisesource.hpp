@@ -25,28 +25,28 @@
 #include <vector>
 
 class WhiteNoiseSource : public DataSource {
-public:
-  WhiteNoiseSource(double mean = 0.0, double stdev = 1.0,
-                   double sampling_rate = 1.0, unsigned int nchannels = 128,
-                   bool convert_byte_order = true);
+  public:
+    WhiteNoiseSource(double mean = 0.0, double stdev = 1.0,
+                     double sampling_rate = 1.0, unsigned int nchannels = 128,
+                     bool convert_byte_order = true);
 
-  std::string string() override;
-  int64_t Produce(char **data) override;
-  YAML::Node to_yaml() const override;
+    std::string string() override;
+    int64_t Produce(char **data) override;
+    YAML::Node to_yaml() const override;
 
-  static WhiteNoiseSource *from_yaml(YAML::Node node);
+    static WhiteNoiseSource *from_yaml(YAML::Node node);
 
-protected:
-  double mean_;
-  double stdev_;
-  double sampling_rate_;
-  uint64_t timestamp_ = 0;
-  uint64_t delta_;
+  protected:
+    double mean_;
+    double stdev_;
+    double sampling_rate_;
+    uint64_t timestamp_ = 0;
+    uint64_t delta_;
 
-  std::vector<char> buffer_;
-  std::default_random_engine generator_;
-  std::normal_distribution<double> distribution_;
+    std::vector<char> buffer_;
+    std::default_random_engine generator_;
+    std::normal_distribution<double> distribution_;
 
-  unsigned int nchannels_;
-  bool convert_byte_order_;
+    unsigned int nchannels_;
+    bool convert_byte_order_;
 };

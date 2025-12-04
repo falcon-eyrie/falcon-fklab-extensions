@@ -26,35 +26,35 @@
 #include "datasource.hpp"
 
 class SineSource : public DataSource {
-public:
-  SineSource(double offset = 0.0, double amplitude = 1.0,
-             double frequency = 1.0, double sampling_rate = 1.0,
-             double noise_stdev = 0, unsigned int nchannels = 128,
-             bool convert_byte_order = true);
+  public:
+    SineSource(double offset = 0.0, double amplitude = 1.0,
+               double frequency = 1.0, double sampling_rate = 1.0,
+               double noise_stdev = 0, unsigned int nchannels = 128,
+               bool convert_byte_order = true);
 
-  std::string string() override;
-  int64_t Produce(char **data) override;
-  YAML::Node to_yaml() const override;
+    std::string string() override;
+    int64_t Produce(char **data) override;
+    YAML::Node to_yaml() const override;
 
-  static SineSource *from_yaml(YAML::Node node);
+    static SineSource *from_yaml(YAML::Node node);
 
-protected:
-  double offset_;
-  double amplitude_;
-  double frequency_;
-  double sampling_rate_;
-  double noise_stdev_;
+  protected:
+    double offset_;
+    double amplitude_;
+    double frequency_;
+    double sampling_rate_;
+    double noise_stdev_;
 
-  uint64_t timestamp_ = 0;
-  uint64_t delta_;
+    uint64_t timestamp_ = 0;
+    uint64_t delta_;
 
-  double omega_;
+    double omega_;
 
-  std::vector<char> buffer_;
+    std::vector<char> buffer_;
 
-  std::default_random_engine generator_;
-  std::normal_distribution<double> distribution_;
+    std::default_random_engine generator_;
+    std::normal_distribution<double> distribution_;
 
-  unsigned int nchannels_;
-  bool convert_byte_order_;
+    unsigned int nchannels_;
+    bool convert_byte_order_;
 };

@@ -26,23 +26,23 @@
 #include "datasource.hpp"
 
 class FileSource : public DataSource {
-public:
-  FileSource(std::string file, bool cycle);
-  ~FileSource() override;
+  public:
+    FileSource(std::string file, bool cycle);
+    ~FileSource() override;
 
-  std::string string() override;
-  int64_t Produce(char **data) override;
-  YAML::Node to_yaml() const override;
+    std::string string() override;
+    int64_t Produce(char **data) override;
+    YAML::Node to_yaml() const override;
 
-  static FileSource *from_yaml(YAML::Node node);
-  std::string file() const;
+    static FileSource *from_yaml(YAML::Node node);
+    std::string file() const;
 
-protected:
-  std::string file_;
-  bool cycle_;
-  std::ifstream raw_data_file;
-  std::vector<char> buffer_;
-  unsigned int nchannels_;
-  uint16_t buffer_size_;
-  bool convert_byte_order_;
+  protected:
+    std::string file_;
+    bool cycle_;
+    std::ifstream raw_data_file;
+    std::vector<char> buffer_;
+    unsigned int nchannels_;
+    uint16_t buffer_size_;
+    bool convert_byte_order_;
 };

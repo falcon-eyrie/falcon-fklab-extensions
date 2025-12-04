@@ -26,41 +26,41 @@ WhiteNoiseSource::WhiteNoiseSource(double mean, double stdev,
     : mean_(mean), stdev_(stdev), sampling_rate_(sampling_rate),
       delta_(1000000 / sampling_rate), distribution_(mean, stdev),
       nchannels_(nchannels), convert_byte_order_(convert_byte_order) {
-  record_.set_nchannels(nchannels_);
-  record_.set_convert_byte_order(convert_byte_order_);
+    record_.set_nchannels(nchannels_);
+    record_.set_convert_byte_order(convert_byte_order_);
 }
 
 std::string WhiteNoiseSource::string() {
-  return "gaussian white noise (fs = " + to_string_n(sampling_rate_) + " Hz, " +
-         "mean = " + to_string_n(mean_) + " uV, " +
-         "stdev = " + to_string_n(stdev_) + "uV, " +
-         "nchannels = " + std::to_string(nchannels_) + ", " +
-         "convert byte order = " + std::to_string(convert_byte_order_) + ")";
+    return "gaussian white noise (fs = " + to_string_n(sampling_rate_) +
+           " Hz, " + "mean = " + to_string_n(mean_) + " uV, " +
+           "stdev = " + to_string_n(stdev_) + "uV, " +
+           "nchannels = " + std::to_string(nchannels_) + ", " +
+           "convert byte order = " + std::to_string(convert_byte_order_) + ")";
 }
 
 int64_t WhiteNoiseSource::Produce(char **data) {
-  record_.set_data(distribution_(generator_));
-  record_.set_timestamp(timestamp_);
-  timestamp_ = timestamp_ + delta_;
-  auto n = record_.ToNetworkBuffer(buffer_);
-  *data = buffer_.data();
-  return n;
+    record_.set_data(distribution_(generator_));
+    record_.set_timestamp(timestamp_);
+    timestamp_ = timestamp_ + delta_;
+    auto n = record_.ToNetworkBuffer(buffer_);
+    *data = buffer_.data();
+    return n;
 }
 
 YAML::Node WhiteNoiseSource::to_yaml() const {
-  YAML::Node node;
-  node["mean"] = mean_;
-  node["stdev"] = stdev_;
-  node["sampling_rate"] = sampling_rate_;
-  node["nchannels"] = nchannels_;
-  node["convert_byte_order"] = convert_byte_order_;
-  return node;
+    YAML::Node node;
+    node["mean"] = mean_;
+    node["stdev"] = stdev_;
+    node["sampling_rate"] = sampling_rate_;
+    node["nchannels"] = nchannels_;
+    node["convert_byte_order"] = convert_byte_order_;
+    return node;
 }
 
 WhiteNoiseSource *WhiteNoiseSource::from_yaml(const YAML::Node node) {
-  return new WhiteNoiseSource(node["mean"].as<double>(0.0),
-                              node["stdev"].as<double>(1.0),
-                              node["sampling_rate"].as<double>(32000),
-                              node["nchannels"].as<unsigned int>(128),
-                              node["convert_byte_order"].as<bool>(true));
+    return new WhiteNoiseSource(node["mean"].as<double>(0.0),
+                                node["stdev"].as<double>(1.0),
+                                node["sampling_rate"].as<double>(32000),
+                                node["nchannels"].as<unsigned int>(128),
+                                node["convert_byte_order"].as<bool>(true));
 }

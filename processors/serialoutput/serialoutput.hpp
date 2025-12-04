@@ -28,27 +28,26 @@
 
 class SerialOutput : public IProcessor {
 
-  // CONSTRUCTOR and OVERLOADED METHODS
-public:
-  SerialOutput();
-  void CreatePorts() override;
-  void Preprocess(ProcessingContext &context) override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    SerialOutput();
+    void CreatePorts() override;
+    void Preprocess(ProcessingContext &context) override;
+    void Process(ProcessingContext &context) override;
+    void Postprocess(ProcessingContext &context) override;
 
-  // DATA PORTS AND STATES
-protected:
-  PortIn<EventType> *data_in_port_;
-  PortOut<EventType> *data_out_port_;
+    // DATA PORTS AND STATES
+  protected:
+    PortIn<EventType> *data_in_port_;
+    PortOut<EventType> *data_out_port_;
 
-  // OPTIONS
-protected:
-  options::String port_address_{"/dev/ttyACM0"};
-  options::Int baudrate_{9600};
-  options::Bool event_log_{true};
+    // OPTIONS
+  protected:
+    options::String port_address_{"/dev/ttyACM0"};
+    options::Int baudrate_{9600};
+    options::Bool event_log_{true};
 
-  // variables
-protected:
-  serialib fd_;
+    // variables
+  protected:
+    serialib fd_;
 };
-

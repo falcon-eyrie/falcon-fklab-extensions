@@ -20,52 +20,52 @@
 #include "eventconverter.hpp"
 
 EventConverter::EventConverter() {
-  add_option("event name", event_name_, "New event name after conversion");
-  add_option("replace", replace_,
-             "Either replace incoming events with new event name, or generate "
-             "output events by appending incoming event and new event name.");
+    add_option("event name", event_name_, "New event name after conversion");
+    add_option(
+        "replace", replace_,
+        "Either replace incoming events with new event name, or generate "
+        "output events by appending incoming event and new event name.");
 }
 
 void EventConverter::CreatePorts() {
-  data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
-                                               PortInPolicy(SlotRange(1)));
+    data_in_port_ = create_input_port<EventType>(EventType::Capabilities(),
+                                                 PortInPolicy(SlotRange(1)));
 
-  data_out_port_ = create_output_port<EventType>(
-      EventType::Parameters(DEFAULT_EVENT),
-      PortOutPolicy(SlotRange(1)));
+    data_out_port_ = create_output_port<EventType>(
+        EventType::Parameters(DEFAULT_EVENT), PortOutPolicy(SlotRange(1)));
 }
 
-void EventConverter::CompleteStreamInfo(){
-    data_out_port_->streaminfo(0).set_stream_name(data_in_port_->streaminfo(0).stream_name());
-
+void EventConverter::CompleteStreamInfo() {
+    data_out_port_->streaminfo(0).set_stream_name(
+        data_in_port_->streaminfo(0).stream_name());
 }
 
 void EventConverter::Process(ProcessingContext &context) {
-  EventType::Data *data_in = nullptr;
-  EventType::Data *data_out = nullptr;
+    EventType::Data *data_in = nullptr;
+    EventType::Data *data_out = nullptr;
 
-  while (!context.terminated()) {
-    if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
-      break;
+    while (!context.terminated()) {
+        if (!data_in_port_->slot(0)->RetrieveData(data_in)) {
+            break;
+        }
+
+        data_out = data_out_port_->slot(0)->ClaimData(true);
+        data_out->set_hardware_timestamp(data_in->hardware_timestamp());
+
+        if (replace_()) {
+            data_out->set_event(event_name_());
+        } else {
+            data_out->set_event(data_in->event() + event_name_());
+        }
+        data_in_port_->slot(0)->ReleaseData();
+        data_out->set_source_timestamp();
+        data_out_port_->slot(0)->PublishData();
     }
-
-    data_out = data_out_port_->slot(0)->ClaimData(true);
-    data_out->set_hardware_timestamp(data_in->hardware_timestamp());
-
-    if (replace_()) {
-      data_out->set_event(event_name_());
-    } else {
-      data_out->set_event(data_in->event() + event_name_());
-    }
-    data_in_port_->slot(0)->ReleaseData();
-    data_out->set_source_timestamp();
-    data_out_port_->slot(0)->PublishData();
-  }
 }
 
 void EventConverter::Postprocess(ProcessingContext &context) {
-  LOG(INFO) << name() << ". Streamed " << data_in_port_->slot(0)->status_read()
-            << " events";
+    LOG(INFO) << name() << ". Streamed "
+              << data_in_port_->slot(0)->status_read() << " events";
 }
 
 REGISTERPROCESSOR(EventConverter)

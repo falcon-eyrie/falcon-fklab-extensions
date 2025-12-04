@@ -23,7 +23,7 @@
 
 using namespace nsEventType;
 
-Data::Data(std::string event): default_event_(event) { set_event(event); }
+Data::Data(std::string event) : default_event_(event) { set_event(event); }
 
 void Data::ClearData() { set_event(default_event_); }
 
@@ -35,17 +35,17 @@ size_t Data::size() const { return event_.size(); }
 
 void Data::set_event(std::string event) {
 
-  if (event.size() == 0) {
-      throw std::runtime_error("Event string cannot be empty.");
-  }
+    if (event.size() == 0) {
+        throw std::runtime_error("Event string cannot be empty.");
+    }
 
-  event_ = event;
-  hash_ = std::hash<std::string>()(event_);
+    event_ = event;
+    hash_ = std::hash<std::string>()(event_);
 }
 
 void Data::set_event(const Data &source) {
-  event_ = source.event();
-  hash_ = source.hash();
+    event_ = source.event();
+    hash_ = source.hash();
 }
 
 namespace nsEventType {
@@ -53,38 +53,38 @@ namespace nsEventType {
 bool operator==(const Data &e1, const Data &e2) { return e1.hash_ == e2.hash_; }
 
 bool operator!=(const Data &e1, const Data &e2) { return e1.hash_ != e2.hash_; }
-}  // namespace nsEventType
+} // namespace nsEventType
 
 void Data::SerializeBinary(std::ostream &stream,
                            Serialization::Format format) const {
-  BaseClass::SerializeBinary(stream, format);
-  if (format == Serialization::Format::FULL ||
-      format == Serialization::Format::COMPACT) {
-    std::string buffer = event_;
-    buffer.resize(EVENT_STRING_LENGTH);
-    stream.write(buffer.data(), EVENT_STRING_LENGTH);
-  }
+    BaseClass::SerializeBinary(stream, format);
+    if (format == Serialization::Format::FULL ||
+        format == Serialization::Format::COMPACT) {
+        std::string buffer = event_;
+        buffer.resize(EVENT_STRING_LENGTH);
+        stream.write(buffer.data(), EVENT_STRING_LENGTH);
+    }
 }
 
 void Data::SerializeYAML(YAML::Node &node, Serialization::Format format) const {
-  BaseClass::SerializeYAML(node, format);
-  if (format == Serialization::Format::FULL ||
-      format == Serialization::Format::COMPACT) {
-    node["event"] = event_;
-  }
+    BaseClass::SerializeYAML(node, format);
+    if (format == Serialization::Format::FULL ||
+        format == Serialization::Format::COMPACT) {
+        node["event"] = event_;
+    }
 }
 
-void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
+void Data::SerializeFlatBuffer(flexbuffers::Builder &flex_builder) {
     BaseClass::SerializeFlatBuffer(flex_builder);
     flex_builder.String("event", event_);
 }
 
 void Data::YAMLDescription(YAML::Node &node,
                            Serialization::Format format) const {
-  BaseClass::YAMLDescription(node, format);
-  if (format == Serialization::Format::FULL ||
-      format == Serialization::Format::COMPACT) {
-    node.push_back("event_string str (" + std::to_string(EVENT_STRING_LENGTH) +
-                   ")");
-  }
+    BaseClass::YAMLDescription(node, format);
+    if (format == Serialization::Format::FULL ||
+        format == Serialization::Format::COMPACT) {
+        node.push_back("event_string str (" +
+                       std::to_string(EVENT_STRING_LENGTH) + ")");
+    }
 }

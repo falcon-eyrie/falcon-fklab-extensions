@@ -24,30 +24,31 @@
 #include "spikedata_common.hpp"
 
 struct ChannelDetection {
-  enum Validity { UNKNOWN, VALID, BROKEN, NO_PEAK };
+    enum Validity { UNKNOWN, VALID, BROKEN, NO_PEAK };
 };
 
 class ChannelValidityMask {
- public:
-  ChannelValidityMask(unsigned int n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
-                      ChannelDetection::Validity validity =
-                          ChannelDetection::Validity::UNKNOWN);
+  public:
+    ChannelValidityMask(
+        unsigned int n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
+        ChannelDetection::Validity validity =
+            ChannelDetection::Validity::UNKNOWN);
 
-  ~ChannelValidityMask() {}
+    ~ChannelValidityMask() {}
 
-  unsigned int n_channels() const;
+    unsigned int n_channels() const;
 
-  std::vector<ChannelDetection::Validity> &validity_mask();
+    std::vector<ChannelDetection::Validity> &validity_mask();
 
-  void set_validity(size_t channel_index, ChannelDetection::Validity value);
+    void set_validity(size_t channel_index, ChannelDetection::Validity value);
 
-  bool is_channel_valid(size_t channel_index) const;
+    bool is_channel_valid(size_t channel_index) const;
 
-  bool all_channels_valid() const;
+    bool all_channels_valid() const;
 
-  void reset(ChannelDetection::Validity value =
-             ChannelDetection::Validity::UNKNOWN);
+    void reset(
+        ChannelDetection::Validity value = ChannelDetection::Validity::UNKNOWN);
 
- protected:
-  std::vector<ChannelDetection::Validity> mask_;
+  protected:
+    std::vector<ChannelDetection::Validity> mask_;
 };

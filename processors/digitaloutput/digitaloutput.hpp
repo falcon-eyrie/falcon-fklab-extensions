@@ -30,29 +30,29 @@ typedef std::map<std::string, std::unique_ptr<DigitalOutputProtocol>>
 
 class DigitalOutput : public IProcessor {
 
-public:
-  DigitalOutput();
-  void CreatePorts() override;
-  void Configure(const GlobalContext &context) override;
-  void Process(ProcessingContext &context) override;
+  public:
+    DigitalOutput();
+    void CreatePorts() override;
+    void Configure(const GlobalContext &context) override;
+    void Process(ProcessingContext &context) override;
 
-  // DATA PORTS
-protected:
-  PortIn<EventType> *data_in_port_;
+    // DATA PORTS
+  protected:
+    PortIn<EventType> *data_in_port_;
 
-protected:
-  options::Measurement<double, false> initial_lockout_period_{
-      300, "ms", options::positive<double>(true)};
+  protected:
+    options::Measurement<double, false> initial_lockout_period_{
+        300, "ms", options::positive<double>(true)};
 
-  options::Measurement<unsigned int, false> pulse_width_{
-      400, "ms", options::positive<double>(true)};
+    options::Measurement<unsigned int, false> pulse_width_{
+        400, "ms", options::positive<double>(true)};
 
-  options::String device_type_{};
-  options::Value<std::uint32_t, false> nchannels_{16};
-  options::Value<ProtocolYAMLMap, false> protocols_yaml_{};
+    options::String device_type_{};
+    options::Value<std::uint32_t, false> nchannels_{16};
+    options::Value<ProtocolYAMLMap, false> protocols_yaml_{};
 
-  options::Bool event_log_{true};
+    options::Bool event_log_{true};
 
-  std::unique_ptr<DigitalDevice> device_;
-  ProtocolMap protocols_;
+    std::unique_ptr<DigitalDevice> device_;
+    ProtocolMap protocols_;
 };

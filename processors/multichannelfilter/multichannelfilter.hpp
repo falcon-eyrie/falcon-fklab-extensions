@@ -27,29 +27,28 @@
 #include <dsp/filter.hpp>
 
 class MultiChannelFilter : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  MultiChannelFilter();
-  void Configure(const GlobalContext &context) override;
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Prepare(GlobalContext &context) override;
-  void Process(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    MultiChannelFilter();
+    void Configure(const GlobalContext &context) override;
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Prepare(GlobalContext &context) override;
+    void Process(ProcessingContext &context) override;
 
-  // VARIABLES
- protected:
-  std::unique_ptr<dsp::filter::IFilter> filter_template_;
-  std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
+    // VARIABLES
+  protected:
+    std::unique_ptr<dsp::filter::IFilter> filter_template_;
+    std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
 
-  // DATA PORTS
- protected:
-  PortIn<TimeSeriesType<double>> *data_in_port_;
-  PortOut<TimeSeriesType<double>> *data_out_port_;
+    // DATA PORTS
+  protected:
+    PortIn<TimeSeriesType<double>> *data_in_port_;
+    PortOut<TimeSeriesType<double>> *data_out_port_;
 
-  // OPTIONS
- protected:
-  options::Value<YAML::Node, false> filter_def_{};
+    // OPTIONS
+  protected:
+    options::Value<YAML::Node, false> filter_def_{};
 
-
- const uint32_t MAX_NCHANNELS=384;
+    const uint32_t MAX_NCHANNELS = 384;
 };

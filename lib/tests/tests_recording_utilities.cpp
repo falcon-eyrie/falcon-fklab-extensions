@@ -18,75 +18,72 @@
 // ---------------------------------------------------------------------
 
 #include "../recording_utilities/channelist.hpp"
-#include "gtest/gtest.h"
 #include "yaml-cpp/yaml.h"
+#include "gtest/gtest.h"
 
 namespace {
 
 TEST(AddChannels, onebyone) {
 
- auto channelist = ChannelList<int>();
- channelist.add_channels(1);
- auto result = channelist.get_channels();
+    auto channelist = ChannelList<int>();
+    channelist.add_channels(1);
+    auto result = channelist.get_channels();
 
- EXPECT_EQ(result.size(), 1);
- EXPECT_EQ(result[0], 1);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0], 1);
 
- channelist.add_channels(3);
- result = channelist.get_channels();
+    channelist.add_channels(3);
+    result = channelist.get_channels();
 
- EXPECT_EQ(result.size(), 2);
- EXPECT_EQ(result[0], 1);
- EXPECT_EQ(result[1], 3);
-
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0], 1);
+    EXPECT_EQ(result[1], 3);
 }
 
 TEST(AddChannels, fromvector) {
- std::vector<int> input = {1, 3, 4};
- auto channelist = ChannelList<int>();
- channelist.add_channels(input);
+    std::vector<int> input = {1, 3, 4};
+    auto channelist = ChannelList<int>();
+    channelist.add_channels(input);
 
- auto result = channelist.get_channels();
+    auto result = channelist.get_channels();
 
- EXPECT_EQ(result.size(), 3);
- EXPECT_EQ(result, input);
+    EXPECT_EQ(result.size(), 3);
+    EXPECT_EQ(result, input);
 
- channelist.add_channels(input);
+    channelist.add_channels(input);
 
- result = channelist.get_channels();
- std::vector<int> expected_output = {1, 3, 4, 1, 3, 4};
- EXPECT_EQ(result.size(), 6);
- EXPECT_EQ(result, expected_output);
-
+    result = channelist.get_channels();
+    std::vector<int> expected_output = {1, 3, 4, 1, 3, 4};
+    EXPECT_EQ(result.size(), 6);
+    EXPECT_EQ(result, expected_output);
 }
 
 TEST(AddChannels, fromrange) {
- auto channelist = ChannelList<int>();
- channelist.add_channels(1, 4);
+    auto channelist = ChannelList<int>();
+    channelist.add_channels(1, 4);
 
- auto result = channelist.get_channels();
- std::vector<int> expected_output = {1, 2, 3, 4};
- EXPECT_EQ(result.size(), 4);
- EXPECT_EQ(result, expected_output);
+    auto result = channelist.get_channels();
+    std::vector<int> expected_output = {1, 2, 3, 4};
+    EXPECT_EQ(result.size(), 4);
+    EXPECT_EQ(result, expected_output);
 
- channelist.add_channels(5, 7);
+    channelist.add_channels(5, 7);
 
- result = channelist.get_channels();
- expected_output = {1, 2, 3, 4, 5, 6, 7};
- EXPECT_EQ(result.size(), 7);
- EXPECT_EQ(result, expected_output);
-
+    result = channelist.get_channels();
+    expected_output = {1, 2, 3, 4, 5, 6, 7};
+    EXPECT_EQ(result.size(), 7);
+    EXPECT_EQ(result, expected_output);
 }
 
 TEST(RemoveChannels, fromvector) {
- std::vector<int> input = {1, 3, 4};
- auto channelist = ChannelList<int>();
- channelist.add_channels(1, 9);
- channelist.remove_channels(input);
- auto result = channelist.get_channels();
- std::vector<int> expected_output = {2, 5, 6, 7, 8, 9};
- EXPECT_EQ(result.size(), 6);
- EXPECT_EQ(result, expected_output);
+    std::vector<int> input = {1, 3, 4};
+    auto channelist = ChannelList<int>();
+    channelist.add_channels(1, 9);
+    channelist.remove_channels(input);
+    auto result = channelist.get_channels();
+    std::vector<int> expected_output = {2, 5, 6, 7, 8, 9};
+    EXPECT_EQ(result.size(), 6);
+    EXPECT_EQ(result, expected_output);
 }
 
 TEST(RemoveChannels, fromrange) {
@@ -141,7 +138,7 @@ TEST(DecodeYaml, simplelist) {
     auto channelist = node.as<ChannelList<int>>();
     EXPECT_EQ(channelist.size(), 3);
 
-    std::vector<int> expected_output = {1,2,3};
+    std::vector<int> expected_output = {1, 2, 3};
     EXPECT_EQ(channelist.get_channels(), expected_output);
 }
 
@@ -150,7 +147,7 @@ TEST(DecodeYaml, withrange) {
     auto channelist = node.as<ChannelList<int>>();
     EXPECT_EQ(channelist.size(), 3);
 
-    std::vector<int> expected_output = {1,2,3};
+    std::vector<int> expected_output = {1, 2, 3};
     EXPECT_EQ(channelist.get_channels(), expected_output);
 }
 
@@ -159,13 +156,13 @@ TEST(DecodeYaml, withmixt) {
     auto channelist = node.as<ChannelList<int>>();
     EXPECT_EQ(channelist.size(), 7);
 
-    std::vector<int> expected_output = {1,2,3, 7, 1,2, 3};
+    std::vector<int> expected_output = {1, 2, 3, 7, 1, 2, 3};
     EXPECT_EQ(channelist.get_channels(), expected_output);
 }
 
-}
+} // namespace
 
 int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

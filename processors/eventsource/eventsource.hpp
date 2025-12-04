@@ -27,29 +27,29 @@
 #include "options/options.hpp"
 
 class EventSource : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  EventSource();
-  void Configure(const GlobalContext &context) override;
-  void CreatePorts() override;
-  void Process(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    EventSource();
+    void Configure(const GlobalContext &context) override;
+    void CreatePorts() override;
+    void Process(ProcessingContext &context) override;
 
-  // CONSTANTS
- public:
-  const double DEFAULT_EVENT_RATE = 1.0;
-  const std::string DEFAULT_EVENT = "default_eventsource_event";
+    // CONSTANTS
+  public:
+    const double DEFAULT_EVENT_RATE = 1.0;
+    const std::string DEFAULT_EVENT = "default_eventsource_event";
 
-  // VARIABLES
- protected:
-  PortOut<EventType> *event_port_;
+    // VARIABLES
+  protected:
+    PortOut<EventType> *event_port_;
 
-  // OPTIONS
- protected:
-  options::Vector<std::string> event_list_{
-      {DEFAULT_EVENT},
-      options::notempty<std::vector<std::string>>() +
-          options::each<std::string>(options::notempty<std::string>())};
+    // OPTIONS
+  protected:
+    options::Vector<std::string> event_list_{
+        {DEFAULT_EVENT},
+        options::notempty<std::vector<std::string>>() +
+            options::each<std::string>(options::notempty<std::string>())};
 
-  options::Measurement<double> event_rate_{DEFAULT_EVENT_RATE, "Hz",
-                                           options::positive<double>()};
+    options::Measurement<double> event_rate_{DEFAULT_EVENT_RATE, "Hz",
+                                             options::positive<double>()};
 };

@@ -23,37 +23,36 @@
 #include "iprocessor.hpp"
 
 class FalconProcessor : public IProcessor {
- public:
-  void Configure(const GlobalContext &context) override;
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Prepare(GlobalContext &context) override;
-  void Preprocess(ProcessingContext &context) override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
-  void Unprepare(GlobalContext &context) override;
+  public:
+    void Configure(const GlobalContext &context) override;
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Prepare(GlobalContext &context) override;
+    void Preprocess(ProcessingContext &context) override;
+    void Process(ProcessingContext &context) override;
+    void Postprocess(ProcessingContext &context) override;
+    void Unprepare(GlobalContext &context) override;
 
- protected:
-  void method1();
+  protected:
+    void method1();
 
- protected:
-  PortIn<AnyDataType> *data_in_port_;
-  PortIn<AnyDataType> *other_data_in_port_;
-  PortOut<AnyDataType> *data_out_port_;
-  PortOut<AnyDataType> *other_data_out_port_;
+  protected:
+    PortIn<AnyDataType> *data_in_port_;
+    PortIn<AnyDataType> *other_data_in_port_;
+    PortOut<AnyDataType> *data_out_port_;
+    PortOut<AnyDataType> *other_data_out_port_;
 
-  WritableState<T1> *state_variable1_;
-  ReadableState<T2> *state_variable2_;
+    WritableState<T1> *state_variable1_;
+    ReadableState<T2> *state_variable2_;
 
-  T1 default_state_variable1_;
-  T2 default_state_variable2_;
+    T1 default_state_variable1_;
+    T2 default_state_variable2_;
 
-  datatype1 option1_;
-  datatype2 option2_;
+    datatype1 option1_;
+    datatype2 option2_;
 
- public:
-  const datatype1 DEFAULT_OPTION1 = 6;
-  static constexpr datatype DEFAULT_ARGUMENT3 = 50;
-  static constexpr datatype DEFAULT_ARGUMENT4 = DEFAULT_ARGUMENT3 * 2;
+  public:
+    const datatype1 DEFAULT_OPTION1 = 6;
+    static constexpr datatype DEFAULT_ARGUMENT3 = 50;
+    static constexpr datatype DEFAULT_ARGUMENT4 = DEFAULT_ARGUMENT3 * 2;
 };
-

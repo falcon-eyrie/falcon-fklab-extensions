@@ -26,37 +26,37 @@
 #include "spikedata/spikedata.hpp"
 
 class MUAEstimator : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
- public:
-  MUAEstimator();
-  void CreatePorts() override;
-  void CompleteStreamInfo() override;
-  void Prepare(GlobalContext &context) override;
-  void Process(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    MUAEstimator();
+    void CreatePorts() override;
+    void CompleteStreamInfo() override;
+    void Prepare(GlobalContext &context) override;
+    void Process(ProcessingContext &context) override;
 
-  // DATA PORTS
- protected:
-  PortIn<SpikeType> *data_in_port_;
-  PortOut<MUAType> *data_out_port_;
+    // DATA PORTS
+  protected:
+    PortIn<SpikeType> *data_in_port_;
+    PortOut<MUAType> *data_out_port_;
 
-  // STATES
- protected:
-  StaticState<double> *bin_size_;
-  BroadcasterState<double> *mua_;
+    // STATES
+  protected:
+    StaticState<double> *bin_size_;
+    BroadcasterState<double> *mua_;
 
-  // VARIABLES
- protected:
-  double current_bin_size_;
-  double previous_bin_size_;
-  double spike_buffer_size_;
-  std::size_t n_spike_buffers_;
+    // VARIABLES
+  protected:
+    double current_bin_size_;
+    double previous_bin_size_;
+    double spike_buffer_size_;
+    std::size_t n_spike_buffers_;
 
-  // CONSTANTS
- public:
-  const std::string BIN_SIZE = "bin size";
+    // CONSTANTS
+  public:
+    const std::string BIN_SIZE = "bin size";
 
-  // OPTIONS
- protected:
-  options::Measurement<double, false> initial_bin_size_{
-      10., "ms", options::positive<double>(true)};
+    // OPTIONS
+  protected:
+    options::Measurement<double, false> initial_bin_size_{
+        10., "ms", options::positive<double>(true)};
 };

@@ -27,175 +27,178 @@
 #include "utilities/keyboard.hpp"
 
 void list_all_sources(std::vector<std::unique_ptr<DataSource>> &sources) {
-  std::cout << std::endl;
-  std::cout << "Available sources:" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Available sources:" << std::endl;
 
-  char key = 'a';
+    char key = 'a';
 
-  for (auto &it : sources) {
-    std::cout << key << " : " << it->string() << std::endl;
-    if (key == 'z') {
-      break;
-    } // maximum of 26 sources
-    ++key;
-  }
+    for (auto &it : sources) {
+        std::cout << key << " : " << it->string() << std::endl;
+        if (key == 'z') {
+            break;
+        } // maximum of 26 sources
+        ++key;
+    }
 
-  std::cout << std::endl;
+    std::cout << std::endl;
 }
 
 void print_prompt(char n) {
-  std::cout << "Press letter (a-" << static_cast<char>(('a' + n - 1))
-            << ") to stream from a source. Press <Esc> to stop streaming and "
-               "quit. Press <space> to list all sources."
-            << std::endl
-            << std::endl;
+    std::cout << "Press letter (a-" << static_cast<char>(('a' + n - 1))
+              << ") to stream from a source. Press <Esc> to stop streaming and "
+                 "quit. Press <space> to list all sources."
+              << std::endl
+              << std::endl;
 }
 
 int main(int argc, char **argv) {
 
-  // create a parser
-  cmdline::parser parser;
+    // create a parser
+    cmdline::parser parser;
 
-  // add specified type of variable.
-  // 1st argument is long name
-  // 2nd argument is short name (no short name if '\0' specified)
-  // 3rd argument is description
-  // 4th argument is mandatory (optional. default is false)
-  // 5th argument is default value  (optional. it used when mandatory is false)
-  parser.add<std::string>("config", 'c', "configuration file", false,
-                          "$HOME/.config/falcon/nlxtestbench.yaml");
-  parser.add<int>("autostart", 'a', "source to auto start streaming", false,
-                  -1);
-  parser.add<double>("rate", 'r', "data stream rate (Hz)", false, -1);
-  parser.add<int64_t>(
-      "npackets", 'n',
-      "maximum number of packets to stream (0 means all packets)", false, -1);
+    // add specified type of variable.
+    // 1st argument is long name
+    // 2nd argument is short name (no short name if '\0' specified)
+    // 3rd argument is description
+    // 4th argument is mandatory (optional. default is false)
+    // 5th argument is default value  (optional. it used when mandatory is
+    // false)
+    parser.add<std::string>("config", 'c', "configuration file", false,
+                            "$HOME/.config/falcon/nlxtestbench.yaml");
+    parser.add<int>("autostart", 'a', "source to auto start streaming", false,
+                    -1);
+    parser.add<double>("rate", 'r', "data stream rate (Hz)", false, -1);
+    parser.add<int64_t>(
+        "npackets", 'n',
+        "maximum number of packets to stream (0 means all packets)", false, -1);
 
-  // Run parser
-  // It returns only if command line arguments are valid.
-  // If arguments are invalid, a parser output error msgs then exit program.
-  // If help flag ('--help' or '-?') is specified, a parser output usage message
-  // then exit program.
-  parser.parse_check(argc, argv);
+    // Run parser
+    // It returns only if command line arguments are valid.
+    // If arguments are invalid, a parser output error msgs then exit program.
+    // If help flag ('--help' or '-?') is specified, a parser output usage
+    // message then exit program.
+    parser.parse_check(argc, argv);
 
-  // create default configuration
-  TestBenchConfiguration config;
+    // create default configuration
+    TestBenchConfiguration config;
 
-  // load configuration file
-  try {
-    config.load(parser.get<std::string>("config"));
-  } catch (std::runtime_error &e) {
-    std::cout << e.what() << std::endl;
-    std::cout << "Neuralynx test bench terminated." << std::endl;
-    return EXIT_FAILURE;
-  }
+    // load configuration file
+    try {
+        config.load(parser.get<std::string>("config"));
+    } catch (std::runtime_error &e) {
+        std::cout << e.what() << std::endl;
+        std::cout << "Neuralynx test bench terminated." << std::endl;
+        return EXIT_FAILURE;
+    }
 
-  auto sources = datasources_from_yaml(config.sources());
-  std::cout << "sources loaded" << std::endl;
-  if (sources.empty()) {
-    std::cout << "Please define signal sources." << std::endl;
-    return EXIT_FAILURE;
-  }
+    auto sources = datasources_from_yaml(config.sources());
+    std::cout << "sources loaded" << std::endl;
+    if (sources.empty()) {
+        std::cout << "Please define signal sources." << std::endl;
+        return EXIT_FAILURE;
+    }
 
-  // override config with command line options
-  if (parser.get<double>("rate") > 0) {
-    config.stream_rate = parser.get<double>("rate");
-  }
+    // override config with command line options
+    if (parser.get<double>("rate") > 0) {
+        config.stream_rate = parser.get<double>("rate");
+    }
 
-  if (parser.get<int64_t>("npackets") >= 0) {
-    config.npackets = parser.get<int64_t>("npackets");
-  }
+    if (parser.get<int64_t>("npackets") >= 0) {
+        config.npackets = parser.get<int64_t>("npackets");
+    }
 
-  // auto start
-  // find source with specified name
-  unsigned int idx = 0;
-  bool autostart = false;
+    // auto start
+    // find source with specified name
+    unsigned int idx = 0;
+    bool autostart = false;
 
-  if (parser.get<int>("autostart") >= 0) {
-    config.autostart = parser.get<int>("autostart");
-  }
+    if (parser.get<int>("autostart") >= 0) {
+        config.autostart = parser.get<int>("autostart");
+    }
 
-  if (config.autostart() >= 0) {
-    if (idx >= sources.size()) {
-      std::cout << "Warning: cannot auto start non-existing stream " << idx
-                << std::endl
-                << std::endl;
-      idx = 0;
+    if (config.autostart() >= 0) {
+        if (idx >= sources.size()) {
+            std::cout << "Warning: cannot auto start non-existing stream "
+                      << idx << std::endl
+                      << std::endl;
+            idx = 0;
+        } else {
+            autostart = true;
+        }
+    }
+
+    std::cout << "NlxTestBench configuration:" << std::endl;
+    std::cout << "stream rate = " << to_string_n(config.stream_rate()) << " Hz "
+              << std::endl;
+
+    if (config.npackets() == 0) {
+        std::cout << "npackets = all" << std::endl;
     } else {
-      autostart = true;
+        std::cout << "npackets = " << to_string_n(config.npackets()) << "( "
+                  << to_string_n(config.npackets() /
+                                 nlx::NLX_SIGNAL_SAMPLING_FREQUENCY)
+                  << " s)" << std::endl;
     }
-  }
-
-  std::cout << "NlxTestBench configuration:" << std::endl;
-  std::cout << "stream rate = " << to_string_n(config.stream_rate()) << " Hz "
-            << std::endl;
-
-  if (config.npackets() == 0) {
-    std::cout << "npackets = all" << std::endl;
-  } else {
-    std::cout << "npackets = " << to_string_n(config.npackets()) << "( "
-              << to_string_n(config.npackets() /
-                             nlx::NLX_SIGNAL_SAMPLING_FREQUENCY)
-              << " s)" << std::endl;
-  }
-  if (autostart) {
-    std::cout << "auto start = " << static_cast<char>('a' + idx) << std::endl;
-  }
-
-  // create data streaming object
-  DataStreamer streamer(sources[idx].get(), config.stream_rate(),
-                        config.ip_address(), config.port(), config.npackets());
-
-  // print all available sources
-  list_all_sources(sources);
-  print_prompt(sources.size());
-
-  s_catch_sigint_signal(); // Install Ctrl-C signal handler
-  nonblock(1);
-
-  int hit;
-  char c;
-
-  if (autostart) {
-    streamer.Start();
-  }
-
-  // process keyboard commands
-  while (true) {
-    if (streamer.terminated()) {
-      streamer.Stop();
-      std::cout << "Streaming done." << std::endl;
+    if (autostart) {
+        std::cout << "auto start = " << static_cast<char>('a' + idx)
+                  << std::endl;
     }
 
-    hit = kbhit();
+    // create data streaming object
+    DataStreamer streamer(sources[idx].get(), config.stream_rate(),
+                          config.ip_address(), config.port(),
+                          config.npackets());
 
-    // check it was CTRL-C
-    if (s_interrupted) {
-      break;
-    }
+    // print all available sources
+    list_all_sources(sources);
+    print_prompt(sources.size());
 
-    if (hit != 0) {
-      // get key
-      c = getchar();
+    s_catch_sigint_signal(); // Install Ctrl-C signal handler
+    nonblock(1);
 
-      // std::cout << "key = " << static_cast<int>(c) << std::endl;
-      if (c >= 'a' && c < static_cast<char>('a' + sources.size())) {
-        streamer.Stop();
-        streamer.set_source(sources[c - 'a'].get());
+    int hit;
+    char c;
+
+    if (autostart) {
         streamer.Start();
-      } else if (c == 27) { // Esc
-        streamer.Stop();
-        break;
-      } else if (c == 32) { // space
-        list_all_sources(sources);
-        print_prompt(sources.size());
-      }
     }
 
-    usleep(100000); // 0.1 second
-  }
+    // process keyboard commands
+    while (true) {
+        if (streamer.terminated()) {
+            streamer.Stop();
+            std::cout << "Streaming done." << std::endl;
+        }
 
-  nonblock(0);
+        hit = kbhit();
 
-  return EXIT_SUCCESS;
+        // check it was CTRL-C
+        if (s_interrupted) {
+            break;
+        }
+
+        if (hit != 0) {
+            // get key
+            c = getchar();
+
+            // std::cout << "key = " << static_cast<int>(c) << std::endl;
+            if (c >= 'a' && c < static_cast<char>('a' + sources.size())) {
+                streamer.Stop();
+                streamer.set_source(sources[c - 'a'].get());
+                streamer.Start();
+            } else if (c == 27) { // Esc
+                streamer.Stop();
+                break;
+            } else if (c == 32) { // space
+                list_all_sources(sources);
+                print_prompt(sources.size());
+            }
+        }
+
+        usleep(100000); // 0.1 second
+    }
+
+    nonblock(0);
+
+    return EXIT_SUCCESS;
 }

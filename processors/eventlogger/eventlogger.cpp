@@ -21,44 +21,44 @@
 #include <thread>
 
 EventLogger::EventLogger() : IProcessor() {
-  add_option("target event", target_event_, "The event to be logged.");
+    add_option("target event", target_event_, "The event to be logged.");
 }
 
 void EventLogger::CreatePorts() {
-  event_port_ = create_input_port<EventType>(
-      EVENTDATA, EventType::Capabilities(), PortInPolicy(SlotRange(1)));
+    event_port_ = create_input_port<EventType>(
+        EVENTDATA, EventType::Capabilities(), PortInPolicy(SlotRange(1)));
 }
 
 void EventLogger::Process(ProcessingContext &context) {
-  EventType::Data *data;
+    EventType::Data *data;
 
-  while (!context.terminated()) {
-    if (!event_port_->slot(0)->RetrieveData(data)) {
-      break;
+    while (!context.terminated()) {
+        if (!event_port_->slot(0)->RetrieveData(data)) {
+            break;
+        }
+
+        ++event_counter_.all_received;
+
+        if (*data == target_event_()) {
+            ++event_counter_.target;
+            LOG(UPDATE) << name() << ": received target event " << data->event()
+                        << ".";
+        } else {
+            ++event_counter_.non_target;
+            LOG(UPDATE) << name() << ": skipped event " << data->event() << ".";
+        }
+        event_port_->slot(0)->ReleaseData();
     }
-
-    ++event_counter_.all_received;
-
-    if (*data == target_event_()) {
-      ++event_counter_.target;
-      LOG(UPDATE) << name() << ": received target event " << data->event()
-                  << ".";
-    } else {
-      ++event_counter_.non_target;
-      LOG(UPDATE) << name() << ": skipped event " << data->event() << ".";
-    }
-    event_port_->slot(0)->ReleaseData();
-  }
 }
 
 void EventLogger::Postprocess(ProcessingContext &context) {
-  LOG(UPDATE) << name() << ". Received " << event_counter_.all_received
-              << " events, of which " << event_counter_.target
-              << " were targets.";
-  if (event_counter_.consistent_counters()) {
-    LOG(UPDATE) << name() << ". Counters are consistent.";
-  }
-  event_counter_.reset();
+    LOG(UPDATE) << name() << ". Received " << event_counter_.all_received
+                << " events, of which " << event_counter_.target
+                << " were targets.";
+    if (event_counter_.consistent_counters()) {
+        LOG(UPDATE) << name() << ". Counters are consistent.";
+    }
+    event_counter_.reset();
 }
 
 REGISTERPROCESSOR(EventLogger)

@@ -27,39 +27,39 @@
 #include "utilities/time.hpp"
 
 class Event2State : public IProcessor {
-  // CONSTRUCTOR and OVERLOADED METHODS
-public:
-  Event2State();
-  void CreatePorts() override;
-  void Process(ProcessingContext &context) override;
-  void Postprocess(ProcessingContext &context) override;
+    // CONSTRUCTOR and OVERLOADED METHODS
+  public:
+    Event2State();
+    void CreatePorts() override;
+    void Process(ProcessingContext &context) override;
+    void Postprocess(ProcessingContext &context) override;
 
-  // METHODS
-protected:
-  BroadcasterState<bool> *enabled_;
+    // METHODS
+  protected:
+    BroadcasterState<bool> *enabled_;
 
-  /*
-   * During post-processing, log as info if all counters are consistent
-   * and as warning if not, all counters used: number of events received,
-   * with the number of targeted, and non-target and finally reset them.
-   *
-   * @input port_name name of the input port
-   * @input counter counter structure with three counters to log (all_received,
-   * target, non_target)
-   */
-  void log_and_reset_counters(std::string port_name, EventCounter &counter);
+    /*
+     * During post-processing, log as info if all counters are consistent
+     * and as warning if not, all counters used: number of events received,
+     * with the number of targeted, and non-target and finally reset them.
+     *
+     * @input port_name name of the input port
+     * @input counter counter structure with three counters to log
+     * (all_received, target, non_target)
+     */
+    void log_and_reset_counters(std::string port_name, EventCounter &counter);
 
-  // DATA PORTS
-protected:
-  PortIn<EventType> *data_in_port_;
-  PortOut<EventType> *data_out_port_;
+    // DATA PORTS
+  protected:
+    PortIn<EventType> *data_in_port_;
+    PortOut<EventType> *data_out_port_;
 
-  // variables
-protected:
-  EventCounter event_counter_;
+    // variables
+  protected:
+    EventCounter event_counter_;
 
-  // OPTIONS
-protected:
-  options::Value<EventType::Data, false> target_event_{
-      DEFAULT_EVENT, options::notempty<EventType::Data>()};
+    // OPTIONS
+  protected:
+    options::Value<EventType::Data, false> target_event_{
+        DEFAULT_EVENT, options::notempty<EventType::Data>()};
 };
