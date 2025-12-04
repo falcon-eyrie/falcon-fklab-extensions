@@ -124,7 +124,7 @@ void OpenEphysZMQ::Process(ProcessingContext& context) {
                     sample_counter_ = 0;
                 }
 
-                data_out->set_sample_timestamp(sample_counter_, init_ts + sample);
+                data_out->set_sample_timestamp(sample_counter_,init_ts + sample);
 
                 data_out_iter = data_out->begin_sample(sample_counter_);
 
