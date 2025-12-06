@@ -20,10 +20,10 @@
 #include <unistd.h>
 #include <string>
 
+#include "cmdline/cmdline.h"
 #include "config.hpp"
 #include "datastreamer.hpp"
 
-#include "cmdline/cmdline.h"
 #include "utilities/keyboard.hpp"
 
 void list_all_sources(std::vector<std::unique_ptr<DataSource>>& sources) {
