@@ -18,12 +18,12 @@
 // ---------------------------------------------------------------------
 
 #include <unistd.h>
-
 #include <string>
 
-#include "cmdline/cmdline.h"
 #include "config.hpp"
 #include "datastreamer.hpp"
+
+#include "cmdline/cmdline.h"
 #include "utilities/keyboard.hpp"
 
 void list_all_sources(std::vector<std::unique_ptr<DataSource>>& sources) {
@@ -60,8 +60,7 @@ int main(int argc, char** argv) {
     // 2nd argument is short name (no short name if '\0' specified)
     // 3rd argument is description
     // 4th argument is mandatory (optional. default is false)
-    // 5th argument is default value  (optional. it used when mandatory is
-    // false)
+    // 5th argument is default value  (optional. it used when mandatory is false)
     parser.add<std::string>("config", 'c', "configuration file", false,
                             "$HOME/.config/falcon/nlxtestbench.yaml");
     parser.add<int>("autostart", 'a', "source to auto start streaming", false, -1);
@@ -72,8 +71,8 @@ int main(int argc, char** argv) {
     // Run parser
     // It returns only if command line arguments are valid.
     // If arguments are invalid, a parser output error msgs then exit program.
-    // If help flag ('--help' or '-?') is specified, a parser output usage
-    // message then exit program.
+    // If help flag ('--help' or '-?') is specified, a parser output usage message
+    // then exit program.
     parser.parse_check(argc, argv);
 
     // create default configuration
@@ -104,23 +103,8 @@ int main(int argc, char** argv) {
         config.npackets = parser.get<int64_t>("npackets");
     }
 
-    // auto start
-    // find source with specified name
-    unsigned int idx = 0;
-    bool autostart = false;
-
     if (parser.get<int>("autostart") >= 0) {
         config.autostart = parser.get<int>("autostart");
-    }
-
-    if (config.autostart() >= 0) {
-        if (idx >= sources.size()) {
-            std::cout << "Warning: cannot auto start non-existing stream " << idx << std::endl
-                      << std::endl;
-            idx = 0;
-        } else {
-            autostart = true;
-        }
     }
 
     std::cout << "NlxTestBench configuration:" << std::endl;
@@ -133,13 +117,28 @@ int main(int argc, char** argv) {
                   << to_string_n(config.npackets() / nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) << " s)"
                   << std::endl;
     }
-    if (autostart) {
-        std::cout << "auto start = " << static_cast<char>('a' + idx) << std::endl;
+
+    size_t initialSourceIndex = 0;
+    bool isAutoStartEnabled = !config.autostart.is_null();
+
+    if (isAutoStartEnabled) {
+        bool isAutoStartIndexOutOfBounds =
+            config.autostart() < 0 || static_cast<size_t>(config.autostart()) >= sources.size();
+        if (isAutoStartIndexOutOfBounds) {
+            std::cout << "Warning: input source at index " << config.autostart()
+                      << " does not exist. Available sources are 0 to " << (sources.size() - 1)
+                      << ". Setting autostart index to 0." << std::endl
+                      << std::endl;
+            config.autostart = 0;
+        }
+        std::cout << "Auto-start source = " << static_cast<char>('a' + config.autostart())
+                  << std::endl;
+        initialSourceIndex = static_cast<size_t>(config.autostart());
     }
 
     // create data streaming object
-    DataStreamer streamer(sources[idx].get(), config.stream_rate(), config.ip_address(),
-                          config.port(), config.npackets());
+    DataStreamer streamer(sources[initialSourceIndex].get(), config.stream_rate(),
+                          config.ip_address(), config.port(), config.npackets());
 
     // print all available sources
     list_all_sources(sources);
@@ -151,7 +150,7 @@ int main(int argc, char** argv) {
     int hit;
     char c;
 
-    if (autostart) {
+    if (isAutoStartEnabled) {
         streamer.Start();
     }
 
