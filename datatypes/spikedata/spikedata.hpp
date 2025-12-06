@@ -35,9 +35,9 @@ struct Parameters {
     Parameters(double bufsize = 0., unsigned int nchan = 0, double rate = 0.)
         : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
 
-    double       buffer_size;
+    double buffer_size;
     unsigned int nchannels;
-    double       sample_rate;
+    double sample_rate;
 };
 
 class Data : public IData<Data, ParentType> {
@@ -62,8 +62,8 @@ class Data : public IData<Data, ParentType> {
     double buffer_size() const { return buffer_size_; }
 
     void add_spike(const std::vector<double>& amplitudes,
-                   uint64_t                   hw_timestamp); // 1st argument will change to a
-                                           // better interface for matrices
+                   uint64_t hw_timestamp);  // 1st argument will change to a
+                                            // better interface for matrices
 
     void add_spike(double* amplitudes, uint64_t hw_timestamp);
 
@@ -79,38 +79,38 @@ class Data : public IData<Data, ParentType> {
 
     std::vector<double>::const_iterator spike_amplitudes(std::size_t spike_index) const;
 
-    void SerializeBinary(std::ostream&         stream,
+    void SerializeBinary(std::ostream& stream,
                          Serialization::Format format = Serialization::Format::FULL) const final;
 
-    void SerializeYAML(YAML::Node&           node,
+    void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const final;
 
-    void YAMLDescription(YAML::Node&           node,
+    void YAMLDescription(YAML::Node& node,
                          Serialization::Format format = Serialization::Format::FULL) const final;
 
     void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
 
    protected:
-    uint8_t             n_channels_;
-    unsigned int        n_detected_spikes_;
+    uint8_t n_channels_;
+    unsigned int n_detected_spikes_;
     std::vector<double> amplitudes_;
     // std::vector<double> widths_;
     std::vector<uint64_t> hw_ts_detected_spikes_;
-    double                buffer_size_;
-    double                sample_rate_;
-    ChannelValidityMask   validity_mask_;
-    ChannelValidityMask   default_validity_mask_; // independent of spike detection outcome
+    double buffer_size_;
+    double sample_rate_;
+    ChannelValidityMask validity_mask_;
+    ChannelValidityMask default_validity_mask_;  // independent of spike detection outcome
 
    public:
     static constexpr unsigned int DEFAULT_MAX_NSPIKES =
-        MAX_N_SPIKES_IN_BUFFER; // max expected # of spikes in a buffer
+        MAX_N_SPIKES_IN_BUFFER;  // max expected # of spikes in a buffer
 
    protected:
     // for serialization
-    const std::string N_CHANNELS         = "n_channels";
-    const std::string N_DETECTED_SPIKES  = "n_detected_spikes";
+    const std::string N_CHANNELS = "n_channels";
+    const std::string N_DETECTED_SPIKES = "n_detected_spikes";
     const std::string TS_DETECTED_SPIKES = "TS_detected_spikes";
-    const std::string SPIKE_AMPLITUDES   = "spike_amplitudes";
+    const std::string SPIKE_AMPLITUDES = "spike_amplitudes";
 };
 
 class Capabilities {
@@ -131,7 +131,7 @@ class Capabilities {
     ChannelRange channel_range_;
 };
 
-} // namespace nsSpikeType
+}  // namespace nsSpikeType
 
 using SpikeType = DefineType<nsSpikeType::Data, AnyType, true, nsSpikeType::Capabilities,
                              nsSpikeType::Parameters>;

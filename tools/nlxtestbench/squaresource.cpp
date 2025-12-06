@@ -39,7 +39,7 @@ SquareSource::SquareSource(double offset, double amplitude, double frequency, do
     }
 
     current_amplitude_ = amplitude_;
-    counter_           = duty_cycle_ * sampling_rate_ / frequency_;
+    counter_ = duty_cycle_ * sampling_rate_ / frequency_;
 
     record_.set_nchannels(nchannels_);
     record_.set_convert_byte_order(convert_byte_order_);
@@ -61,10 +61,10 @@ int64_t SquareSource::Produce(char** data) {
     if (counter_ == 0) {
         if (current_amplitude_ > 0) {
             current_amplitude_ = -amplitude_;
-            counter_           = (1 - duty_cycle_) * sampling_rate_ / frequency_;
+            counter_ = (1 - duty_cycle_) * sampling_rate_ / frequency_;
         } else {
             current_amplitude_ = amplitude_;
-            counter_           = duty_cycle_ * sampling_rate_ / frequency_;
+            counter_ = duty_cycle_ * sampling_rate_ / frequency_;
         }
     }
 
@@ -73,20 +73,20 @@ int64_t SquareSource::Produce(char** data) {
     timestamp_ = timestamp_ + delta_;
 
     auto n = record_.ToNetworkBuffer(buffer_);
-    *data  = buffer_.data();
+    *data = buffer_.data();
 
     return n;
 }
 
 YAML::Node SquareSource::to_yaml() const {
     YAML::Node node;
-    node["offset"]             = offset_;
-    node["amplitude"]          = amplitude_;
-    node["frequency"]          = frequency_;
-    node["duty_cycle"]         = duty_cycle_;
-    node["sampling_rate"]      = sampling_rate_;
-    node["noise_stdev"]        = noise_stdev_;
-    node["nchannels"]          = nchannels_;
+    node["offset"] = offset_;
+    node["amplitude"] = amplitude_;
+    node["frequency"] = frequency_;
+    node["duty_cycle"] = duty_cycle_;
+    node["sampling_rate"] = sampling_rate_;
+    node["noise_stdev"] = noise_stdev_;
+    node["nchannels"] = nchannels_;
     node["convert_byte_order"] = convert_byte_order_;
     return node;
 }

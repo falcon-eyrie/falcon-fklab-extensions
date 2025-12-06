@@ -21,7 +21,7 @@
 #include <chrono>
 #include <limits>
 
-constexpr uint16_t                           NlxReader::MAX_NCHANNELS;
+constexpr uint16_t NlxReader::MAX_NCHANNELS;
 constexpr decltype(NlxReader::MAX_NCHANNELS) NlxReader::UDP_BUFFER_SIZE;
 
 NlxReader::NlxReader() : IProcessor(PRIORITY_HIGH) {
@@ -73,17 +73,17 @@ void NlxReader::CompleteStreamInfo() {
 
 void NlxReader::Prepare(GlobalContext& context) {
     memset(reinterpret_cast<char*>(&server_addr_), 0, sizeof(server_addr_));
-    server_addr_.sin_family      = AF_INET;
+    server_addr_.sin_family = AF_INET;
     server_addr_.sin_addr.s_addr = inet_addr(address_().c_str());
-    server_addr_.sin_port        = htons(port_());
+    server_addr_.sin_port = htons(port_());
 }
 
 void NlxReader::Preprocess(ProcessingContext& context) {
-    sample_counter_       = batch_size_();
+    sample_counter_ = batch_size_();
     valid_packet_counter_ = 0;
-    const int y           = 1;
+    const int y = 1;
 
-    timestamp_      = nlx::INVALID_TIMESTAMP;
+    timestamp_ = nlx::INVALID_TIMESTAMP;
     last_timestamp_ = nlx::INVALID_TIMESTAMP;
 
     stats_.clear();
@@ -92,8 +92,8 @@ void NlxReader::Preprocess(ProcessingContext& context) {
         prepare_latency_test(context);
     }
 
-    sleep(1); // reduces probability of missed packets when connecting to
-              // ongoing stream
+    sleep(1);  // reduces probability of missed packets when connecting to
+               // ongoing stream
 
     if ((udp_socket_ = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         throw ProcessingPrepareError("Unable to create socket.", name());
@@ -107,20 +107,20 @@ void NlxReader::Preprocess(ProcessingContext& context) {
 }
 
 void NlxReader::Process(ProcessingContext& context) {
-    bool                                          update_time = false;
-    int                                           data_index  = 0;
+    bool update_time = false;
+    int data_index = 0;
     TimeSeriesType<double>::Data::sample_iterator data_iter;
-    std::vector<TimeSeriesType<double>::Data*>    data_vector(data_ports_.size());
+    std::vector<TimeSeriesType<double>::Data*> data_vector(data_ports_.size());
 
     while (!context.terminated() && valid_packet_counter_ < npackets_()) {
         // check if packets have arrived (with time-out)
-        FD_ZERO(&file_descriptor_set_); // clear the file descriptor set
+        FD_ZERO(&file_descriptor_set_);  // clear the file descriptor set
         FD_SET(udp_socket_, &file_descriptor_set_);
         // add the socket (it's basically acting like a filedescriptor) to the
         // set
 
         // set time-out
-        timeout_.tv_sec  = TIMEOUT_SEC;
+        timeout_.tv_sec = TIMEOUT_SEC;
         timeout_.tv_usec = 0;
 
         // packets available?
@@ -132,7 +132,7 @@ void NlxReader::Process(ProcessingContext& context) {
         } else if (size == -1) {
             LOG(DEBUG) << name() << ": Select error on UDP socket.";
             continue;
-        } else if (size > 0) { // receive packet
+        } else if (size > 0) {  // receive packet
             int recvlen = recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
 
             int rc = nlxrecord_.FromNetworkBuffer(buffer_, recvlen);

@@ -67,8 +67,8 @@ void ZMQSerializer::Preprocess(ProcessingContext& context) {
 
 void ZMQSerializer::Process(ProcessingContext& context) {
     std::vector<typename AnyType::Data*> data;
-    unsigned int                         idx = 0;
-    std::stringstream                    buffer;
+    unsigned int idx = 0;
+    std::stringstream buffer;
 
     while (!context.terminated()) {
         for (int k = 0; k < data_port_->number_of_slots(); ++k) {

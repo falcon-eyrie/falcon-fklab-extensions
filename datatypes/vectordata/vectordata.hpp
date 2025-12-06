@@ -55,7 +55,7 @@ class Data : public IData<Data<T>, ParentType> {
         if (data.size() != data_.size()) {
             throw std::runtime_error("Setting vector data from wrong size source vector");
         }
-        data_ = data; // copy
+        data_ = data;  // copy
     }
 
     void setData(const T* data, int len) {
@@ -77,7 +77,7 @@ class Data : public IData<Data<T>, ParentType> {
         }
     }
 
-    void SerializeYAML(YAML::Node&           node,
+    void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override {
         BaseClass::SerializeYAML(node, format);
         if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
@@ -100,7 +100,7 @@ class Data : public IData<Data<T>, ParentType> {
 
 using Capabilities = ParentType::Capabilities;
 
-} // namespace nsVectorType
+}  // namespace nsVectorType
 
 template <typename T>
 using VectorType = DefineType<nsVectorType::Data<T>, AnyType, true, nsVectorType::Capabilities,

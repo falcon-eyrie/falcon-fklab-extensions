@@ -76,10 +76,10 @@ void MultiChannelFilter::Prepare(GlobalContext& context) {
 }
 
 void MultiChannelFilter::Process(ProcessingContext& context) {
-    TimeSeriesType<double>::Data* data_in  = nullptr;
+    TimeSeriesType<double>::Data* data_in = nullptr;
     TimeSeriesType<double>::Data* data_out = nullptr;
-    auto                          nslots   = data_in_port_->number_of_slots();
-    decltype(nslots)              k        = 0;
+    auto nslots = data_in_port_->number_of_slots();
+    decltype(nslots) k = 0;
 
     while (!context.terminated()) {
         // go through all slots

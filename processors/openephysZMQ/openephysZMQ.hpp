@@ -37,11 +37,11 @@ class OpenEphysZMQ : public IProcessor {
 
    protected:
     // OPTIONS
-    options::String                      address_{"127.0.0.1", options::notempty<std::string>()};
-    options::Value<unsigned int, false>  port_{5556, options::positive<unsigned int>(true)};
+    options::String address_{"127.0.0.1", options::notempty<std::string>()};
+    options::Value<unsigned int, false> port_{5556, options::positive<unsigned int>(true)};
     options::Value<std::uint64_t, false> npackets_{0, options::zeroismax<std::uint64_t>()};
-    options::Value<unsigned int, false>  batch_size_{1};
-    options::Value<unsigned int, false>  nchannels_{384, options::positive<unsigned int>(true)};
+    options::Value<unsigned int, false> batch_size_{1};
+    options::Value<unsigned int, false> nchannels_{384, options::positive<unsigned int>(true)};
 
     // PORT
    protected:
@@ -51,12 +51,12 @@ class OpenEphysZMQ : public IProcessor {
    protected:
     zmq::socket_t socket_;
 
-    uint64_t  last_message_number_;
-    uint64_t  missing_packets_counter_;
-    uint64_t  valid_packets_counter_;
-    uint64_t  invalid_packets_counter_;
+    uint64_t last_message_number_;
+    uint64_t missing_packets_counter_;
+    uint64_t valid_packets_counter_;
+    uint64_t invalid_packets_counter_;
     TimePoint first_valid_packet_arrival_time_;
 
-    flatbuffers::FlatBufferBuilder             flatbuilder_;
+    flatbuffers::FlatBufferBuilder flatbuilder_;
     openephysflatbuffer::ContinuousDataBuilder builder_;
 };

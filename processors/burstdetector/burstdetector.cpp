@@ -108,13 +108,13 @@ void BurstDetector::Preprocess(ProcessingContext& context) {
 }
 
 void BurstDetector::Process(ProcessingContext& context) {
-    typename MUAType::Data*                data_in   = nullptr;
-    typename EventType::Data*              event_out = nullptr;
+    typename MUAType::Data* data_in = nullptr;
+    typename EventType::Data* event_out = nullptr;
     typename TimeSeriesType<double>::Data* stats_out = nullptr;
 
     double value, test_value;
-    auto   stats_nsamples_counter = stats_nsamples_;
-    auto   burnin_update_sent     = false;
+    auto stats_nsamples_counter = stats_nsamples_;
+    auto burnin_update_sent = false;
 
     // burn-in period
     while (running_statistics_->is_burning_in() && !context.terminated()) {
@@ -151,7 +151,7 @@ void BurstDetector::Process(ProcessingContext& context) {
         threshold_->set(threshold_dev_->get() * running_statistics_->dispersion());
         threshold_detector_->set_threshold(threshold_->get());
         running_statistics_->set_alpha(1.0 / (smooth_time_->get() * sample_rate_));
-        value      = data_in->mua();
+        value = data_in->mua();
         test_value = std::abs(value - running_statistics_->center());
 
         if (stats_out_->get()) {

@@ -38,7 +38,7 @@
 enum class GapFill { NONE = 0, ASAP, DISTRIBUTED };
 
 std::string gapfill_to_string(GapFill x);
-GapFill     string_to_gapfill(std::string s);
+GapFill string_to_gapfill(std::string s);
 
 namespace YAML {
 template <>
@@ -54,7 +54,7 @@ struct convert<GapFill> {
         return true;
     }
 };
-} // namespace YAML
+}  // namespace YAML
 
 class NlxParser : public IProcessor {
    public:
@@ -76,22 +76,22 @@ class NlxParser : public IProcessor {
 
     // VARIABLES
    protected:
-    unsigned int              nchannels_;
-    unsigned int              sample_counter_;
-    uint64_t                  valid_packet_counter_;
-    TimePoint                 first_valid_packet_arrival_time_;
-    uint64_t                  timestamp_;
-    uint64_t                  last_timestamp_;
-    nlx::NlxSignalRecord      nlxrecord_;
-    nlx::NlxStatistics        stats_;
+    unsigned int nchannels_;
+    unsigned int sample_counter_;
+    uint64_t valid_packet_counter_;
+    TimePoint first_valid_packet_arrival_time_;
+    uint64_t timestamp_;
+    uint64_t last_timestamp_;
+    nlx::NlxSignalRecord nlxrecord_;
+    nlx::NlxStatistics stats_;
     std::vector<unsigned int> channel_list_;
-    int64_t                   n_filling_packets_;
+    int64_t n_filling_packets_;
 
     // PORTS
    protected:
-    PortOut<TimeSeriesType<double>>*   output_port_signal_;
+    PortOut<TimeSeriesType<double>>* output_port_signal_;
     PortOut<TimeSeriesType<uint32_t>>* output_port_ttl_;
-    PortIn<VectorType<uint32_t>>*      data_in_port_;
+    PortIn<VectorType<uint32_t>>* data_in_port_;
 
     // STATES
    protected:
@@ -99,12 +99,12 @@ class NlxParser : public IProcessor {
 
     // OPTIONS
    protected:
-    options::Value<unsigned int, false>        batch_size_{2};
+    options::Value<unsigned int, false> batch_size_{2};
     options::Measurement<std::uint64_t, false> update_interval_{
         20, "second",
         options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
             options::zeroismax<std::uint64_t>()};
-    options::Bool                   triggered_{false};
+    options::Bool triggered_{false};
     options::Value<uint32_t, false> hardware_trigger_channel_{0};
-    options::Value<GapFill, false>  gap_fill_{GapFill::ASAP};
+    options::Value<GapFill, false> gap_fill_{GapFill::ASAP};
 };

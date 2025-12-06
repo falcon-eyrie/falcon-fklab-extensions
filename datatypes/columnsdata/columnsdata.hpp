@@ -42,8 +42,8 @@ struct Parameters {
     Parameters(const std::vector<std::string>& labels, size_t nsamp = 0)
         : ncolumns(labels.size()), nsamples(nsamp), labels(labels) {}
 
-    size_t                   ncolumns;
-    size_t                   nsamples;
+    size_t ncolumns;
+    size_t nsamples;
     std::vector<std::string> labels;
 };
 
@@ -63,7 +63,7 @@ class Data : public IData<Data<T>, ParentType> {
                 "Column Data::Initialize - number of "
                 "columns/samples needs to be larger than 0.");
         }
-        labels_   = labels;
+        labels_ = labels;
         ncolumns_ = labels.size();
         nsamples_ = nsamples;
         data_.resize(ncolumns_ * nsamples_);
@@ -85,8 +85,8 @@ class Data : public IData<Data<T>, ParentType> {
 
     Parameters parameters() const { return Parameters(labels_, nsamples_); }
 
-    size_t                   ncolumns() const { return ncolumns_; }
-    size_t                   nsamples() const { return nsamples_; }
+    size_t ncolumns() const { return ncolumns_; }
+    size_t nsamples() const { return nsamples_; }
     std::vector<std::string> labels() const { return labels_; }
 
     /**
@@ -173,7 +173,7 @@ class Data : public IData<Data<T>, ParentType> {
      *
      * @return
      */
-    std::vector<T>&       data() { return data_; }
+    std::vector<T>& data() { return data_; }
     const std::vector<T>& data() const { return data_; }
 
     /**
@@ -218,7 +218,7 @@ class Data : public IData<Data<T>, ParentType> {
 
     // operator based on index from the full dataset
     // [column_index = index/ncolumns, sample_index = index%ncolumns]
-    T&       operator()(size_t index) { return data_[index]; }
+    T& operator()(size_t index) { return data_[index]; }
     const T& operator()(size_t index) const { return data_[index]; }
 
     // iterators
@@ -320,7 +320,7 @@ class Data : public IData<Data<T>, ParentType> {
      * @param node
      * @param format
      */
-    void SerializeYAML(YAML::Node&           node,
+    void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override {
         BaseClass::SerializeYAML(node, format);
         if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
@@ -454,13 +454,13 @@ class Data : public IData<Data<T>, ParentType> {
     size_t nsamples_;
 
     std::vector<std::string> labels_;
-    std::vector<T>           data_;
+    std::vector<T> data_;
 };
 
 class Capabilities {
    public:
     Capabilities(ChannelRange column_range,
-                 SampleRange  sample_range = SampleRange(1, std::numeric_limits<uint32_t>::max()))
+                 SampleRange sample_range = SampleRange(1, std::numeric_limits<uint32_t>::max()))
         : column_range_(column_range), sample_range_(sample_range), labels_({}) {}
 
     Capabilities(std::vector<std::string> labels,
@@ -470,7 +470,7 @@ class Capabilities {
           labels_(labels) {}
 
     ChannelRange column_range() const { return column_range_; }
-    SampleRange  sample_range() const { return sample_range_; }
+    SampleRange sample_range() const { return sample_range_; }
 
     template <class T>
     void Validate(const Data<T>& prototype) {
@@ -494,12 +494,12 @@ class Capabilities {
     }
 
    protected:
-    ChannelRange             column_range_;
-    SampleRange              sample_range_;
+    ChannelRange column_range_;
+    SampleRange sample_range_;
     std::vector<std::string> labels_;
 };
 
-} // namespace nsColumn
+}  // namespace nsColumn
 
 template <typename T>
 using ColumnsType =

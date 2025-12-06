@@ -49,17 +49,17 @@ void NlxPureReader::Prepare(GlobalContext& context) {
     LOG(INFO) << name() << ". Data will be read from " << address_() << ":" << port_() << ".";
 
     memset(reinterpret_cast<char*>(&server_addr_), 0, sizeof(server_addr_));
-    server_addr_.sin_family      = AF_INET;
+    server_addr_.sin_family = AF_INET;
     server_addr_.sin_addr.s_addr = inet_addr(address_().c_str());
-    server_addr_.sin_port        = htons(port_());
+    server_addr_.sin_port = htons(port_());
 }
 
 void NlxPureReader::Preprocess(ProcessingContext& context) {
-    valid_packet_counter_   = 0;
+    valid_packet_counter_ = 0;
     const int reuse_address = 1;
     n_invalid_->set(0);
-    sleep(1); // reduces probability of missed packets when connecting to
-              // ongoing stream
+    sleep(1);  // reduces probability of missed packets when connecting to
+               // ongoing stream
 
     if ((udp_socket_ = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         throw ProcessingPrepareError("Unable to create socket.", name());
@@ -86,7 +86,7 @@ void NlxPureReader::Process(ProcessingContext& context) {
         FD_SET(udp_socket_, &file_descriptor_set_);
 
         // set time-out
-        timeout_.tv_sec  = TIMEOUT_SEC;
+        timeout_.tv_sec = TIMEOUT_SEC;
         timeout_.tv_usec = 0;
 
         // packets available?
@@ -98,7 +98,7 @@ void NlxPureReader::Process(ProcessingContext& context) {
         } else if (size_ == -1) {
             LOG(DEBUG) << name() << ": Select error on UDP socket.";
             continue;
-        } else if (size_ > 0) { // received packet
+        } else if (size_ > 0) {  // received packet
             data_out_ = output_port_->slot(0)->ClaimData(false);
 
             recvlen_ = recvfrom(udp_socket_, reinterpret_cast<char*>(data_out_->data().data()),

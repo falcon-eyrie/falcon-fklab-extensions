@@ -26,8 +26,8 @@ class TestEvent2State : public Event2State {
    public:
     using Event2State::event_counter_;
 
-    std::string         get_target() { return target_event_().event(); }
-    PortIn<EventType>*  getDataInPort() { return data_in_port_; };
+    std::string get_target() { return target_event_().event(); }
+    PortIn<EventType>* getDataInPort() { return data_in_port_; };
     PortOut<EventType>* getDataOutPort() { return data_out_port_; };
 };
 
@@ -46,16 +46,16 @@ TEST(Event2StateTest, ChangeWrongOptions) {
 
 TEST(Event2StateTest, Process) {
     TestEvent2State p;
-    YAML::Node      node = YAML::Load("{options: {target event: target}}");
+    YAML::Node node = YAML::Load("{options: {target event: target}}");
     p.load_fake_options(node);
 
     p.CreatePorts();
 
-    GlobalContext                globalContext;
-    RunContext                   runContext(globalContext);
-    ProcessingContext            context(runContext, "tests", false);
+    GlobalContext globalContext;
+    RunContext runContext(globalContext);
+    ProcessingContext context(runContext, "tests", false);
     std::deque<EventType::Data*> fake_data;
-    std::deque<long int>         fake_delay;
+    std::deque<long int> fake_delay;
 
     for (int i = 0; i < 4; i++) {
         auto data = new EventType::Data();
@@ -72,10 +72,10 @@ TEST(Event2StateTest, Process) {
     p.Process(context);
     p.Postprocess(context);
     auto event_data = p.getDataOutPort()->slot(0)->getData();
-    sleep(2); // Give time to the log to be displayed
+    sleep(2);  // Give time to the log to be displayed
 
     EXPECT_EQ(p.event_counter_.all_received, 4);
     EXPECT_EQ(p.event_counter_.target, 2);
     EXPECT_EQ(p.event_counter_.non_target, 2);
 }
-} // namespace
+}  // namespace

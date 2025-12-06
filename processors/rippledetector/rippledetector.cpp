@@ -90,9 +90,9 @@ void RippleDetector::Preprocess(ProcessingContext& context) {
     signal_mean_->set(0);
     signal_dev_->set(0);
     threshold_->set(0);
-    block_       = 0;
+    block_ = 0;
     sample_rate_ = data_in_port_->prototype(0).sample_rate();
-    burn_in_     = initial_smooth_time_() * sample_rate_;
+    burn_in_ = initial_smooth_time_() * sample_rate_;
     double alpha = 1.0 / burn_in_;
 
     running_statistics_.reset(new dsp::algorithms::RunningMeanMAD(alpha, burn_in_, false));
@@ -100,13 +100,13 @@ void RippleDetector::Preprocess(ProcessingContext& context) {
 }
 
 void RippleDetector::Process(ProcessingContext& context) {
-    TimeSeriesType<double>::Data* data_in   = nullptr;
-    EventType::Data*              event_out = nullptr;
+    TimeSeriesType<double>::Data* data_in = nullptr;
+    EventType::Data* event_out = nullptr;
     TimeSeriesType<double>::Data* stats_out = nullptr;
-    double                        value, test_value;
-    auto                          stats_nsamples_counter = stats_nsamples_;
-    unsigned int                  stats_skip_counter     = 0;
-    auto                          burnin_update_sent     = false;
+    double value, test_value;
+    auto stats_nsamples_counter = stats_nsamples_;
+    unsigned int stats_skip_counter = 0;
+    auto burnin_update_sent = false;
 
     // burn-in period
     while (running_statistics_->is_burning_in() && !context.terminated()) {
@@ -149,7 +149,7 @@ void RippleDetector::Process(ProcessingContext& context) {
 
         // loop through each sample
         for (unsigned int sample = 0; sample < data_in->nsamples(); ++sample) {
-            value      = compute_value(data_in, sample);
+            value = compute_value(data_in, sample);
             test_value = std::abs(value - running_statistics_->center());
 
             if (stats_out_->get()) {
@@ -173,7 +173,7 @@ void RippleDetector::Process(ProcessingContext& context) {
                 --stats_skip_counter;
             }
 
-            if (block_ > 0) { // post-detection lock-out time
+            if (block_ > 0) {  // post-detection lock-out time
                 --block_;
                 continue;
             } else if (!detection_enabled_->get()) {
@@ -207,7 +207,7 @@ void RippleDetector::Postprocess(ProcessingContext& context) {
 }
 
 inline double RippleDetector::compute_value(TimeSeriesType<double>::Data* data_in,
-                                            unsigned int                  sample) {
+                                            unsigned int sample) {
     if (use_power_()) {
         acc_ = std::pow(*data_in->begin_sample(sample), 2);
         for (auto c = data_in->begin_sample(sample) + 1; c != data_in->end_sample(sample); ++c) {

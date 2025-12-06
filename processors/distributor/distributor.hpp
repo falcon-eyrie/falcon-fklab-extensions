@@ -42,7 +42,7 @@ class Distributor : public IProcessor {
 
     // PORTS
    protected:
-    PortIn<TimeSeriesType<double>>*                         input_port_;
+    PortIn<TimeSeriesType<double>>* input_port_;
     std::map<std::string, PortOut<TimeSeriesType<double>>*> data_ports_;
 
     // variables
@@ -54,7 +54,7 @@ class Distributor : public IProcessor {
    protected:
     const unsigned int MAX_N_CHANNELS = 4096;
     // maximum number of channels that the distributor can handle
-    const int          BUFFER_SIZE   = 2000; // ring buffer size on the output ports
+    const int BUFFER_SIZE = 2000;  // ring buffer size on the output ports
     const WaitStrategy WAIT_STRATEGY = WaitStrategy::kBlockingStrategy;
 
     // OPTIONS

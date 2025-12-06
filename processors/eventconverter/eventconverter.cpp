@@ -39,7 +39,7 @@ void EventConverter::CompleteStreamInfo() {
 }
 
 void EventConverter::Process(ProcessingContext& context) {
-    EventType::Data* data_in  = nullptr;
+    EventType::Data* data_in = nullptr;
     EventType::Data* data_out = nullptr;
 
     while (!context.terminated()) {

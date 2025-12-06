@@ -26,7 +26,7 @@
 #include "idata.hpp"
 #include "utilities/string.hpp"
 
-#define DEFAULT_SCALAR_VALUE 0 // can be used in a template
+#define DEFAULT_SCALAR_VALUE 0  // can be used in a template
 
 namespace nsScalarType {
 
@@ -72,7 +72,7 @@ class Data : public IData<Data<TYPE>, Base> {
         }
     }
 
-    void SerializeYAML(YAML::Node&           node,
+    void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override {
         Base::SerializeYAML(node, format);
         if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
@@ -95,7 +95,7 @@ class Data : public IData<Data<TYPE>, Base> {
 
 using Capabilities = Base::Capabilities;
 
-} // namespace nsScalarType
+}  // namespace nsScalarType
 
 template <typename T>
 using ScalarType = DefineType<nsScalarType::Data<T>, AnyType, true, nsScalarType::Capabilities,

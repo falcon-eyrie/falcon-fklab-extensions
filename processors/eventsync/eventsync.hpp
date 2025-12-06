@@ -54,13 +54,13 @@ class EventSync : public IProcessor {
 
     // DATA PORTS
    protected:
-    PortIn<EventType>*  data_in_port_;
+    PortIn<EventType>* data_in_port_;
     PortOut<EventType>* data_out_port_;
 
     // variables
    protected:
-    EventCounter      event_counter_;
-    uint64_t          n_events_synced_;
+    EventCounter event_counter_;
+    uint64_t n_events_synced_;
     TimestampRegister timestamps_;
 
     // OPTIONS

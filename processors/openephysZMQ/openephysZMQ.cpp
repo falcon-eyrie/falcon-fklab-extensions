@@ -62,16 +62,16 @@ void OpenEphysZMQ::Preprocess(ProcessingContext& context) {
               << " and is ready to receive data from OpenEphys.";
 
     missing_packets_counter_ = 0;
-    valid_packets_counter_   = 0;
+    valid_packets_counter_ = 0;
     invalid_packets_counter_ = 0;
 }
 
 void OpenEphysZMQ::Process(ProcessingContext& context) {
-    unsigned int                                  sample_counter_ = batch_size_();
+    unsigned int sample_counter_ = batch_size_();
     TimeSeriesType<double>::Data::sample_iterator data_out_iter;
-    flatbuffers::Vector<float>::const_iterator    data_in_iter;
-    TimeSeriesType<double>::Data*                 data_out;
-    const openephysflatbuffer::ContinuousData*    data;
+    flatbuffers::Vector<float>::const_iterator data_in_iter;
+    TimeSeriesType<double>::Data* data_out;
+    const openephysflatbuffer::ContinuousData* data;
 
     while (!context.terminated() && valid_packets_counter_ < npackets_()) {
         zmq_msg_t message;

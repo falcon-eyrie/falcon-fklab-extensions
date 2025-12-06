@@ -55,7 +55,7 @@ void RunningStats::CompleteStreamInfo() {
 
 void RunningStats::Preprocess(ProcessingContext& context) {
     double sample_rate = data_in_port_->prototype(0).sample_rate();
-    double alpha       = 1.0 / (integration_time_() * sample_rate);
+    double alpha = 1.0 / (integration_time_() * sample_rate);
 
     stats_.reset(new dsp::algorithms::RunningMeanMAD(alpha, integration_time_() * sample_rate,
                                                      outlier_protection_(), outlier_zscore_(),
@@ -65,7 +65,7 @@ void RunningStats::Preprocess(ProcessingContext& context) {
 void RunningStats::Process(ProcessingContext& context) {
     TimeSeriesType<double>::Data* data_in;
     TimeSeriesType<double>::Data* data_out;
-    unsigned                      N = 100;
+    unsigned N = 100;
 
     while (!context.terminated()) {
         // retrieve new data

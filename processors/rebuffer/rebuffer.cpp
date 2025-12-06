@@ -86,7 +86,7 @@ void Rebuffer::CompleteStreamInfo() {
 void Rebuffer::Process(ProcessingContext& context) {
     auto nslots = data_in_port_->number_of_slots();
 
-    TimeSeriesType<double>::Data*              data_in = nullptr;
+    TimeSeriesType<double>::Data* data_in = nullptr;
     std::vector<TimeSeriesType<double>::Data*> data_out;
 
     data_out.assign(nslots, nullptr);

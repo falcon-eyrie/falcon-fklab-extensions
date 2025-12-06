@@ -178,4 +178,4 @@ class timeOut {
     struct timeval previousTime;
 };
 
-#endif // serialib_H
+#endif  // serialib_H

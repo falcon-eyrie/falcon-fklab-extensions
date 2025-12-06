@@ -37,14 +37,14 @@ class SerialOutput : public IProcessor {
 
     // DATA PORTS AND STATES
    protected:
-    PortIn<EventType>*  data_in_port_;
+    PortIn<EventType>* data_in_port_;
     PortOut<EventType>* data_out_port_;
 
     // OPTIONS
    protected:
     options::String port_address_{"/dev/ttyACM0"};
-    options::Int    baudrate_{9600};
-    options::Bool   event_log_{true};
+    options::Int baudrate_{9600};
+    options::Bool event_log_{true};
 
     // variables
    protected:

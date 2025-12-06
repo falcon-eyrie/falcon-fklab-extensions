@@ -38,12 +38,12 @@ class MultiChannelFilter : public IProcessor {
 
     // VARIABLES
    protected:
-    std::unique_ptr<dsp::filter::IFilter>              filter_template_;
+    std::unique_ptr<dsp::filter::IFilter> filter_template_;
     std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
 
     // DATA PORTS
    protected:
-    PortIn<TimeSeriesType<double>>*  data_in_port_;
+    PortIn<TimeSeriesType<double>>* data_in_port_;
     PortOut<TimeSeriesType<double>>* data_out_port_;
 
     // OPTIONS

@@ -39,9 +39,9 @@ DataStreamer::DataStreamer(DataSource* source, double rate, std::string ip, int 
     }
 
     memset((char*) &server_address_, 0, sizeof(server_address_));
-    server_address_.sin_family      = AF_INET;
+    server_address_.sin_family = AF_INET;
     server_address_.sin_addr.s_addr = inet_addr(ip_.c_str());
-    server_address_.sin_port        = htons(port_);
+    server_address_.sin_port = htons(port_);
 
     if (max_packets_ == 0) {
         max_packets_ = std::numeric_limits<uint64_t>::max();
@@ -67,11 +67,11 @@ void DataStreamer::Terminate() {
 }
 
 void DataStreamer::Run() {
-    uint64_t     npackets = 0;
+    uint64_t npackets = 0;
     unsigned int buffer_size;
-    ssize_t      sent;
+    ssize_t sent;
 
-    TimePoint                 start;
+    TimePoint start;
     std::chrono::microseconds period((uint64_t) (1000000. / rate_));
 
     char* buffer;
@@ -120,8 +120,8 @@ void DataStreamer::Run() {
 void DataStreamer::Start() {
     if (!running()) {
         terminate_ = false;
-        thread_    = std::thread(&DataStreamer::Run, this);
-        running_   = true;
+        thread_ = std::thread(&DataStreamer::Run, this);
+        running_ = true;
     }
 }
 
@@ -132,7 +132,7 @@ void DataStreamer::Stop() {
         }
         thread_.join();
         terminate_ = false;
-        running_   = false;
+        running_ = false;
     }
 }
 

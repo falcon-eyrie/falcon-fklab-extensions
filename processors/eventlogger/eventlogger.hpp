@@ -36,7 +36,7 @@ class EventLogger : public IProcessor {
     // DATA PORTS
    protected:
     PortIn<EventType>* event_port_;
-    EventCounter       event_counter_;
+    EventCounter event_counter_;
 
     // OPTIONS
    protected:

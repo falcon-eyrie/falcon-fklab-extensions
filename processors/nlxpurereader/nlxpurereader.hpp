@@ -53,15 +53,15 @@ class NlxPureReader : public IProcessor {
 
     // VARIABLES
    protected:
-    fd_set                      file_descriptor_set_;
-    int                         udp_socket_;
-    int                         udp_socket_select_;
-    struct sockaddr_in          server_addr_;
-    uint64_t                    valid_packet_counter_;
-    struct timeval              timeout_;
-    TimePoint                   first_valid_packet_arrival_time_;
-    ssize_t                     size_;
-    int                         recvlen_;
+    fd_set file_descriptor_set_;
+    int udp_socket_;
+    int udp_socket_select_;
+    struct sockaddr_in server_addr_;
+    uint64_t valid_packet_counter_;
+    struct timeval timeout_;
+    TimePoint first_valid_packet_arrival_time_;
+    ssize_t size_;
+    int recvlen_;
     VectorType<uint32_t>::Data* data_out_;
 
     // CONSTANTS
@@ -70,8 +70,8 @@ class NlxPureReader : public IProcessor {
 
     // OPTIONS
    protected:
-    options::String                      address_{"127.0.0.1"};
-    options::Value<unsigned int, false>  port_{5000};
+    options::String address_{"127.0.0.1"};
+    options::Value<unsigned int, false> port_{5000};
     options::Value<std::uint64_t, false> npackets_{0, options::zeroismax<std::uint64_t>()};
-    options::Value<unsigned int, false>  nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
+    options::Value<unsigned int, false> nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
 };

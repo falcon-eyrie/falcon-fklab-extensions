@@ -63,11 +63,11 @@ unsigned int NlxSignalRecord::nchannels() const {
 void NlxSignalRecord::set_nchannels(unsigned int n) {
     nchannels_ = n;
 
-    nlx_nfields_         = NLX_NFIELDS(nchannels_);
-    nlx_packetbytesize_  = NLX_PACKETBYTESIZE(nchannels_);
-    nlx_field_crc_       = nlx_field_crc(nchannels_);
+    nlx_nfields_ = NLX_NFIELDS(nchannels_);
+    nlx_packetbytesize_ = NLX_PACKETBYTESIZE(nchannels_);
+    nlx_field_crc_ = nlx_field_crc(nchannels_);
     nlx_field_data_last_ = nlx_field_data_last(nchannels_);
-    nlx_packetsize_      = nlx_packetsize(nchannels_);
+    nlx_packetsize_ = nlx_packetsize(nchannels_);
 
     buffer_.resize(nlx_nfields_);
     Initialize();
@@ -131,15 +131,15 @@ size_t NlxSignalRecord::ToNetworkBuffer(char* buffer, size_t n) {
 
 void NlxSignalRecord::Initialize() {
     std::fill(buffer_.begin(), buffer_.end(), 0);
-    buffer_[NLX_FIELD_STX]         = NLX_STX;
+    buffer_[NLX_FIELD_STX] = NLX_STX;
     buffer_[NLX_FIELD_RAWPACKETID] = NLX_RAWPACKETID;
-    buffer_[NLX_FIELD_PACKETSIZE]  = nlx_packetsize(nchannels_);
-    initialized_                   = true;
+    buffer_[NLX_FIELD_PACKETSIZE] = nlx_packetsize(nchannels_);
+    initialized_ = true;
 }
 
 void NlxSignalRecord::Finalize() {
     buffer_[nlx_field_crc_] = crc();
-    finalized_              = true;
+    finalized_ = true;
 }
 
 int32_t NlxSignalRecord::crc() const {
@@ -176,7 +176,7 @@ int NlxSignalRecord::valid(std::vector<int32_t> buffer) {
     }
 
     initialized_ = true;
-    finalized_   = true;
+    finalized_ = true;
 
     return SUCCESS_READING_BUFFER;
 }
@@ -189,8 +189,8 @@ uint64_t NlxSignalRecord::timestamp() const {
 }
 void NlxSignalRecord::set_timestamp(uint64_t t) {
     buffer_[NLX_FIELD_TIMESTAMP_HIGH] = (int32_t) (t >> 32);
-    buffer_[NLX_FIELD_TIMESTAMP_LOW]  = (int32_t) t;
-    finalized_                        = false;
+    buffer_[NLX_FIELD_TIMESTAMP_LOW] = (int32_t) t;
+    finalized_ = false;
 }
 void NlxSignalRecord::inc_timestamp(uint64_t delta) {
     set_timestamp(timestamp() + delta);
@@ -205,7 +205,7 @@ uint32_t NlxSignalRecord::parallel_port() const {
 }
 void NlxSignalRecord::set_parallel_port(uint32_t dio) {
     buffer_[NLX_FIELD_DIO] = dio;
-    finalized_             = false;
+    finalized_ = false;
 }
 
 void NlxSignalRecord::data(std::vector<int32_t>& v) const {
@@ -247,7 +247,7 @@ void NlxSignalRecord::data(std::vector<double>& v) const {
 }
 std::vector<double>::iterator NlxSignalRecord::data(std::vector<double>::iterator it) const {
     auto first = data_begin();
-    auto last  = data_end();
+    auto last = data_end();
     while (first != last) {
         *it = (double) *first * NLX_AD_BIT_MICROVOLTS;
         ++it;
@@ -298,11 +298,11 @@ std::vector<int32_t>::const_iterator NlxSignalRecord::data_end() const {
 }
 
 void NlxStatistics::clear() {
-    n_invalid    = 0;
+    n_invalid = 0;
     n_duplicated = 0;
     n_outoforder = 0;
-    n_missed     = 0;
-    n_gaps       = 0;
+    n_missed = 0;
+    n_gaps = 0;
 }
 
 uint64_t nlx::CheckTimestamp(const NlxSignalRecord& rec, uint64_t& last_timestamp,

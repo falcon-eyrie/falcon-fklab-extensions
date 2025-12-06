@@ -46,9 +46,9 @@ class DigitalState {
 
     typename std::vector<bool>::reference operator[](uint32_t channel);
 
-    bool               state(uint32_t channel) const;
+    bool state(uint32_t channel) const;
     std::vector<bool>& state();
-    std::vector<bool>  state(std::vector<uint32_t> channels) const;
+    std::vector<bool> state(std::vector<uint32_t> channels) const;
 
     void set_state(uint32_t channel, bool value);
     void set_state(std::vector<uint32_t> channels, bool value);
@@ -69,11 +69,11 @@ class DigitalState {
 class DigitalDevice {
    public:
     DigitalDevice(std::string type) : type_(type) {}
-    std::string          type() const;
-    virtual std::string  description() const;
-    virtual uint32_t     nchannels() const                = 0;
-    virtual DigitalState read_state() const               = 0;
-    virtual void         write_state(DigitalState& state) = 0;
+    std::string type() const;
+    virtual std::string description() const;
+    virtual uint32_t nchannels() const = 0;
+    virtual DigitalState read_state() const = 0;
+    virtual void write_state(DigitalState& state) = 0;
 
    protected:
     std::string type_;
@@ -89,14 +89,14 @@ class DigitalOutputProtocol {
     void set_mode(std::vector<uint32_t> channels, DigitalOutputMode mode = DigitalOutputMode::NONE);
 
     unsigned int pulse_width() const;
-    void         set_pulse_width(unsigned int value);
+    void set_pulse_width(unsigned int value);
 
     std::vector<uint32_t> find_channels(DigitalOutputMode mode = DigitalOutputMode::NONE);
 
     void execute(DigitalDevice& device);
 
    protected:
-    uint32_t                       nchannels_;
-    unsigned int                   pulse_width_;
+    uint32_t nchannels_;
+    unsigned int pulse_width_;
     std::vector<DigitalOutputMode> mode_;
 };

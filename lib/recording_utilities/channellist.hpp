@@ -106,7 +106,7 @@ class ChannelList {
 
     auto size() const { return channels_.size(); };
 
-    T&       operator[](size_t index) { return channels_[index]; };
+    T& operator[](size_t index) { return channels_[index]; };
     const T& operator[](size_t index) const { return channels_[index]; };
 
     auto begin() const { return channels_.begin(); };
@@ -125,8 +125,8 @@ class ChannelList {
     std::string to_string() const {
         std::string str = "[";
         if (!channels_.empty()) {
-            unsigned int index   = 0;
-            bool         inrange = false;
+            unsigned int index = 0;
+            bool inrange = false;
 
             while (index < channels_.size() - 1) {
                 if (channels_[index].first + 1 == channels_[index + 1].first) {
@@ -169,7 +169,7 @@ class ChannelList {
      * @return
      */
     bool is_subset(std::vector<T> channels_vec) const {
-        const auto        subset_vec = get_channel_numbers();
+        const auto subset_vec = get_channel_numbers();
         const std::set<T> subset(subset_vec.begin(), subset_vec.end());
         const std::set<T> channels(channels_vec.begin(), channels_vec.end());
 
@@ -183,7 +183,7 @@ class ChannelList {
      * @return
      */
     bool is_subset(std::vector<std::string> labels_vec) const {
-        const auto                  subset_vec = get_labels();
+        const auto subset_vec = get_labels();
         const std::set<std::string> subset(subset_vec.begin(), subset_vec.end());
         const std::set<std::string> labels(labels_vec.begin(), labels_vec.end());
         return std::includes(labels.begin(), labels.end(), subset.begin(), subset.end());
@@ -282,7 +282,7 @@ struct convert<ChannelList<T>> {
         if (node.IsSequence()) {
             auto channels = node.as<std::vector<std::string>>();
             for (auto part : channels) {
-                part       = std::regex_replace(part, std::regex(" "), "");
+                part = std::regex_replace(part, std::regex(" "), "");
                 auto range = split(part, '-');
                 if (range.size() == 1) {
                     rhs.add_channels(atoi(range[0].c_str()));
@@ -299,4 +299,4 @@ struct convert<ChannelList<T>> {
         return true;
     }
 };
-} // namespace YAML
+}  // namespace YAML

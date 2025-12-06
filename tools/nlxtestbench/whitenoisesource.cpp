@@ -45,17 +45,17 @@ int64_t WhiteNoiseSource::Produce(char** data) {
     record_.set_data(distribution_(generator_));
     record_.set_timestamp(timestamp_);
     timestamp_ = timestamp_ + delta_;
-    auto n     = record_.ToNetworkBuffer(buffer_);
-    *data      = buffer_.data();
+    auto n = record_.ToNetworkBuffer(buffer_);
+    *data = buffer_.data();
     return n;
 }
 
 YAML::Node WhiteNoiseSource::to_yaml() const {
     YAML::Node node;
-    node["mean"]               = mean_;
-    node["stdev"]              = stdev_;
-    node["sampling_rate"]      = sampling_rate_;
-    node["nchannels"]          = nchannels_;
+    node["mean"] = mean_;
+    node["stdev"] = stdev_;
+    node["sampling_rate"] = sampling_rate_;
+    node["nchannels"] = nchannels_;
     node["convert_byte_order"] = convert_byte_order_;
     return node;
 }

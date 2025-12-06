@@ -67,13 +67,13 @@ void FileSerializer::Preprocess(ProcessingContext& context) {
 
     // create output file streams
     streams_.clear();
-    std::string                   path = context.resolve_path(path_(), "run");
-    std::string                   address;
-    std::string                   filename;
+    std::string path = context.resolve_path(path_(), "run");
+    std::string address;
+    std::string filename;
     std::unique_ptr<std::ostream> stream;
 
     for (int k = 0; k < data_port_->number_of_slots(); k++) {
-        address  = data_port_->slot(k)->upstream_address().string();
+        address = data_port_->slot(k)->upstream_address().string();
         filename = path + "/" + name() + "." + std::to_string(k) + "_" + address + "." +
                    serializer_->extension();
 
@@ -105,14 +105,14 @@ void FileSerializer::Preprocess(ProcessingContext& context) {
 
 void FileSerializer::create_preamble(std::ostream& out, int slot) {
     YAML::Node node;
-    node["creator"]     = name();
-    node["date"]        = time_to_string(std::time(nullptr));
-    node["version"]     = static_cast<int>(Serialization::VERSION);
+    node["creator"] = name();
+    node["date"] = time_to_string(std::time(nullptr));
+    node["version"] = static_cast<int>(Serialization::VERSION);
     node["interleaved"] = false;
-    node["format"]      = format_.to_yaml();
-    node["encoding"]    = encoding_.to_yaml();
-    node["stream"]      = slot;
-    node["data"]        = serializer_->DataDescription(data_port_->prototype(slot));
+    node["format"] = format_.to_yaml();
+    node["encoding"] = encoding_.to_yaml();
+    node["stream"] = slot;
+    node["data"] = serializer_->DataDescription(data_port_->prototype(slot));
 
     YAML::Emitter emit(out);
     emit << YAML::BeginDoc;
@@ -123,7 +123,7 @@ void FileSerializer::create_preamble(std::ostream& out, int slot) {
 void FileSerializer::Process(ProcessingContext& context) {
     std::vector<AnyType::Data*> data;
 
-    int      nslots = data_port_->number_of_slots();
+    int nslots = data_port_->number_of_slots();
     uint64_t remainder;
     uint64_t nread;
 
@@ -204,7 +204,7 @@ void FileSerializer::Process(ProcessingContext& context) {
 }
 
 void FileSerializer::Postprocess(ProcessingContext& context) {
-    streams_.clear(); // forces destruction and closing of resources
+    streams_.clear();  // forces destruction and closing of resources
     serializer_.reset();
 
     for (SlotType k = 0; k < data_port_->number_of_slots(); k++) {

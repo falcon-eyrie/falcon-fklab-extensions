@@ -49,12 +49,12 @@ void Data::set_event(std::string event) {
     }
 
     event_ = event;
-    hash_  = std::hash<std::string>()(event_);
+    hash_ = std::hash<std::string>()(event_);
 }
 
 void Data::set_event(const Data& source) {
     event_ = source.event();
-    hash_  = source.hash();
+    hash_ = source.hash();
 }
 
 namespace nsEventType {
@@ -66,7 +66,7 @@ bool operator==(const Data& e1, const Data& e2) {
 bool operator!=(const Data& e1, const Data& e2) {
     return e1.hash_ != e2.hash_;
 }
-} // namespace nsEventType
+}  // namespace nsEventType
 
 void Data::SerializeBinary(std::ostream& stream, Serialization::Format format) const {
     BaseClass::SerializeBinary(stream, format);

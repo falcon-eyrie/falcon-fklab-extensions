@@ -59,8 +59,8 @@ void test_filter_signal(std::string filename, std::string output_filename,
 void test_filter_timing(std::unique_ptr<dsp::filter::IFilter> const& filter, unsigned int nchannels,
                         uint64_t npoints) {
     // construct random distribution
-    std::random_device               rd;
-    std::default_random_engine       re(rd());
+    std::random_device rd;
+    std::default_random_engine re(rd());
     std::normal_distribution<double> normal_dist(1.0, 2.0);
 
     // construct signal
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
     // 2. perform timing of filtering operation
     if (parser.exist("timing")) {
         unsigned int nchannels = parser.get<unsigned int>("n_timing_channels");
-        uint64_t     npoints   = parser.get<uint64_t>("n_timing_points");
+        uint64_t npoints = parser.get<uint64_t>("n_timing_points");
 
         test_filter_timing(filter, nchannels, npoints);
     }

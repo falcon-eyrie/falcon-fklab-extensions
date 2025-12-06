@@ -43,14 +43,14 @@ class ZMQSerializer : public IProcessor {
 
     // OPTIONS
    protected:
-    options::Value<unsigned int, false>            port_{7777};
+    options::Value<unsigned int, false> port_{7777};
     options::Value<Serialization::Encoding, false> encoding_{Serialization::Encoding::BINARY};
-    options::Value<Serialization::Format, false>   format_{Serialization::Format::FULL};
-    options::Bool                                  interleave_{false};
+    options::Value<Serialization::Format, false> format_{Serialization::Format::FULL};
+    options::Bool interleave_{false};
 
     // VARIABLES
    protected:
     std::vector<std::unique_ptr<zmq::socket_t>> sockets_;
-    std::vector<uint64_t>                       packetid_;
-    std::unique_ptr<Serialization::Serializer>  serializer_;
+    std::vector<uint64_t> packetid_;
+    std::unique_ptr<Serialization::Serializer> serializer_;
 };

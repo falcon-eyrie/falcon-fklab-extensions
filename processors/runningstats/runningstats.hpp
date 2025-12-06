@@ -38,15 +38,15 @@ class RunningStats : public IProcessor {
 
     // DATA PORTS
    protected:
-    PortIn<TimeSeriesType<double>>*  data_in_port_;
+    PortIn<TimeSeriesType<double>>* data_in_port_;
     PortOut<TimeSeriesType<double>>* data_out_port_;
 
     // OPTIONS
    protected:
     options::Measurement<double, false> integration_time_{1., "second",
                                                           options::positive<double>(true)};
-    options::Bool                       outlier_protection_{false};
-    options::Double                     outlier_zscore_{
+    options::Bool outlier_protection_{false};
+    options::Double outlier_zscore_{
         6.0,
     };
     options::Double outlier_half_life_{2.0};

@@ -28,7 +28,7 @@ class DummyDIO : public DigitalDevice {
     uint32_t nchannels() const;
 
     DigitalState read_state() const;
-    void         write_state(DigitalState& state);
+    void write_state(DigitalState& state);
 
    protected:
     DigitalState state_;

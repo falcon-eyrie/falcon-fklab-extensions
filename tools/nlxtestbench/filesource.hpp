@@ -31,18 +31,18 @@ class FileSource : public DataSource {
     ~FileSource() override;
 
     std::string string() override;
-    int64_t     Produce(char** data) override;
-    YAML::Node  to_yaml() const override;
+    int64_t Produce(char** data) override;
+    YAML::Node to_yaml() const override;
 
     static FileSource* from_yaml(YAML::Node node);
-    std::string        file() const;
+    std::string file() const;
 
    protected:
-    std::string       file_;
-    bool              cycle_;
-    std::ifstream     raw_data_file;
+    std::string file_;
+    bool cycle_;
+    std::ifstream raw_data_file;
     std::vector<char> buffer_;
-    unsigned int      nchannels_;
-    uint16_t          buffer_size_;
-    bool              convert_byte_order_;
+    unsigned int nchannels_;
+    uint16_t buffer_size_;
+    bool convert_byte_order_;
 };

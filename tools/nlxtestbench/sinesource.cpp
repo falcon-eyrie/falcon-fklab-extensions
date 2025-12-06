@@ -54,19 +54,19 @@ int64_t SineSource::Produce(char** data) {
     timestamp_ = timestamp_ + delta_;
 
     auto n = record_.ToNetworkBuffer(buffer_);
-    *data  = buffer_.data();
+    *data = buffer_.data();
 
     return n;
 }
 
 YAML::Node SineSource::to_yaml() const {
     YAML::Node node;
-    node["offset"]             = offset_;
-    node["amplitude"]          = amplitude_;
-    node["frequency"]          = frequency_;
-    node["sampling_rate"]      = sampling_rate_;
-    node["noise_stdev"]        = noise_stdev_;
-    node["nchannels"]          = nchannels_;
+    node["offset"] = offset_;
+    node["amplitude"] = amplitude_;
+    node["frequency"] = frequency_;
+    node["sampling_rate"] = sampling_rate_;
+    node["noise_stdev"] = noise_stdev_;
+    node["nchannels"] = nchannels_;
     node["convert_byte_order"] = convert_byte_order_;
     return node;
 }

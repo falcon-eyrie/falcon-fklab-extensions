@@ -37,18 +37,18 @@ class MUAEstimator : public IProcessor {
     // DATA PORTS
    protected:
     PortIn<SpikeType>* data_in_port_;
-    PortOut<MUAType>*  data_out_port_;
+    PortOut<MUAType>* data_out_port_;
 
     // STATES
    protected:
-    StaticState<double>*      bin_size_;
+    StaticState<double>* bin_size_;
     BroadcasterState<double>* mua_;
 
     // VARIABLES
    protected:
-    double      current_bin_size_;
-    double      previous_bin_size_;
-    double      spike_buffer_size_;
+    double current_bin_size_;
+    double previous_bin_size_;
+    double spike_buffer_size_;
     std::size_t n_spike_buffers_;
 
     // CONSTANTS

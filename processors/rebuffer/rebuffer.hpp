@@ -38,7 +38,7 @@ class Rebuffer : public IProcessor {
 
     // DATA PORTS
    protected:
-    PortIn<TimeSeriesType<double>>*  data_in_port_;
+    PortIn<TimeSeriesType<double>>* data_in_port_;
     PortOut<TimeSeriesType<double>>* data_out_port_;
 
     // VARIABLES

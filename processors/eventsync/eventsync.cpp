@@ -32,9 +32,9 @@ void EventSync::CreatePorts() {
 }
 
 void EventSync::Process(ProcessingContext& context) {
-    EventType::Data* data_in               = nullptr;
-    EventType::Data* data_out              = nullptr;
-    uint64_t         target_events_counter = 0;
+    EventType::Data* data_in = nullptr;
+    EventType::Data* data_out = nullptr;
+    uint64_t target_events_counter = 0;
     timestamps_.reset();
 
     while (!context.terminated()) {
