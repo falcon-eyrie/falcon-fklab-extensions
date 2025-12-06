@@ -147,11 +147,11 @@ void Data::SerializeYAML(YAML::Node& node, Serialization::Format format) const {
     BaseClass::SerializeYAML(node, format);
 
     if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
-        node[N_CHANNELS]        = static_cast<unsigned int>(n_channels_); // TODO: move to preamble
+        node[N_CHANNELS] = static_cast<unsigned int>(n_channels_);  // TODO: move to preamble
         node[N_DETECTED_SPIKES] = static_cast<unsigned int>(n_detected_spikes_);
         if (n_detected_spikes_ > 0) {
             node[TS_DETECTED_SPIKES] = hw_ts_detected_spikes_;
-            node[SPIKE_AMPLITUDES]   = amplitudes_;
+            node[SPIKE_AMPLITUDES] = amplitudes_;
         }
     }
 }

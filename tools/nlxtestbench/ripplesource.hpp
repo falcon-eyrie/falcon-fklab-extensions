@@ -56,42 +56,42 @@ class RippleSource : public DataSource {
      * signal
      *
      */
-    int64_t              Produce(char** data) override;
-    YAML::Node           to_yaml() const override;
+    int64_t Produce(char** data) override;
+    YAML::Node to_yaml() const override;
     static RippleSource* from_yaml(YAML::Node node);
 
    private:
     struct params_by_channel_t {
-        double       counter;
-        double       interval;
-        double       duration;
-        bool         ripple;
-        double       amplitude;
+        double counter;
+        double interval;
+        double duration;
+        bool ripple;
+        double amplitude;
         unsigned int channel_number;
     };
 
     double generate_one_signal(params_by_channel_t* params);
 
    protected:
-    double   offset_;
-    double   frequency_;
-    double   sampling_rate_;
+    double offset_;
+    double frequency_;
+    double sampling_rate_;
     uint64_t delta_;
     uint64_t timestamp_ = 0;
 
     YAML::Node ripple_params_;
 
-    double                         mean_amplitude_;
+    double mean_amplitude_;
     std::poisson_distribution<int> poisson_distribution_;
-    std::default_random_engine     generator_;
+    std::default_random_engine generator_;
 
-    double                           noise_stdev_;
+    double noise_stdev_;
     std::normal_distribution<double> distribution_;
 
-    bool              convert_byte_order_;
+    bool convert_byte_order_;
     std::vector<char> buffer_;
 
-    unsigned int                     nchannels_;
+    unsigned int nchannels_;
     std::vector<params_by_channel_t> params;
-    double                           omega_;
+    double omega_;
 };

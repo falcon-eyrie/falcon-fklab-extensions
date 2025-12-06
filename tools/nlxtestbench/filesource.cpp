@@ -47,7 +47,7 @@ FileSource::FileSource(std::string file, bool cycle) : file_(file), cycle_(cycle
     } else if (local_buffer[0] == 8) {
         // OK, conversion needed (in-place)
         convert_byte_order_ = true;
-        auto* p             = (uint16_t*) local_buffer.data();
+        auto* p = (uint16_t*) local_buffer.data();
         for (unsigned int k = 0; k < 3 * sizeof(uint32_t) / sizeof(uint16_t); k++) {
             *(p + k) = ntohs(*(p + k));
         }
@@ -116,7 +116,7 @@ int64_t FileSource::Produce(char** data) {
 
 YAML::Node FileSource::to_yaml() const {
     YAML::Node node;
-    node["file"]  = file_;
+    node["file"] = file_;
     node["cycle"] = cycle_;
     return node;
 }

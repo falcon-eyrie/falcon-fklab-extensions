@@ -43,10 +43,10 @@ class TestBenchConfiguration : public Configuration {
     }
 
    public:
-    options::String                  ip_address{"127.0.0.1"};
-    options::Int                     port{5000};
-    options::Measurement<double>     stream_rate{5000, "Hz", options::positive<double>(true)};
-    options::Value<uint64_t, false>  npackets{0};
-    options::Int                     autostart{-1};
+    options::String ip_address{"127.0.0.1"};
+    options::Int port{5000};
+    options::Measurement<double> stream_rate{5000, "Hz", options::positive<double>(true)};
+    options::Value<uint64_t, false> npackets{0};
+    options::Int autostart{-1};
     options::Value<YAML::Node, true> sources{YAML::Load("class: default")};
 };

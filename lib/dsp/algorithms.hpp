@@ -39,10 +39,10 @@ class ThresholdCrosser {
         : threshold_(threshold), slope_(slope) {}
 
     double threshold() const;
-    void   set_threshold(double value);
+    void set_threshold(double value);
 
     Slope slope() const;
-    void  set_slope(Slope value);
+    void set_slope(Slope value);
 
     bool has_crossed(double sample);
     bool has_crossed_up(double sample);
@@ -50,7 +50,7 @@ class ThresholdCrosser {
 
    private:
     double threshold_;
-    Slope  slope_;
+    Slope slope_;
     double prev_sample_;
 };
 
@@ -60,12 +60,12 @@ class RunningStatistics {
                       double outlier_zscore = 3, double outlier_half_life = 1, double center = 0.0,
                       double dispersion = 0.0);
 
-    double   alpha() const;
+    double alpha() const;
     uint64_t burn_in() const;
-    double   center() const;
-    double   dispersion() const;
+    double center() const;
+    double dispersion() const;
 
-    bool   outlier_protection() const;
+    bool outlier_protection() const;
     double outlier_zscore() const;
     double outlier_half_life() const;
 
@@ -100,11 +100,11 @@ class RunningStatistics {
     virtual void update_statistics(double sample, double alpha) = 0;
 
    private:
-    double   alpha_;
+    double alpha_;
     uint64_t burn_in_;
     uint64_t burn_in_counter_;
 
-    bool   outlier_protection_;
+    bool outlier_protection_;
     double outlier_zscore_;
     double outlier_half_life_;
 };
@@ -136,7 +136,7 @@ class PeakDetector {
 
     void reset(uint64_t init_timestamp = 0, double init_value = 0.0);
 
-    double   last_peak_amplitude() const;
+    double last_peak_amplitude() const;
     uint64_t last_peak_timestamp() const;
 
     bool is_peak(const uint64_t& timestamp, const double& sample);
@@ -148,12 +148,12 @@ class PeakDetector {
    private:
     bool last_slope_is_up_;
 
-    double   previous_value_;
+    double previous_value_;
     uint64_t previous_timestamp_;
 
     uint64_t npeaks_found_;
 
-    double   last_peak_amplitude_;
+    double last_peak_amplitude_;
     uint64_t last_peak_timestamp_;
 };
 
@@ -164,10 +164,10 @@ class ExponentialSmoother {
     double smooth(double value);
 
     double alpha() const;
-    void   set_alpha(double value);
+    void set_alpha(double value);
 
     double value() const;
-    void   set_value(double value);
+    void set_value(double value);
 
    private:
     double alpha_;
@@ -189,12 +189,12 @@ class SpikeDetector {
     unsigned int nchannels() const;
 
     double threshold() const;
-    void   set_threshold(double value);
+    void set_threshold(double value);
 
     unsigned int peak_life_time() const;
-    void         set_peak_life_time(unsigned int value);
+    void set_peak_life_time(unsigned int value);
 
-    uint64_t                   timestamp_detected_spike() const;
+    uint64_t timestamp_detected_spike() const;
     const std::vector<double>& amplitudes_detected_spike() const;
 
     /**
@@ -218,15 +218,15 @@ class SpikeDetector {
     template <typename ForwardIterator>
     bool is_spike(const uint64_t timestamp, const ForwardIterator sample) {
         unsigned int c;
-        auto         spike_found = false;
-        auto         it          = sample;
-        double       current_sample;
-        double       previous_sample;
+        auto spike_found = false;
+        auto it = sample;
+        double current_sample;
+        double previous_sample;
 
         if (detection_mode_ == SpikeDetectionMode::THRESHOLD) {
             // is threshold crossed on any of the channels?
             for (c = 0; c < nchannels_; ++c) {
-                current_sample  = int(sign_) * (*it);
+                current_sample = int(sign_) * (*it);
                 previous_sample = int(sign_) * previous_sample_[c];
 
                 if (previous_sample <= threshold_ && current_sample > threshold_) {
@@ -239,7 +239,7 @@ class SpikeDetector {
         } else if (detection_mode_ == SpikeDetectionMode::PEAK) {
             // look for peaks
             for (c = 0; c < nchannels_; ++c) {
-                current_sample  = int(sign_) * (*it);
+                current_sample = int(sign_) * (*it);
                 previous_sample = int(sign_) * previous_sample_[c];
 
                 if (!peak_found_[c]) {
@@ -264,7 +264,7 @@ class SpikeDetector {
                 // channels? QUESTION: if not, what amplitude should we assign
                 // to the channels without peak (e.g. some invalid value, or
                 // current sample)
-                if (npeaks_found_ > 0) { // spike found!!
+                if (npeaks_found_ > 0) {  // spike found!!
                     ++nspikes_found_;
                     spike_found = true;
                 }
@@ -287,7 +287,7 @@ class SpikeDetector {
     template <typename ForwardIterator>
     void update_slope(ForwardIterator sample) {
         for (decltype(nchannels_) channel = 0; channel < nchannels_; ++channel) {
-            if (previous_sample_[channel] != *sample) { // deal with plateaus
+            if (previous_sample_[channel] != *sample) {  // deal with plateaus
                 slope_[channel] = *sample - previous_sample_[channel];
             }
             ++sample;
@@ -297,8 +297,8 @@ class SpikeDetector {
     template <typename ForwardIterator>
     void prepare_peak_detection(const uint64_t timestamp, const ForwardIterator sample) {
         spike_timestamp_ = timestamp;
-        peak_countdown_  = peak_life_time_;
-        npeaks_found_    = 0;
+        peak_countdown_ = peak_life_time_;
+        npeaks_found_ = 0;
         peak_found_.assign(nchannels_, false);
         peak_amplitudes_ = previous_sample_;
         update_slope(sample);
@@ -306,21 +306,21 @@ class SpikeDetector {
 
    private:
     unsigned int nchannels_;
-    double       threshold_;
+    double threshold_;
     unsigned int peak_life_time_;
-    uint64_t     nspikes_found_;
+    uint64_t nspikes_found_;
 
    private:
-    SpikeDetectionMode  detection_mode_;
+    SpikeDetectionMode detection_mode_;
     std::vector<double> previous_sample_;
-    uint64_t            spike_timestamp_;
+    uint64_t spike_timestamp_;
     std::vector<double> slope_;
-    unsigned int        peak_countdown_;
-    std::vector<bool>   peak_found_;
-    unsigned int        npeaks_found_;
+    unsigned int peak_countdown_;
+    std::vector<bool> peak_found_;
+    unsigned int npeaks_found_;
     std::vector<double> peak_amplitudes_;
-    SpikeDetectionSign  sign_;
+    SpikeDetectionSign sign_;
 };
 
-} // namespace algorithms
-} // namespace dsp
+}  // namespace algorithms
+}  // namespace dsp

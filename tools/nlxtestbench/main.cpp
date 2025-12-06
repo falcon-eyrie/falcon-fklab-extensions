@@ -36,7 +36,7 @@ void list_all_sources(std::vector<std::unique_ptr<DataSource>>& sources) {
         std::cout << key << " : " << it->string() << std::endl;
         if (key == 'z') {
             break;
-        } // maximum of 26 sources
+        }  // maximum of 26 sources
         ++key;
     }
 
@@ -106,8 +106,8 @@ int main(int argc, char** argv) {
 
     // auto start
     // find source with specified name
-    unsigned int idx       = 0;
-    bool         autostart = false;
+    unsigned int idx = 0;
+    bool autostart = false;
 
     if (parser.get<int>("autostart") >= 0) {
         config.autostart = parser.get<int>("autostart");
@@ -145,10 +145,10 @@ int main(int argc, char** argv) {
     list_all_sources(sources);
     print_prompt(sources.size());
 
-    s_catch_sigint_signal(); // Install Ctrl-C signal handler
+    s_catch_sigint_signal();  // Install Ctrl-C signal handler
     nonblock(1);
 
-    int  hit;
+    int hit;
     char c;
 
     if (autostart) {
@@ -178,16 +178,16 @@ int main(int argc, char** argv) {
                 streamer.Stop();
                 streamer.set_source(sources[c - 'a'].get());
                 streamer.Start();
-            } else if (c == 27) { // Esc
+            } else if (c == 27) {  // Esc
                 streamer.Stop();
                 break;
-            } else if (c == 32) { // space
+            } else if (c == 32) {  // space
                 list_all_sources(sources);
                 print_prompt(sources.size());
             }
         }
 
-        usleep(100000); // 0.1 second
+        usleep(100000);  // 0.1 second
     }
 
     nonblock(0);

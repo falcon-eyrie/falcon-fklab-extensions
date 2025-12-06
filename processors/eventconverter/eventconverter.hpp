@@ -35,11 +35,11 @@ class EventConverter : public IProcessor {
 
     // DATA PORTS
    protected:
-    PortIn<EventType>*  data_in_port_;
+    PortIn<EventType>* data_in_port_;
     PortOut<EventType>* data_out_port_;
 
     // OPTIONS
    protected:
     options::String event_name_{"stimulation", options::notempty<std::string>()};
-    options::Bool   replace_{true};
+    options::Bool replace_{true};
 };

@@ -36,8 +36,8 @@ class EventSource : public IProcessor {
 
     // CONSTANTS
    public:
-    const double      DEFAULT_EVENT_RATE = 1.0;
-    const std::string DEFAULT_EVENT      = "default_eventsource_event";
+    const double DEFAULT_EVENT_RATE = 1.0;
+    const std::string DEFAULT_EVENT = "default_eventsource_event";
 
     // VARIABLES
    protected:

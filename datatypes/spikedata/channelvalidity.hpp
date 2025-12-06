@@ -29,7 +29,7 @@ struct ChannelDetection {
 
 class ChannelValidityMask {
    public:
-    ChannelValidityMask(unsigned int               n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
+    ChannelValidityMask(unsigned int n_channels = MAX_N_CHANNELS_SPIKE_DETECTION,
                         ChannelDetection::Validity validity = ChannelDetection::Validity::UNKNOWN);
 
     ~ChannelValidityMask() {}

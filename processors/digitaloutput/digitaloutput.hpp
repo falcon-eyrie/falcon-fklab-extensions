@@ -24,7 +24,7 @@
 #include "utilities/time.hpp"
 
 typedef std::map<std::string, std::map<std::string, std::vector<uint32_t>>> ProtocolYAMLMap;
-typedef std::map<std::string, std::unique_ptr<DigitalOutputProtocol>>       ProtocolMap;
+typedef std::map<std::string, std::unique_ptr<DigitalOutputProtocol>> ProtocolMap;
 
 class DigitalOutput : public IProcessor {
    public:
@@ -44,12 +44,12 @@ class DigitalOutput : public IProcessor {
     options::Measurement<unsigned int, false> pulse_width_{400, "ms",
                                                            options::positive<double>(true)};
 
-    options::String                        device_type_{};
-    options::Value<std::uint32_t, false>   nchannels_{16};
+    options::String device_type_{};
+    options::Value<std::uint32_t, false> nchannels_{16};
     options::Value<ProtocolYAMLMap, false> protocols_yaml_{};
 
     options::Bool event_log_{true};
 
     std::unique_ptr<DigitalDevice> device_;
-    ProtocolMap                    protocols_;
+    ProtocolMap protocols_;
 };

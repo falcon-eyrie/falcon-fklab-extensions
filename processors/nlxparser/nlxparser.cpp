@@ -119,24 +119,24 @@ void NlxParser::Prepare(GlobalContext& context) {
 }
 
 void NlxParser::Preprocess(ProcessingContext& context) {
-    sample_counter_       = batch_size_();
+    sample_counter_ = batch_size_();
     valid_packet_counter_ = 0;
-    timestamp_            = nlx::INVALID_TIMESTAMP;
-    last_timestamp_       = nlx::INVALID_TIMESTAMP;
+    timestamp_ = nlx::INVALID_TIMESTAMP;
+    last_timestamp_ = nlx::INVALID_TIMESTAMP;
     stats_.clear();
     n_filling_packets_ = 0;
 }
 
 void NlxParser::Process(ProcessingContext& context) {
-    bool                         update_time = false;
-    unsigned int                 i           = 0;
-    int                          b           = 0;
+    bool update_time = false;
+    unsigned int i = 0;
+    int b = 0;
     decltype(n_filling_packets_) packets_lag = 0;
 
-    VectorType<uint32_t>::Data*                   data_in = nullptr;
+    VectorType<uint32_t>::Data* data_in = nullptr;
     TimeSeriesType<double>::Data::sample_iterator data_iter;
-    TimeSeriesType<double>::Data*                 data_out     = nullptr;
-    TimeSeriesType<uint32_t>::Data*               ttl_data_out = nullptr;
+    TimeSeriesType<double>::Data* data_out = nullptr;
+    TimeSeriesType<uint32_t>::Data* ttl_data_out = nullptr;
 
     while (!context.terminated()) {
         if (!data_in_port_->slot(0)->RetrieveData(data_in)) {

@@ -29,6 +29,6 @@ class DummySink : public IProcessor {
     YAML::Node Kick(const YAML::Node& node);
 
    protected:
-    PortIn<AnyType>*     data_port_;
+    PortIn<AnyType>* data_port_;
     ReadableState<bool>* tickle_state_;
 };

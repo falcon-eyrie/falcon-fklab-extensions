@@ -83,4 +83,4 @@ inline std::vector<double> compute_weights(const int m, const int t, const int n
     }
     return weights;
 };
-} // namespace gram_sg
+}  // namespace gram_sg

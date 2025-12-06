@@ -40,20 +40,20 @@ class LevelCrossingDetector : public IProcessor {
     // DATA PORTS
    protected:
     PortIn<TimeSeriesType<double>>* data_in_port_;
-    PortOut<EventType>*             data_out_port_;
+    PortOut<EventType>* data_out_port_;
 
     // STATES
    protected:
-    StaticState<double>*       threshold_;
-    StaticState<bool>*         upslope_;
+    StaticState<double>* threshold_;
+    StaticState<bool>* upslope_;
     StaticState<unsigned int>* post_detect_block_;
 
     // VARIABLES
    protected:
-    std::vector<double>           previous_sample_;
-    uint64_t                      n_detections_;
+    std::vector<double> previous_sample_;
+    uint64_t n_detections_;
     TimeSeriesType<double>::Data* data_in_;
-    EventType::Data*              data_out_;
+    EventType::Data* data_out_;
 
     // METHODS
    protected:
@@ -66,16 +66,16 @@ class LevelCrossingDetector : public IProcessor {
 
     // CONSTANTS
    public:
-    const std::string  DEFAULT_EVENT               = "threshold_crossing";
+    const std::string DEFAULT_EVENT = "threshold_crossing";
     const unsigned int LOW_POST_DETECTION_BLOCK_US = 30;
-    const std::string  THRESHOLD                   = "threshold";
-    const std::string  UPSLOPE                     = "upslope";
-    const std::string  POST_DETECT_BLOCK           = "post detect block";
+    const std::string THRESHOLD = "threshold";
+    const std::string UPSLOPE = "upslope";
+    const std::string POST_DETECT_BLOCK = "post detect block";
 
     // OPTIONS
    protected:
     options::Double initial_threshold_{0.0};
-    options::Bool   initial_upslope_{true};
+    options::Bool initial_upslope_{true};
 
     options::Measurement<unsigned int, false> initial_post_detect_block_{2, "sample"};
 

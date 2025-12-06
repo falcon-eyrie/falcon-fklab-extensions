@@ -49,7 +49,7 @@ class Data : public IData<Data<T>, Base<T>> {
 
    public:
     typedef stride_iter<T*> column_iterator;
-    typedef T*              sample_iterator;
+    typedef T* sample_iterator;
 
     /**
      * @brief Data constructor with the label of the columns, the number of
@@ -127,7 +127,7 @@ class Data : public IData<Data<T>, Base<T>> {
      * @return  all timestamps
      */
     const std::vector<uint64_t>& sample_timestamps() const { return timestamps_; }
-    std::vector<uint64_t>&       sample_timestamps() { return timestamps_; }
+    std::vector<uint64_t>& sample_timestamps() { return timestamps_; }
 
     /**
      * @brief set_sample_timestamp - set one timestamp for a given sample number
@@ -206,7 +206,7 @@ class Data : public IData<Data<T>, Base<T>> {
      * @param node
      * @param format
      */
-    void SerializeYAML(YAML::Node&           node,
+    void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override {
         BaseClass::SerializeYAML(node, format);
 
@@ -236,12 +236,12 @@ class Data : public IData<Data<T>, Base<T>> {
     }
 
    protected:
-    double                sample_rate_;
+    double sample_rate_;
     std::vector<uint64_t> timestamps_;
 };
 
 using Capabilities = nsColumn::Capabilities;
-} // namespace nsTimeSeries
+}  // namespace nsTimeSeries
 
 template <typename T>
 using TimeSeriesType = DefineType<nsTimeSeries::Data<T>, ColumnsType<T>, false,

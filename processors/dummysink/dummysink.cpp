@@ -41,14 +41,14 @@ YAML::Node DummySink::Kick(const YAML::Node& node) {
 }
 
 void DummySink::Process(ProcessingContext& context) {
-    uint64_t                    packet_counter   = 0;
-    uint64_t                    retrieve_counter = 0;
+    uint64_t packet_counter = 0;
+    uint64_t retrieve_counter = 0;
     std::vector<AnyType::Data*> data;
-    auto                        address = data_port_->slot(0)->upstream_address();
+    auto address = data_port_->slot(0)->upstream_address();
 
     LOG(DEBUG) << "slot is connected to " << address.string();
 
-    auto start    = Clock::now();
+    auto start = Clock::now();
     bool tickling = false;
 
     while (!context.terminated()) {

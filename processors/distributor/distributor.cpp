@@ -39,7 +39,7 @@ void Distributor::CreatePorts() {
 
 void Distributor::CompleteStreamInfo() {
     incoming_batch_size_ = input_port_->prototype(0).nsamples();
-    max_n_channels_      = input_port_->prototype(0).ncolumns();
+    max_n_channels_ = input_port_->prototype(0).ncolumns();
 
     LOG(INFO) << name() << ". Incoming batch size: " << incoming_batch_size_ << ".";
 
@@ -74,9 +74,9 @@ void Distributor::Prepare(GlobalContext& context) {
 }
 
 void Distributor::Process(ProcessingContext& context) {
-    TimeSeriesType<double>::Data*              data_in = nullptr;
-    int                                        port_index;
-    unsigned int                               s;
+    TimeSeriesType<double>::Data* data_in = nullptr;
+    int port_index;
+    unsigned int s;
     std::vector<TimeSeriesType<double>::Data*> data_out_vector(data_ports_.size());
 
     while (!context.terminated()) {

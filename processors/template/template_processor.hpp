@@ -37,8 +37,8 @@ class FalconProcessor : public IProcessor {
     void method1();
 
    protected:
-    PortIn<AnyDataType>*  data_in_port_;
-    PortIn<AnyDataType>*  other_data_in_port_;
+    PortIn<AnyDataType>* data_in_port_;
+    PortIn<AnyDataType>* other_data_in_port_;
     PortOut<AnyDataType>* data_out_port_;
     PortOut<AnyDataType>* other_data_out_port_;
 
@@ -52,7 +52,7 @@ class FalconProcessor : public IProcessor {
     datatype2 option2_;
 
    public:
-    const datatype1           DEFAULT_OPTION1   = 6;
+    const datatype1 DEFAULT_OPTION1 = 6;
     static constexpr datatype DEFAULT_ARGUMENT3 = 50;
     static constexpr datatype DEFAULT_ARGUMENT4 = DEFAULT_ARGUMENT3 * 2;
 };

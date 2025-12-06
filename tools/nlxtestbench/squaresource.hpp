@@ -31,8 +31,8 @@ class SquareSource : public DataSource {
                  unsigned int nchannels = 128, bool convert_byte_order = true);
 
     std::string string() override;
-    int64_t     Produce(char** data) override;
-    YAML::Node  to_yaml() const override;
+    int64_t Produce(char** data) override;
+    YAML::Node to_yaml() const override;
 
     static SquareSource* from_yaml(YAML::Node node);
 
@@ -48,13 +48,13 @@ class SquareSource : public DataSource {
     uint64_t delta_;
 
     uint64_t counter_;
-    double   current_amplitude_;
+    double current_amplitude_;
 
     std::vector<char> buffer_;
 
-    std::default_random_engine       generator_;
+    std::default_random_engine generator_;
     std::normal_distribution<double> distribution_;
 
     unsigned int nchannels_;
-    bool         convert_byte_order_;
+    bool convert_byte_order_;
 };

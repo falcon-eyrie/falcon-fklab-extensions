@@ -47,15 +47,15 @@ class DataStreamer {
 
    protected:
     std::thread thread_;
-    bool        running_   = false;
-    bool        terminate_ = false;
+    bool running_ = false;
+    bool terminate_ = false;
 
     DataSource* source_;
-    double      rate_;
+    double rate_;
     std::string ip_;
-    int         port_;
-    uint64_t    max_packets_;
+    int port_;
+    uint64_t max_packets_;
 
     struct sockaddr_in server_address_;
-    int                udp_socket_;
+    int udp_socket_;
 };

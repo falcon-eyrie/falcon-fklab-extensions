@@ -43,7 +43,7 @@ void SerialOutput::Preprocess(ProcessingContext& context) {
 
 void SerialOutput::Process(ProcessingContext& context) {
     EventType::Data* data_in = nullptr;
-    auto             nslots  = data_in_port_->number_of_slots();
+    auto nslots = data_in_port_->number_of_slots();
     while (!context.terminated()) {
         while (!context.terminated()) {
             for (int k = 0; k < nslots; ++k) {

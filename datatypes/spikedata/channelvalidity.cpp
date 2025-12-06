@@ -21,7 +21,7 @@
 
 #include <vector>
 
-ChannelValidityMask::ChannelValidityMask(unsigned int               n_channels,
+ChannelValidityMask::ChannelValidityMask(unsigned int n_channels,
                                          ChannelDetection::Validity validity) {
     mask_.assign(n_channels, validity);
 }

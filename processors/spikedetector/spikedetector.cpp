@@ -49,7 +49,7 @@ void SpikeDetector::CreatePorts() {
 }
 
 void SpikeDetector::CompleteStreamInfo() {
-    double incoming_stream_rate   = data_in_port_->streaminfo(0).stream_rate();
+    double incoming_stream_rate = data_in_port_->streaminfo(0).stream_rate();
     incoming_buffer_size_samples_ = data_in_port_->prototype(0).nsamples();
     double incoming_buffer_size_ms =
         incoming_buffer_size_samples_ / data_in_port_->prototype(0).sample_rate() * 1000;
@@ -63,9 +63,9 @@ void SpikeDetector::CompleteStreamInfo() {
         throw ProcessingStreamInfoError(error.what(), name());
     }
 
-    n_channels_       = data_in_port_->prototype(0).ncolumns();
-    auto parms        = data_out_port_spikes_->streaminfo(0).parameters();
-    parms.nchannels   = n_channels_;
+    n_channels_ = data_in_port_->prototype(0).ncolumns();
+    auto parms = data_out_port_spikes_->streaminfo(0).parameters();
+    parms.nchannels = n_channels_;
     parms.sample_rate = incoming_stream_rate;
     data_out_port_spikes_->streaminfo(0).set_parameters(parms);
     data_out_port_spikes_->streaminfo(0).set_stream_rate(
@@ -90,13 +90,13 @@ void SpikeDetector::Process(ProcessingContext& context) {
     TimeSeriesType<double>::Data* data_in_;
     TimeSeriesType<double>::Data* signals = nullptr;
 
-    size_t                                   sample_buffer_counter = 0;
-    decltype(data_in_->hardware_timestamp()) hw_timestamp          = 0;
+    size_t sample_buffer_counter = 0;
+    decltype(data_in_->hardware_timestamp()) hw_timestamp = 0;
 
     std::unique_ptr<EventType::Data> single_spike_event(new EventType::Data("spike"));
     std::unique_ptr<EventType::Data> multiple_spikes_event(new EventType::Data("spikes"));
-    SpikeType::Data*                 spike_data_out_;
-    EventType::Data*                 event_data_out_;
+    SpikeType::Data* spike_data_out_;
+    EventType::Data* event_data_out_;
 
     while (!context.terminated()) {
         // update state variables

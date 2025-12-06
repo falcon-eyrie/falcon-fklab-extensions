@@ -67,22 +67,22 @@ void LevelCrossingDetector::Preprocess(ProcessingContext& context) {
 }
 
 void LevelCrossingDetector::Process(ProcessingContext& context) {
-    double       threshold             = 0;
-    bool         upslope               = false;
-    unsigned int post_detect_block     = initial_post_detect_block_();
+    double threshold = 0;
+    bool upslope = false;
+    unsigned int post_detect_block = initial_post_detect_block_();
     unsigned int post_detect_block_old = initial_post_detect_block_();
-    bool         crossing_detected     = false;
-    unsigned int nblock                = 0;
+    bool crossing_detected = false;
+    unsigned int nblock = 0;
 
     while (!context.terminated()) {
         if (!data_in_port_->slot(0)->RetrieveData(data_in_)) {
             break;
         }
 
-        threshold             = threshold_->get();
-        upslope               = upslope_->get();
+        threshold = threshold_->get();
+        upslope = upslope_->get();
         post_detect_block_old = post_detect_block;
-        post_detect_block     = post_detect_block_->get();
+        post_detect_block = post_detect_block_->get();
 
         if (post_detect_block_old != post_detect_block) {
             post_detection_block_update(post_detect_block);

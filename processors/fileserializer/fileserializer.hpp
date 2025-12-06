@@ -53,19 +53,19 @@ class FileSerializer : public IProcessor {
    protected:
     std::unique_ptr<Serialization::Serializer> serializer_;
     std::vector<std::unique_ptr<std::ostream>> streams_;
-    std::vector<uint64_t>                      packetid_;
-    std::vector<unsigned int>                  upstream_buffer_size_;
-    double                                     throttle_level_;
-    std::vector<uint64_t>                      nskipped_;
+    std::vector<uint64_t> packetid_;
+    std::vector<unsigned int> upstream_buffer_size_;
+    double throttle_level_;
+    std::vector<uint64_t> nskipped_;
 
     // OPTIONS
    protected:
-    options::String                                path_{"run://"};
+    options::String path_{"run://"};
     options::Value<Serialization::Encoding, false> encoding_{Serialization::Encoding::BINARY};
-    options::Value<Serialization::Format, false>   format_{Serialization::Format::FULL};
-    options::Bool                                  overwrite_{false};
-    options::Bool                                  throttle_{false};
+    options::Value<Serialization::Format, false> format_{Serialization::Format::FULL};
+    options::Bool overwrite_{false};
+    options::Bool throttle_{false};
     options::Double throttle_threshold_{0.3, options::inrange<double>(0., 1.)};
     options::Double throttle_smooth_{0.5, options::inrange<double>(0., 1.)};
-    options::Bool   preamble_{true};
+    options::Bool preamble_{true};
 };

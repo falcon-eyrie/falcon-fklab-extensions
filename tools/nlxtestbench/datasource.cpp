@@ -29,8 +29,8 @@
 
 std::vector<std::unique_ptr<DataSource>> datasources_from_yaml(const YAML::Node& node) {
     std::vector<std::unique_ptr<DataSource>> sources;
-    std::string                              source_name;
-    std::string                              source_class;
+    std::string source_name;
+    std::string source_class;
 
     // node["sources"]
     if (!node || node.IsNull() ||

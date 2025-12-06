@@ -48,7 +48,7 @@ void EventSource::Process(ProcessingContext& context) {
         return;
     }
 
-    std::default_random_engine                  generator;
+    std::default_random_engine generator;
     std::uniform_int_distribution<unsigned int> distribution(0, event_list_().size() - 1);
 
     auto delay = std::chrono::milliseconds(static_cast<unsigned int>(1000.0 / event_rate_()));

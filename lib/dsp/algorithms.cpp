@@ -46,13 +46,13 @@ bool ThresholdCrosser::has_crossed(double sample) {
 }
 
 bool ThresholdCrosser::has_crossed_up(double sample) {
-    bool ret     = prev_sample_ <= threshold_ && sample > threshold_;
+    bool ret = prev_sample_ <= threshold_ && sample > threshold_;
     prev_sample_ = sample;
     return ret;
 }
 
 bool ThresholdCrosser::has_crossed_down(double sample) {
-    bool ret     = prev_sample_ >= threshold_ && sample < threshold_;
+    bool ret = prev_sample_ >= threshold_ && sample < threshold_;
     prev_sample_ = sample;
     return ret;
 }
@@ -183,23 +183,23 @@ double RunningMeanMAD::mad() const {
 }
 
 void RunningMeanMAD::update_statistics(double sample, double alpha) {
-    center_     = (1 - alpha) * center_ + alpha * sample;
+    center_ = (1 - alpha) * center_ + alpha * sample;
     dispersion_ = (1 - alpha) * dispersion_ + alpha * std::abs(sample - center_);
 }
 
 void PeakDetector::reset(uint64_t init_timestamp, double init_value) {
-    previous_value_     = init_value;
+    previous_value_ = init_value;
     previous_timestamp_ = init_timestamp;
-    last_slope_is_up_   = false;
+    last_slope_is_up_ = false;
 
-    npeaks_found_        = 0;
+    npeaks_found_ = 0;
     last_peak_timestamp_ = 0;
     last_peak_amplitude_ = 0.0;
 }
 
 bool PeakDetector::is_peak(const uint64_t& timestamp, const double& sample) {
     double diff = sample - previous_value_;
-    bool   peak = diff < 0 && last_slope_is_up_;
+    bool peak = diff < 0 && last_slope_is_up_;
 
     if (peak) {
         ++npeaks_found_;
@@ -207,7 +207,7 @@ bool PeakDetector::is_peak(const uint64_t& timestamp, const double& sample) {
         last_peak_timestamp_ = previous_timestamp_;
     }
 
-    previous_value_     = sample;
+    previous_value_ = sample;
     previous_timestamp_ = timestamp;
 
     if (diff != 0) {
@@ -308,7 +308,7 @@ void SpikeDetector::reset() {
     peak_countdown_ = 0;
     slope_.assign(nchannels_, 0.0);
     spike_timestamp_ = 0;
-    nspikes_found_   = 0;
+    nspikes_found_ = 0;
 
     peak_found_.assign(nchannels_, false);
     peak_amplitudes_.assign(nchannels_, 0.0);

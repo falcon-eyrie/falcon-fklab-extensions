@@ -52,29 +52,29 @@ void IFilter::realize(unsigned int nchannels, double init) {
     }
 
     nchannels_ = nchannels;
-    realized_  = true;
+    realized_ = true;
 }
 
 void IFilter::unrealize() {
     if (realized()) {
         unrealize_filter();
-        realized_  = false;
+        realized_ = false;
         nchannels_ = 0;
     }
 }
 
 std::map<std::string, std::string> dsp::filter::parse_file_header(std::istream& stream) {
     std::string expr("#\\s+([\\w\\s]*\\w)\\s*=\\s*([\\-\\w\\s,:\\.]*\\w)\\s*");
-    std::regex  re(expr);
+    std::regex re(expr);
     std::smatch match;
 
     // create minimal header
     std::map<std::string, std::string> header;
     header["filter type"] = "unknown";
     header["description"] = "";
-    header["format"]      = "unknown";
+    header["format"] = "unknown";
 
-    bool        done = false;
+    bool done = false;
     std::string line;
 
     // file has to start with ##
@@ -152,7 +152,7 @@ IFilter* dsp::filter::construct_from_yaml(const YAML::Node& node) {
     }
 
     std::string filter_type = node["type"].as<std::string>("unknown");
-    std::string desc        = node["description"].as<std::string>("");
+    std::string desc = node["description"].as<std::string>("");
 
     if (filter_type == "fir") {
         std::vector<double> coef = node["coefficients"].as<std::vector<double>>();
@@ -165,7 +165,7 @@ IFilter* dsp::filter::construct_from_yaml(const YAML::Node& node) {
         uint8_t order = node["order"].as<unsigned int>(SlopeFilter::DEFAULT_DERIVATIVE_ORDER);
         return new SlopeFilter(window_size, order, derivative_order, desc);
     } else if (filter_type == "biquad") {
-        double                             gain = node["gain"].as<double>();
+        double gain = node["gain"].as<double>();
         std::vector<std::array<double, 6>> coef =
             node["coefficients"].as<std::vector<std::array<double, 6>>>();
         // std::vector<std::vector<double>> data =
@@ -195,7 +195,7 @@ FirFilter* FirFilter::FromStream(std::istream& stream, std::string description, 
     }
 
     std::vector<double> coefficients;
-    double              coef;
+    double coef;
 
     while (stream >> coef) {
         coefficients.push_back(coef);
@@ -266,7 +266,7 @@ void FirFilter::process_sample(std::vector<double>::iterator input,
 
 void FirFilter::process_sample(double* input, double* output) {
     // skip check if filter has been realized??
-    double  result;
+    double result;
     double *coef, *reg;
 
     for (unsigned int channel = 0; channel < nchannels_; ++channel) {
@@ -275,7 +275,7 @@ void FirFilter::process_sample(double* input, double* output) {
         memmove((void*) (reg + 1), (void*) reg, (ntaps_ - 1) * sizeof(double));
         *reg = *input;
 
-        coef   = pcoefficients_;
+        coef = pcoefficients_;
         result = 0;
 
         for (unsigned int k = 0; k < ntaps_; ++k) {
@@ -284,8 +284,8 @@ void FirFilter::process_sample(double* input, double* output) {
 
         *output = result;
 
-        input++;  // move to next channel
-        output++; // move to next channel
+        input++;   // move to next channel
+        output++;  // move to next channel
     }
 }
 
@@ -366,7 +366,7 @@ void FirFilter::process_by_sample(uint64_t nsamples, double** input, double** ou
 void FirFilter::process_by_channel(uint64_t nsamples, std::vector<double>& input,
                                    std::vector<double>& output) {
     assert(nsamples * nchannels_ == input.size() && input.size() == output.size());
-    auto in_it  = input.begin();
+    auto in_it = input.begin();
     auto out_it = output.begin();
     for (unsigned int s = 0; s < nsamples; ++s) {
         process_sample(in_it, out_it);
@@ -378,7 +378,7 @@ void FirFilter::process_by_channel(uint64_t nsamples, std::vector<double>& input
 void FirFilter::process_by_sample(uint64_t nsamples, std::vector<double>& input,
                                   std::vector<double>& output) {
     assert(nsamples * nchannels_ == input.size() && input.size() == output.size());
-    auto in_it  = input.begin();
+    auto in_it = input.begin();
     auto out_it = output.begin();
     for (unsigned int c = 0; c < nchannels_; ++c) {
         process_channel(nsamples, in_it, out_it, c);
@@ -442,7 +442,7 @@ BiquadFilter* BiquadFilter::FromStream(std::istream& stream, std::string descrip
 
     // read all data
     std::vector<double> data;
-    double              value;
+    double value;
 
     while (stream >> value) {
         data.push_back(value);
@@ -453,7 +453,7 @@ BiquadFilter* BiquadFilter::FromStream(std::istream& stream, std::string descrip
         throw std::runtime_error("Each biquad stage requires exactly 6 coefficients");
     }
 
-    unsigned int                       nstages = data.size() / 6;
+    unsigned int nstages = data.size() / 6;
     std::vector<std::array<double, 6>> coefficients(nstages);
 
     auto data_it = data.begin();
@@ -481,7 +481,7 @@ double BiquadFilter::process_channel(double x, unsigned int c) {
               coefficients_[s][2] * registers_[c][s][1];
         registers_[c][s][1] = registers_[c][s][0];
         registers_[c][s][0] = u_n;
-        x                   = y_n;
+        x = y_n;
     }
 
     return y_n * gain_;
@@ -564,7 +564,7 @@ void BiquadFilter::process_by_sample(uint64_t nsamples, double** input, double**
 void BiquadFilter::process_by_channel(uint64_t nsamples, std::vector<double>& input,
                                       std::vector<double>& output) {
     assert(nsamples * nchannels_ == input.size() && input.size() == output.size());
-    auto in_it  = input.begin();
+    auto in_it = input.begin();
     auto out_it = output.begin();
     for (unsigned int s = 0; s < nsamples; ++s) {
         process_sample(in_it, out_it);
@@ -576,7 +576,7 @@ void BiquadFilter::process_by_channel(uint64_t nsamples, std::vector<double>& in
 void BiquadFilter::process_by_sample(uint64_t nsamples, std::vector<double>& input,
                                      std::vector<double>& output) {
     assert(nsamples * nchannels_ == input.size() && input.size() == output.size());
-    auto in_it  = input.begin();
+    auto in_it = input.begin();
     auto out_it = output.begin();
     for (unsigned int c = 0; c < nchannels_; ++c) {
         process_channel(nsamples, in_it, out_it, c);

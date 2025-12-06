@@ -31,22 +31,22 @@ class WhiteNoiseSource : public DataSource {
                      unsigned int nchannels = 128, bool convert_byte_order = true);
 
     std::string string() override;
-    int64_t     Produce(char** data) override;
-    YAML::Node  to_yaml() const override;
+    int64_t Produce(char** data) override;
+    YAML::Node to_yaml() const override;
 
     static WhiteNoiseSource* from_yaml(YAML::Node node);
 
    protected:
-    double   mean_;
-    double   stdev_;
-    double   sampling_rate_;
+    double mean_;
+    double stdev_;
+    double sampling_rate_;
     uint64_t timestamp_ = 0;
     uint64_t delta_;
 
-    std::vector<char>                buffer_;
-    std::default_random_engine       generator_;
+    std::vector<char> buffer_;
+    std::default_random_engine generator_;
     std::normal_distribution<double> distribution_;
 
     unsigned int nchannels_;
-    bool         convert_byte_order_;
+    bool convert_byte_order_;
 };

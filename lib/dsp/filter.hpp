@@ -46,50 +46,50 @@ class IFilter {
 
     std::string description() const;
 
-    virtual IFilter*     clone()       = 0;
+    virtual IFilter* clone() = 0;
     virtual unsigned int order() const = 0;
 
     unsigned int nchannels() const;
-    bool         realized() const;
-    void         realize(unsigned int nchannels, double init = 0.0);
-    void         unrealize();
+    bool realized() const;
+    void realize(unsigned int nchannels, double init = 0.0);
+    void unrealize();
 
     // single channel, single sample
     virtual double process_channel(double, unsigned int channel) = 0;
 
     // all channels, single sample
-    virtual void process_sample(std::vector<double>&, std::vector<double>&)                   = 0;
+    virtual void process_sample(std::vector<double>&, std::vector<double>&) = 0;
     virtual void process_sample(std::vector<double>::iterator, std::vector<double>::iterator) = 0;
-    virtual void process_sample(double*, double*)                                             = 0;
+    virtual void process_sample(double*, double*) = 0;
 
     // single channel, multiple samples
     virtual void process_channel(std::vector<double>&, std::vector<double>&,
-                                 unsigned int channel = 0)                                  = 0;
+                                 unsigned int channel = 0) = 0;
     virtual void process_channel(uint64_t nsamples, std::vector<double>::iterator,
-                                 std::vector<double>::iterator, unsigned int channel = 0)   = 0;
+                                 std::vector<double>::iterator, unsigned int channel = 0) = 0;
     virtual void process_channel(uint64_t nsamples, double*, double*, unsigned int channel) = 0;
 
     // all channels, multiple samples
     virtual void process_by_channel(std::vector<std::vector<double>>&,
-                                    std::vector<std::vector<double>>&) = 0; // samples<channels>
+                                    std::vector<std::vector<double>>&) = 0;  // samples<channels>
     virtual void process_by_sample(std::vector<std::vector<double>>&,
-                                   std::vector<std::vector<double>>&)  = 0; // channels<samples>
+                                   std::vector<std::vector<double>>&) = 0;  // channels<samples>
     virtual void process_by_channel(uint64_t nsamples, double**,
-                                    double**)                          = 0; // samples<channels>
+                                    double**) = 0;  // samples<channels>
     virtual void process_by_sample(uint64_t nsamples, double**,
-                                   double**)                           = 0; // channels<samples>
+                                   double**) = 0;  // channels<samples>
     virtual void process_by_channel(uint64_t nsamples, std::vector<double>&,
-                                    std::vector<double>&)              = 0; // samples<channels>
+                                    std::vector<double>&) = 0;  // samples<channels>
     virtual void process_by_sample(uint64_t nsamples, std::vector<double>&,
-                                   std::vector<double>&)               = 0; // channels<samples>
+                                   std::vector<double>&) = 0;  // channels<samples>
 
    protected:
     virtual bool realize_filter(unsigned int nchannels, double init) = 0;
     virtual void unrealize_filter() {};
 
    protected:
-    std::string  description_;
-    bool         realized_  = false;
+    std::string description_;
+    bool realized_ = false;
     unsigned int nchannels_ = 0;
 };
 
@@ -141,11 +141,11 @@ class FirFilter : public IFilter {
 
    protected:
     std::vector<double> coefficients_;
-    double*             pcoefficients_;
-    unsigned int        ntaps_;
+    double* pcoefficients_;
+    unsigned int ntaps_;
 
     std::vector<std::vector<double>> registers_;
-    std::vector<double*>             pregisters_;
+    std::vector<double*> pregisters_;
 
     double* preg_;
 };
@@ -165,14 +165,14 @@ class SlopeFilter : public FirFilter {
     virtual IFilter* clone() { return new SlopeFilter(window_size_, order_, derivative_order_); };
 
    protected:
-    size_t   window_size_;
+    size_t window_size_;
     uint32_t order_;
     uint32_t derivative_order_;
 
    public:
-    static constexpr uint16_t DEFAULT_WINDOW_SIZE      = 4;
-    static constexpr uint8_t  DEFAULT_ORDER            = 1;
-    static constexpr uint8_t  DEFAULT_DERIVATIVE_ORDER = 1;
+    static constexpr uint16_t DEFAULT_WINDOW_SIZE = 4;
+    static constexpr uint8_t DEFAULT_ORDER = 1;
+    static constexpr uint8_t DEFAULT_DERIVATIVE_ORDER = 1;
 };
 
 class BiquadFilter : public IFilter {
@@ -220,7 +220,7 @@ class BiquadFilter : public IFilter {
     void unrealize_filter() final;
 
    protected:
-    double                             gain_;
+    double gain_;
     std::vector<std::array<double, 6>> coefficients_;
 
     unsigned int nstages_;
@@ -229,9 +229,9 @@ class BiquadFilter : public IFilter {
 };
 
 std::map<std::string, std::string> parse_file_header(std::istream& stream);
-IFilter*                           construct_from_file(std::string file);
+IFilter* construct_from_file(std::string file);
 
 IFilter* construct_from_yaml(const YAML::Node& node);
 
-} // namespace filter
-} // namespace dsp
+}  // namespace filter
+}  // namespace dsp

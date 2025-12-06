@@ -50,37 +50,37 @@ class Data : public IData<Data, ParentType> {
 
     Parameters parameters() const { return Parameters(default_event_); }
 
-    void        ClearData() override;
+    void ClearData() override;
     std::string event() const;
-    size_t      hash() const;
-    size_t      size() const;
-    void        set_event(std::string event);
-    void        set_event(const Data& source);
+    size_t hash() const;
+    size_t size() const;
+    void set_event(std::string event);
+    void set_event(const Data& source);
 
     friend bool operator==(const Data& e1, const Data& e2);
     friend bool operator!=(const Data& e1, const Data& e2);
 
-    void SerializeBinary(std::ostream&         stream,
+    void SerializeBinary(std::ostream& stream,
                          Serialization::Format format = Serialization::Format::FULL) const override;
-    void SerializeYAML(YAML::Node&           node,
+    void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override;
 
     void SerializeFlatBuffer(flexbuffers::Builder& fbb) override;
 
-    void YAMLDescription(YAML::Node&           node,
+    void YAMLDescription(YAML::Node& node,
                          Serialization::Format format = Serialization::Format::FULL) const override;
 
    protected:
     std::string default_event_;
     std::string event_;
-    size_t      hash_;
+    size_t hash_;
 
     static const unsigned int EVENT_STRING_LENGTH = 128;
 };
 
 using Capabilities = ParentType::Capabilities;
 
-} // namespace nsEventType
+}  // namespace nsEventType
 
 using EventType = DefineType<nsEventType::Data, AnyType, true, nsEventType::Capabilities,
                              nsEventType::Parameters>;
@@ -99,4 +99,4 @@ struct convert<EventType::Data> {
         return true;
     }
 };
-} // namespace YAML
+}  // namespace YAML

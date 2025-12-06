@@ -56,10 +56,10 @@ class EventFilter : public EventSync {
      * @return the alive status of the processor, the flag of found target and
      * the timestamp of the target event detected
      */
-    std::tuple<bool, bool, std::size_t> is_there_target(PortIn<EventType>*      input_port,
-                                                        EventCounter&           event_counter,
+    std::tuple<bool, bool, std::size_t> is_there_target(PortIn<EventType>* input_port,
+                                                        EventCounter& event_counter,
                                                         std::vector<TimePoint>& arrival_times,
-                                                        std::vector<uint64_t>&  arrival_timestamps);
+                                                        std::vector<uint64_t>& arrival_timestamps);
 
     // return time in milliseconds past from two given time points t1 and t2
     inline double time_between(TimePoint t2, TimePoint t1) {
@@ -76,9 +76,9 @@ class EventFilter : public EventSync {
 
     // VARIABLES
    protected:
-    unsigned int                              n_blocked_events_;
-    EventCounter                              blocking_events_counter_;
-    TimePoint                                 gate_close_time_;
+    unsigned int n_blocked_events_;
+    EventCounter blocking_events_counter_;
+    TimePoint gate_close_time_;
     std::chrono::duration<double, std::milli> duration;
 
     // CONSTANTS
@@ -93,6 +93,6 @@ class EventFilter : public EventSync {
 
     options::Measurement<double, false> sync_time_{3.5, "ms", options::positive<double>()};
 
-    options::Bool           discard_warnings_{false};
+    options::Bool discard_warnings_{false};
     DetectionCriterionValue detections_to_criterion_{1};
 };

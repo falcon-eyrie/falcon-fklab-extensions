@@ -63,7 +63,7 @@ void DigitalState::set_state(std::vector<uint32_t> channels, bool value) {
     for (auto& it : channels) {
         if (it >= nchannels()) {
             continue;
-        } // fail silently
+        }  // fail silently
         state_[it] = value;
     }
 }
@@ -87,7 +87,7 @@ void DigitalState::set_state(std::vector<uint32_t> channels, std::vector<bool> v
     for (unsigned int k = 0; k < channels.size(); ++k) {
         if (channels[k] >= nchannels()) {
             continue;
-        } // fail silently
+        }  // fail silently
         state_[channels[k]] = values[k];
     }
 }
@@ -100,7 +100,7 @@ void DigitalState::toggle_state(std::vector<uint32_t> channels) {
     for (auto& it : channels) {
         if (it >= nchannels()) {
             continue;
-        } // fail silently
+        }  // fail silently
         state_[it] = !state_[it];
     }
 }
@@ -131,7 +131,7 @@ DigitalOutputProtocol::DigitalOutputProtocol(uint32_t nchannels, unsigned int pu
 }
 
 void DigitalOutputProtocol::set_mode(uint32_t channel, DigitalOutputMode mode) {
-    if (channel <= nchannels_) { // fail silently
+    if (channel <= nchannels_) {  // fail silently
         mode_[channel] = mode;
     }
 }
@@ -163,9 +163,9 @@ std::vector<uint32_t> DigitalOutputProtocol::find_channels(DigitalOutputMode mod
 }
 
 void DigitalOutputProtocol::execute(DigitalDevice& device) {
-    DigitalState          state(nchannels_);
+    DigitalState state(nchannels_);
     std::vector<uint32_t> channels;
-    state    = device.read_state();
+    state = device.read_state();
     channels = find_channels(DigitalOutputMode::HIGH);
     state.set_state(channels, true);
     channels = find_channels(DigitalOutputMode::LOW);
@@ -176,7 +176,7 @@ void DigitalOutputProtocol::execute(DigitalDevice& device) {
     state.set_state(channels, true);
     device.write_state(state);
 
-    if (channels.size() > 0) { // some channels are pulsed
+    if (channels.size() > 0) {  // some channels are pulsed
         custom_sleep_for(pulse_width_);
         state.set_state(channels, false);
         device.write_state(state);

@@ -58,9 +58,9 @@ void FalconProcessor::Preprocess(ProcessingContext& context) {
 }
 
 void FalconProcessor::Process(ProcessingContext& context) {
-    AnyData* data_in  = nullptr;
+    AnyData* data_in = nullptr;
     AnyData* data_out = nullptr;
-    T1       temp1    = 0;
+    T1 temp1 = 0;
 
     while (!context.terminated()) {
         if (!data_in_port_->slot(0)->RetrieveData(data_in)) {

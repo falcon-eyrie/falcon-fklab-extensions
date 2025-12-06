@@ -102,19 +102,19 @@ void EventFilter::Preprocess(ProcessingContext& context) {
 }
 
 void EventFilter::Process(ProcessingContext& context) {
-    EventType::Data* data_out             = nullptr;
-    bool             alive                = false;
-    bool             detection_criterion  = false;
-    bool             event_received       = false;
-    SlotType         counter_to_detection = 0;
-    bool             detection_block      = false;
-    std::size_t      slot_last            = 0;
-    bool             gate_just_closed     = false;
-    TimePoint        t_detection;
+    EventType::Data* data_out = nullptr;
+    bool alive = false;
+    bool detection_criterion = false;
+    bool event_received = false;
+    SlotType counter_to_detection = 0;
+    bool detection_block = false;
+    std::size_t slot_last = 0;
+    bool gate_just_closed = false;
+    TimePoint t_detection;
 
     std::vector<TimePoint> arrival_times_per_slot_events(data_in_port_->number_of_slots(),
                                                          std::numeric_limits<TimePoint>::min());
-    std::vector<uint64_t>  arrival_hwTS_per_slot_events(data_in_port_->number_of_slots(), 0);
+    std::vector<uint64_t> arrival_hwTS_per_slot_events(data_in_port_->number_of_slots(), 0);
 
     // not used but needs to be passed
     std::vector<TimePoint> arrival_times_per_slot_blocking_events(
@@ -158,11 +158,11 @@ void EventFilter::Process(ProcessingContext& context) {
 
             if (detection_block) {
                 gate_close_time_ = Clock::now();
-                detection_block  = false;
+                detection_block = false;
             }
         }
 
-        if (detection_criterion) { // check again as flag might have just
+        if (detection_criterion) {  // check again as flag might have just
             // changed
             t_detection = Clock::now();
             // check if gate is closed
@@ -184,7 +184,7 @@ void EventFilter::Process(ProcessingContext& context) {
 
                     if (!alive) {
                         break;
-                    } // exit inner while loop
+                    }  // exit inner while loop
 
                     if (gate_just_closed) {
                         ++n_blocked_events_;
@@ -192,14 +192,14 @@ void EventFilter::Process(ProcessingContext& context) {
                                     << " was filtered out (blocking event "
                                        "arrived after target).";
                         detection_criterion = false;
-                        gate_close_time_    = Clock::now();
+                        gate_close_time_ = Clock::now();
                     }
                 }
                 if (!alive) {
                     break;
-                } // break outer (context) while loop
+                }  // break outer (context) while loop
 
-                if (!gate_just_closed) { // no post detection block
+                if (!gate_just_closed) {  // no post detection block
                     // finally send event
                     data_out = data_out_port_->slot(0)->ClaimData(false);
                     data_out->set_hardware_timestamp(arrival_hwTS_per_slot_events[slot_last]);
@@ -227,8 +227,8 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
     PortIn<EventType>* input_port, EventCounter& event_counter,
     std::vector<TimePoint>& arrival_times, std::vector<uint64_t>& arrival_timestamps) {
     std::vector<EventType::Data*> data_in;
-    std::size_t                   slot_index      = std::numeric_limits<std::size_t>::max();
-    bool                          target_received = false;
+    std::size_t slot_index = std::numeric_limits<std::size_t>::max();
+    bool target_received = false;
 
     for (decltype(input_port->number_of_slots()) s = 0; s < input_port->number_of_slots(); ++s) {
         // check if processor is still alive
@@ -260,11 +260,11 @@ std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
                        << " on port " << input_port->name() << " slot " << s;
 
             ++event_counter.target;
-            arrival_times[s]      = Clock::now();
+            arrival_times[s] = Clock::now();
             arrival_timestamps[s] = data_in.back()->hardware_timestamp();
-            target_received       = true;
-            slot_index            = s;
-        } else { // non-target event received
+            target_received = true;
+            slot_index = s;
+        } else {  // non-target event received
             LOG(DEBUG) << name() << ". Received non-target event: " << data_in.back()->event()
                        << " on port " << input_port->name() << " slot " << s;
             ++event_counter.non_target;

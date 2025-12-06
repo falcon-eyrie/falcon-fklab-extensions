@@ -95,7 +95,7 @@ char serialib::openDevice(const char* Device, const unsigned int Bauds) {
     hSerial = CreateFileA(Device, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
                           FILE_ATTRIBUTE_NORMAL, 0);
     if (hSerial == INVALID_HANDLE_VALUE) {
-        if (GetLastError() == ERROR_FILE_NOT_FOUND) return -1; // Device not found
+        if (GetLastError() == ERROR_FILE_NOT_FOUND) return -1;  // Device not found
 
         // Error while opening the device
         return -2;
@@ -175,9 +175,9 @@ char serialib::openDevice(const char* Device, const unsigned int Bauds) {
     // Set the Timeout parameters
     timeouts.ReadIntervalTimeout = 0;
     // No TimeOut
-    timeouts.ReadTotalTimeoutConstant    = MAXDWORD;
-    timeouts.ReadTotalTimeoutMultiplier  = 0;
-    timeouts.WriteTotalTimeoutConstant   = MAXDWORD;
+    timeouts.ReadTotalTimeoutConstant = MAXDWORD;
+    timeouts.ReadTotalTimeoutMultiplier = 0;
+    timeouts.WriteTotalTimeoutConstant = MAXDWORD;
     timeouts.WriteTotalTimeoutMultiplier = 0;
 
     // Write the parameters
@@ -398,9 +398,9 @@ char serialib::readChar(char* pByte, unsigned int timeOut_ms) {
         // Try to read a byte on the device
         switch (read(fd, pByte, 1)) {
             case 1:
-                return 1; // Read successfull
+                return 1;  // Read successfull
             case -1:
-                return -2; // Error while reading
+                return -2;  // Error while reading
         }
     }
     return 0;
@@ -473,7 +473,7 @@ int serialib::readString(char* receivedString, char finalChar, unsigned int maxN
     // Character read on serial device
     char charRead;
     // Timer used for timeout
-    timeOut  timer;
+    timeOut timer;
     long int timeOutParam;
 
     // Initialize the timer (for timeout)
@@ -906,7 +906,7 @@ unsigned long int timeOut::elapsedTime_ms() {
     gettimeofday(&CurrentTime, NULL);
 
     // Compute the number of seconds and microseconds elapsed since last call
-    sec  = CurrentTime.tv_sec - previousTime.tv_sec;
+    sec = CurrentTime.tv_sec - previousTime.tv_sec;
     usec = CurrentTime.tv_usec - previousTime.tv_usec;
 
     // If the previous usec is higher than the current one

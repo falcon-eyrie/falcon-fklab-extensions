@@ -71,11 +71,11 @@ void MUAEstimator::Prepare(GlobalContext& context) {
 }
 
 void MUAEstimator::Process(ProcessingContext& context) {
-    bool             alive              = true;
-    SpikeType::Data* data_in            = nullptr;
-    MUAType::Data*   data_out           = nullptr;
-    uint64_t         hardware_timestamp = std::numeric_limits<uint64_t>::max();
-    std::uint64_t    spike_counter;
+    bool alive = true;
+    SpikeType::Data* data_in = nullptr;
+    MUAType::Data* data_out = nullptr;
+    uint64_t hardware_timestamp = std::numeric_limits<uint64_t>::max();
+    std::uint64_t spike_counter;
 
     while (!context.terminated()) {
         spike_counter = 0;

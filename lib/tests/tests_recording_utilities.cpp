@@ -40,8 +40,8 @@ TEST(AddChannels, onebyone) {
 }
 
 TEST(AddChannels, fromvector) {
-    std::vector<int> input      = {1, 3, 4};
-    auto             channelist = ChannelList<int>();
+    std::vector<int> input = {1, 3, 4};
+    auto channelist = ChannelList<int>();
     channelist.add_channels(input);
 
     auto result = channelist.get_channels();
@@ -51,7 +51,7 @@ TEST(AddChannels, fromvector) {
 
     channelist.add_channels(input);
 
-    result                           = channelist.get_channels();
+    result = channelist.get_channels();
     std::vector<int> expected_output = {1, 3, 4, 1, 3, 4};
     EXPECT_EQ(result.size(), 6);
     EXPECT_EQ(result, expected_output);
@@ -61,36 +61,36 @@ TEST(AddChannels, fromrange) {
     auto channelist = ChannelList<int>();
     channelist.add_channels(1, 4);
 
-    auto             result          = channelist.get_channels();
+    auto result = channelist.get_channels();
     std::vector<int> expected_output = {1, 2, 3, 4};
     EXPECT_EQ(result.size(), 4);
     EXPECT_EQ(result, expected_output);
 
     channelist.add_channels(5, 7);
 
-    result          = channelist.get_channels();
+    result = channelist.get_channels();
     expected_output = {1, 2, 3, 4, 5, 6, 7};
     EXPECT_EQ(result.size(), 7);
     EXPECT_EQ(result, expected_output);
 }
 
 TEST(RemoveChannels, fromvector) {
-    std::vector<int> input      = {1, 3, 4};
-    auto             channelist = ChannelList<int>();
+    std::vector<int> input = {1, 3, 4};
+    auto channelist = ChannelList<int>();
     channelist.add_channels(1, 9);
     channelist.remove_channels(input);
-    auto             result          = channelist.get_channels();
+    auto result = channelist.get_channels();
     std::vector<int> expected_output = {2, 5, 6, 7, 8, 9};
     EXPECT_EQ(result.size(), 6);
     EXPECT_EQ(result, expected_output);
 }
 
 TEST(RemoveChannels, fromrange) {
-    std::vector<int> input      = {1, 3, 4};
-    auto             channelist = ChannelList<int>();
+    std::vector<int> input = {1, 3, 4};
+    auto channelist = ChannelList<int>();
     channelist.add_channels(1, 9);
     channelist.remove_channels(1, 4);
-    auto             result          = channelist.get_channels();
+    auto result = channelist.get_channels();
     std::vector<int> expected_output = {5, 6, 7, 8, 9};
     EXPECT_EQ(result.size(), 5);
     EXPECT_EQ(result, expected_output);
@@ -133,8 +133,8 @@ TEST(InspectChannels, printmixlist) {
 }
 
 TEST(DecodeYaml, simplelist) {
-    YAML::Node node       = YAML::Load("[1,2,3]");
-    auto       channelist = node.as<ChannelList<int>>();
+    YAML::Node node = YAML::Load("[1,2,3]");
+    auto channelist = node.as<ChannelList<int>>();
     EXPECT_EQ(channelist.size(), 3);
 
     std::vector<int> expected_output = {1, 2, 3};
@@ -142,8 +142,8 @@ TEST(DecodeYaml, simplelist) {
 }
 
 TEST(DecodeYaml, withrange) {
-    YAML::Node node       = YAML::Load("[1-3]");
-    auto       channelist = node.as<ChannelList<int>>();
+    YAML::Node node = YAML::Load("[1-3]");
+    auto channelist = node.as<ChannelList<int>>();
     EXPECT_EQ(channelist.size(), 3);
 
     std::vector<int> expected_output = {1, 2, 3};
@@ -151,15 +151,15 @@ TEST(DecodeYaml, withrange) {
 }
 
 TEST(DecodeYaml, withmixt) {
-    YAML::Node node       = YAML::Load("[1-3, 7, 1 - 3]");
-    auto       channelist = node.as<ChannelList<int>>();
+    YAML::Node node = YAML::Load("[1-3, 7, 1 - 3]");
+    auto channelist = node.as<ChannelList<int>>();
     EXPECT_EQ(channelist.size(), 7);
 
     std::vector<int> expected_output = {1, 2, 3, 7, 1, 2, 3};
     EXPECT_EQ(channelist.get_channels(), expected_output);
 }
 
-} // namespace
+}  // namespace
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

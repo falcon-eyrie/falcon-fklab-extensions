@@ -89,7 +89,7 @@ std::string RippleSource::string() {
     std::string ripples;
     std::string general_ripples;
     for (auto it = ripple_params_.begin(); it != ripple_params_.end(); ++it) {
-        auto key   = it->first;
+        auto key = it->first;
         auto value = it->second;
 
         if (key.as<std::string>() == "*") {
@@ -128,7 +128,7 @@ int64_t RippleSource::Produce(char** data) {
     timestamp_ = timestamp_ + delta_;
 
     auto n = record_.ToNetworkBuffer(buffer_);
-    *data  = buffer_.data();
+    *data = buffer_.data();
 
     return n;
 }
@@ -139,23 +139,23 @@ double RippleSource::generate_one_signal(params_by_channel_t* pparams) {
     if (!pparams->ripple and pparams->counter > pparams->interval) {
         // starting a ripple at the end of the interval segment
         pparams->amplitude = poisson_distribution_(generator_);
-        pparams->counter   = -pparams->duration / 2;
-        pparams->ripple    = true;
+        pparams->counter = -pparams->duration / 2;
+        pparams->ripple = true;
     }
 
     ++pparams->counter;
-    if (pparams->ripple and pparams->counter < pparams->duration / 2) { // generating ripple values
+    if (pparams->ripple and pparams->counter < pparams->duration / 2) {  // generating ripple values
         current_amplitude =
             pparams->amplitude *
             std::exp(-0.5 * std::pow(4.0 * pparams->counter / pparams->duration, 2)) *
             std::cos(pparams->counter * omega_);
-    } else { // interval segment = amplitude of the signal = 0
+    } else {  // interval segment = amplitude of the signal = 0
         current_amplitude = 0;
 
         if (pparams->ripple) {
             // starting an interval segment at the end of the ripple signal
             pparams->counter = 0;
-            pparams->ripple  = false;
+            pparams->ripple = false;
         }
     }
 
@@ -165,14 +165,14 @@ double RippleSource::generate_one_signal(params_by_channel_t* pparams) {
 YAML::Node RippleSource::to_yaml() const {
     YAML::Node node;
 
-    node["offset"]                = offset_;
+    node["offset"] = offset_;
     node["mean ripple amplitude"] = mean_amplitude_;
-    node["frequency"]             = frequency_;
-    node["ripple param"]          = ripple_params_;
-    node["sampling_rate"]         = sampling_rate_;
-    node["noise_stdev"]           = noise_stdev_;
-    node["nchannels"]             = nchannels_;
-    node["convert_byte_order"]    = convert_byte_order_;
+    node["frequency"] = frequency_;
+    node["ripple param"] = ripple_params_;
+    node["sampling_rate"] = sampling_rate_;
+    node["noise_stdev"] = noise_stdev_;
+    node["nchannels"] = nchannels_;
+    node["convert_byte_order"] = convert_byte_order_;
 
     return node;
 }

@@ -111,8 +111,8 @@ void EventDelayed::CreatePorts() {
 
     analysis_unlocked_ =
         create_broadcaster_state("analysis enabled", true,
-                                 Permission::READ); // connected to the ripple detection processor
-                                                    // to disable/enabled ripple processing
+                                 Permission::READ);  // connected to the ripple detection processor
+                                                     // to disable/enabled ripple processing
 }
 
 void EventDelayed::CompleteStreamInfo() {
@@ -120,16 +120,16 @@ void EventDelayed::CompleteStreamInfo() {
 }
 
 void EventDelayed::Preprocess(ProcessingContext& context) {
-    ontime_received_event_  = 0;
+    ontime_received_event_ = 0;
     delayed_received_event_ = 0;
-    event_lockout_          = 0;
+    event_lockout_ = 0;
 
     // initialize enough if the past to be sure the first stimulation won't be
     // lockout
     previous_TS_nostim_ =
         Clock::now() - std::chrono::milliseconds((long int) stop_detection_period_->get() + 10);
 
-    std::string path     = context.resolve_path("run://", "run");
+    std::string path = context.resolve_path("run://", "run");
     std::string filepath = path + name();
 
     create_file(filepath, prefix_() + msg_delayed_());
@@ -138,9 +138,9 @@ void EventDelayed::Preprocess(ProcessingContext& context) {
 }
 
 void EventDelayed::Process(ProcessingContext& context) {
-    EventType::Data*   data_in = nullptr;
+    EventType::Data* data_in = nullptr;
     std::random_device rd;
-    std::mt19937       generator_(rd()); // Standard mersenne_twister_engine (Higher
+    std::mt19937 generator_(rd());  // Standard mersenne_twister_engine (Higher
     // complexity / randomness)
     std::uniform_int_distribution<> distrib(delayed_range_.lower(), delayed_range_.upper());
 
@@ -176,7 +176,7 @@ void EventDelayed::Process(ProcessingContext& context) {
 
             while (!delayed_event_queue_.empty() and
                    delayed_event_queue_.top().ts <
-                       Clock::now()) { // Remove any stimulations which would
+                       Clock::now()) {  // Remove any stimulations which would
                 // have happened during the
                 // detection/stimulation lockout
                 LOG(DEBUG) << name() << "The stimulation of this "
@@ -266,7 +266,7 @@ void EventDelayed::send_event(EventType::Data* data_in, std::string type) {
     data_out->set_source_timestamp();
     output_port_->slot(0)->PublishData();
 
-    if (save_events_()) { // save stim events to disk
+    if (save_events_()) {  // save stim events to disk
         uint64_t serial_number = data_in->serial_number();
         LOG(DEBUG) << prefix_() << type;
         streams_[prefix_() + type]->write(reinterpret_cast<const char*>(&serial_number),
@@ -280,9 +280,9 @@ void EventDelayed::Postprocess(ProcessingContext& context) {
         "ontime and " + std::to_string(delayed_received_event_) + " delayed with " +
         std::to_string(event_lockout_) + " events locked out.";
 
-    ontime_received_event_  = 0;
+    ontime_received_event_ = 0;
     delayed_received_event_ = 0;
-    event_lockout_          = 0;
+    event_lockout_ = 0;
 }
 
 bool EventDelayed::to_lock_out_in_future(TimePoint start_event) {
