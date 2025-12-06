@@ -47,6 +47,6 @@ class TestBenchConfiguration : public Configuration {
     options::Int port{5000};
     options::Measurement<double> stream_rate{5000, "Hz", options::positive<double>(true)};
     options::Value<uint64_t, false> npackets{0};
-    options::Int autostart{-1};
+    options::NullableInt autostart;
     options::Value<YAML::Node, true> sources{YAML::Load("class: default")};
 };

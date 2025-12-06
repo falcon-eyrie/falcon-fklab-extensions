@@ -25,7 +25,6 @@ jobs:
           mkdir -p falcon-core/extensions
           cp -a falcon-fklab-extensions falcon-core/extensions/
 
-
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -41,8 +40,6 @@ jobs:
           sh scripts/setup/install_cmake.sh
           sh scripts/setup/install_clang_format.sh
 
-
-      # Disabled for now, will enable in another PR
       - name: Run format check
         run: |
           sh scripts/format.sh
