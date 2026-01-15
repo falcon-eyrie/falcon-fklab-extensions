@@ -29,7 +29,7 @@ BurstDetector::BurstDetector() : IProcessor() {
                "Lockout time (in seconds) to avoid over-stimulation.");
     add_option(STREAM_EVENTS, default_stream_events_, "Enable streaming of burst events.");
     add_option(STREAM_STATISTICS, initial_stats_out_, "Enable streaming of statistics.");
-    add_option("statistics buffer size", stats_buffer_size_,
+    add_option("statistics_buffer_size", stats_buffer_size_,
                "Size (in seconds) for statistics output buffers.");
 }
 
