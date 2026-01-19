@@ -20,7 +20,7 @@
 #include "event2state.hpp"
 
 Event2State::Event2State() : IProcessor() {
-    add_option("target event", target_event_, "The target event that sets the state to true");
+    add_option("target_event", target_event_, "The target event that sets the state to true");
 }
 
 void Event2State::CreatePorts() {
