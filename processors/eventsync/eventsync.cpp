@@ -20,7 +20,7 @@
 #include "eventsync.hpp"
 
 EventSync::EventSync() : IProcessor() {
-    add_option("target event", target_event_, "The event to synchronize on.");
+    add_option("target_event", target_event_, "The event to synchronize on.");
 }
 
 void EventSync::CreatePorts() {

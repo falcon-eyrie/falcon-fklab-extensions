@@ -70,7 +70,7 @@ class LevelCrossingDetector : public IProcessor {
     const unsigned int LOW_POST_DETECTION_BLOCK_US = 30;
     const std::string THRESHOLD = "threshold";
     const std::string UPSLOPE = "upslope";
-    const std::string POST_DETECT_BLOCK = "post detect block";
+    const std::string POST_DETECT_BLOCK = "post_detect_block";
 
     // OPTIONS
    protected:

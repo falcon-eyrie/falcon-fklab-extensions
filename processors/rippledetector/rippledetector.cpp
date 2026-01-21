@@ -31,11 +31,11 @@ RippleDetector::RippleDetector() : IProcessor() {
                "Lockout time (in ms) to avoid over-stimulation.");
     add_option(STREAM_EVENTS, default_stream_events_, "Enable streaming of ripple events.");
     add_option(STREAM_STATISTICS, initial_stats_out_, "Enable streaming of statistics.");
-    add_option("statistics buffer size", stats_buffer_size_,
+    add_option("statistics_buffer_size", stats_buffer_size_,
                "Size (in seconds) for statistics output buffers.");
-    add_option("statistics downsample factor", stats_downsample_factor_,
+    add_option("statistics_downsample_factor", stats_downsample_factor_,
                "Downsample factor of streamed statistics signal");
-    add_option("use power", use_power_, "Use power of signal for detection.");
+    add_option("use_power", use_power_, "Use power of signal for detection.");
 }
 
 void RippleDetector::CreatePorts() {
