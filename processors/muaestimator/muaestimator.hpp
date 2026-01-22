@@ -53,7 +53,7 @@ class MUAEstimator : public IProcessor {
 
     // CONSTANTS
    public:
-    const std::string BIN_SIZE = "bin size";
+    const std::string BIN_SIZE = "bin_size";
 
     // OPTIONS
    protected:

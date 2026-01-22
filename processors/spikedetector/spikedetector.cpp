@@ -21,10 +21,10 @@
 
 SpikeDetector::SpikeDetector() : IProcessor() {
     add_option(THRESHOLD, initial_threshold_, "Spike detection threshold in data units.");
-    add_option("invert signal", invert_signal_, "Invert signal before spike detection.");
-    add_option("buffer size", buffer_size_,
+    add_option("invert_signal", invert_signal_, "Invert signal before spike detection.");
+    add_option("buffer_size", buffer_size_,
                "Size (in seconds) of data buffer used for spike detection.");
-    add_option("strict time bin check", strict_time_bin_check_,
+    add_option("strict_time_bin_check", strict_time_bin_check_,
                "Strict check of compatibility of spike detection buffer size "
                "with the upstream processor");
     add_option(PEAK_LIFETIME, initial_peak_lifetime_, "Peak life time in samples");

@@ -52,18 +52,18 @@ GapFill string_to_gapfill(std::string s) {
 }
 
 NlxParser::NlxParser() : IProcessor(PRIORITY_HIGH) {
-    add_option("batch size", batch_size_,
+    add_option("batch_size", batch_size_,
                "The number of data packets to concatenate into "
                "single multi-channel data bucket.");
-    add_option("update interval", update_interval_,
+    add_option("update_interval", update_interval_,
                "The time interval for updates on the received data from "
                "the Digilynx acquisition system.");
-    add_option("trigger/enabled", triggered_,
+    add_option("trigger_enabled", triggered_,
                "Whether or not to wait for hardware trigger to start "
                "streaming data packets.");
-    add_option("trigger/channel", hardware_trigger_channel_,
+    add_option("trigger_channel", hardware_trigger_channel_,
                "Digital input channel to use as hardware trigger");
-    add_option("gap fill", gap_fill_,
+    add_option("gap_fill", gap_fill_,
                "Method of filling in missing data packets. If 'none', no filling of "
                "missed packets is performed. If 'asap', all missed packets will be "
                "filled with last available batch of samples. If 'distributed', "
