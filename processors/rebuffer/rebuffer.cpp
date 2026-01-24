@@ -24,8 +24,8 @@
 #include "utilities/time.hpp"
 
 Rebuffer::Rebuffer() : IProcessor() {
-    add_option("downsample factor", downsample_factor_, "The factor for downsampling the signal.");
-    add_option("buffer size", buffer_size_, "Output buffer size in samples or seconds.");
+    add_option("downsample_factor", downsample_factor_, "The factor for downsampling the signal.");
+    add_option("buffer_size", buffer_size_, "Output buffer size in samples or seconds.");
 }
 
 void Rebuffer::CreatePorts() {

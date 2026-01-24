@@ -56,6 +56,7 @@ void EventSource::Process(ProcessingContext& context) {
     while (!context.terminated()) {
         std::this_thread::sleep_for(delay);
         data = event_port_->slot(0)->ClaimData(false);
+        data->set_ingestion_ns();
         data->set_source_timestamp();
         data->set_hardware_timestamp(
             static_cast<uint64_t>(data->time_since(context.run().start_time()).count()));

@@ -1,0 +1,7 @@
+Description: A processor that benchmarks event processing performance by measuring the difference in time between event's source timestamp and now.
+
+Input port:
+  - name: events
+    type: AnyType
+    slots: 1-256
+    description: Input events to be benchmarked.
