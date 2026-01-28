@@ -34,9 +34,20 @@ void LatencyBenchmark::Process(ProcessingContext& context) {
             auto benchmarkedAt = std::chrono::duration_cast<std::chrono::nanoseconds>(
                                      std::chrono::steady_clock::now().time_since_epoch())
                                      .count();
-
             samples_buffer_.push_back({ingestedAt, benchmarkedAt});
+
+            auto separate_digits = [](int64_t n) {
+                std::string num_str = std::to_string(n);
+                int insert_position = num_str.length() - 3;
+                while (insert_position > 0) {
+                    num_str.insert(insert_position, "_");
+                    insert_position -= 3;
+                }
+                return num_str;
+            };
+
             if (samples_buffer_.size() == BATCH) {
+                LOG(INFO) << separate_digits(benchmarkedAt - ingestedAt);
                 output_file_.write(reinterpret_cast<const char*>(samples_buffer_.data()),
                                    samples_buffer_.size() * sizeof(LatencySample));
                 samples_buffer_.clear();

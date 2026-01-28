@@ -84,25 +84,36 @@ void MultiChannelFilter::Process(ProcessingContext& context) {
     while (!context.terminated()) {
         // go through all slots
         for (k = 0; k < nslots; ++k) {
-            // retrieve new data
-            if (!data_in_port_->slot(k)->RetrieveData(data_in)) {
-                break;
-            }
+            uint64_t sync_start = __rdtsc();
 
-            // claim output data buckets
+            bool has_data = data_in_port_->slot(k)->RetrieveData(data_in);
+            if (!has_data) break;
             data_out = data_out_port_->slot(k)->ClaimData(false);
 
-            // filter incoming data
+            uint64_t sync_end = __rdtsc();
+
+            uint64_t work_start = __rdtsc();
+
             filters_[k]->process_by_channel(data_in->nsamples(), data_in->data(), data_out->data());
 
             data_out->set_sample_timestamps(data_in->sample_timestamps());
             data_out->CloneTimestamps(*data_in);
+            data_out->forward_ingestion_ns(*data_in);
 
             // publish and release data
             data_out_port_->slot(k)->PublishData();
             data_in_port_->slot(k)->ReleaseData();
+
+            
+            uint64_t work_end = __rdtsc();
+
+            record_metrics(sync_end - sync_start, work_end - work_start);
         }
     }
+}
+
+void MultiChannelFilter::Postprocess(ProcessingContext& context) {
+    dump_benchmarks();
 }
 
 REGISTERPROCESSOR(MultiChannelFilter)

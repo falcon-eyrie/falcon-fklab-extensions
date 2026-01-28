@@ -59,6 +59,7 @@ void EventSync::Process(ProcessingContext& context) {
             data_out->set_source_timestamp();
             data_out->set_hardware_timestamp(timestamps_.hw);
             data_out->set_event(target_event_());
+            data_out->forward_ingestion_ns(*data_in);
             data_out_port_->slot(0)->PublishData();
             target_events_counter = 0;
             ++n_events_synced_;

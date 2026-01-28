@@ -22,7 +22,7 @@ class LatencyBenchmark : public IProcessor {
 
     // CONSTANTS
    public:
-    static constexpr size_t BATCH = 4096;
+    static constexpr size_t BATCH = 32;
 
     // DATA PORTS
    protected:

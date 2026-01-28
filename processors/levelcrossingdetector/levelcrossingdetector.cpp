@@ -75,9 +75,15 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
     unsigned int nblock = 0;
 
     while (!context.terminated()) {
+        auto sync_start = __rdtsc();
+
         if (!data_in_port_->slot(0)->RetrieveData(data_in_)) {
             break;
         }
+
+        auto sync_end = __rdtsc();
+
+        auto work_start = __rdtsc();
 
         threshold = threshold_->get();
         upslope = upslope_->get();
@@ -124,6 +130,7 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
                 data_out_->set_source_timestamp(data_in_->source_timestamp());
                 data_out_->set_hardware_timestamp(data_in_->sample_timestamp(s));
                 data_out_->set_serial_number(data_in_->serial_number());
+                data_out_->forward_ingestion_ns(*data_in_);
                 data_out_->set_event(event_prototype_());
                 data_out_port_->slot(0)->PublishData();
 
@@ -144,6 +151,8 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
         }
 
         data_in_port_->slot(0)->ReleaseData();
+        auto work_end = __rdtsc();
+        record_metrics(sync_end - sync_start, work_end - work_start);
     }
 }
 
@@ -151,6 +160,7 @@ void LevelCrossingDetector::Postprocess(ProcessingContext& context) {
     LOG(INFO) << name() << ". " << n_detections_ << " detections of event "
               << event_prototype_().event() << " occurred.";
     n_detections_ = 0;
+    dump_benchmarks();
 }
 
 void LevelCrossingDetector::post_detection_block_update(unsigned int post_detection_block) {
