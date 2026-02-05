@@ -36,7 +36,9 @@ class LevelCrossingDetector : public IProcessor {
     void Preprocess(ProcessingContext& context) override;
     void Process(ProcessingContext& context) override;
     void Postprocess(ProcessingContext& context) override;
-
+    void ExecutePrepare() override;
+    void ExecuteStep(std::vector<double> input, void* data_out_ptr) override;
+    void ExecuteCleanup() override;
     // DATA PORTS
    protected:
     PortIn<TimeSeriesType<double>>* data_in_port_;
@@ -51,9 +53,11 @@ class LevelCrossingDetector : public IProcessor {
     // VARIABLES
    protected:
     std::vector<double> previous_sample_;
-    uint64_t n_detections_;
+    uint64_t n_detections_ = 0;
     TimeSeriesType<double>::Data* data_in_;
     EventType::Data* data_out_;
+    unsigned int nblock_ = 0;
+    unsigned int last_post_block_ = 0;
 
     // METHODS
    protected:

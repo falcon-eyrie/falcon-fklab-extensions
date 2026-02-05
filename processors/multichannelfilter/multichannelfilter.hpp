@@ -36,7 +36,8 @@ class MultiChannelFilter : public IProcessor {
     void Prepare(GlobalContext& context) override;
     void Process(ProcessingContext& context) override;
     void Postprocess(ProcessingContext& context) override;
-
+    void ExecuteStep(std::vector<double> input, std::vector<double> output) override;
+    void ExecutePrepare() override;
     // VARIABLES
    protected:
     std::unique_ptr<dsp::filter::IFilter> filter_template_;

@@ -61,6 +61,7 @@ class IFilter {
     virtual void process_sample(std::vector<double>&, std::vector<double>&) = 0;
     virtual void process_sample(std::vector<double>::iterator, std::vector<double>::iterator) = 0;
     virtual void process_sample(double*, double*) = 0;
+    // virtual void process_sample(std::vector<double> input, std::vector<double> output) = 0;
 
     // single channel, multiple samples
     virtual void process_channel(std::vector<double>&, std::vector<double>&,
@@ -82,6 +83,9 @@ class IFilter {
                                     std::vector<double>&) = 0;  // samples<channels>
     virtual void process_by_sample(uint64_t nsamples, std::vector<double>&,
                                    std::vector<double>&) = 0;  // channels<samples>
+
+    // virtual void process_by_channel(uint64_t nsamples, std::vector<double> input,
+    //                                 std::vector<double> output) = 0;
 
    protected:
     virtual bool realize_filter(unsigned int nchannels, double init) = 0;
@@ -135,6 +139,10 @@ class FirFilter : public IFilter {
     virtual void process_by_sample(uint64_t nsamples, std::vector<double>& input,
                                    std::vector<double>& output);
 
+    // void process_sample(std::vector<double> input, std::vector<double> output) final;
+    // virtual void process_by_channel(uint64_t nsamples, std::vector<double> input,
+    //                                 std::vector<double> output);
+
    protected:
     bool realize_filter(unsigned int nchannels, double init = 0.0) final;
     void unrealize_filter() final;
@@ -143,7 +151,7 @@ class FirFilter : public IFilter {
     std::vector<double> coefficients_;
     double* pcoefficients_;
     unsigned int ntaps_;
-
+    size_t head_ = 0;
     std::vector<std::vector<double>> registers_;
     std::vector<double*> pregisters_;
 
@@ -214,6 +222,11 @@ class BiquadFilter : public IFilter {
                                     std::vector<double>& output);
     virtual void process_by_sample(uint64_t nsamples, std::vector<double>& input,
                                    std::vector<double>& output);
+
+    // void process_sample(std::vector<double> input, std::vector<double> output) final;
+
+    // void process_by_channel(uint64_t nsamples, std::vector<double> input,
+    //                         std::vector<double> output) final;
 
    protected:
     bool realize_filter(unsigned int nchannels, double init = 0.0) final;

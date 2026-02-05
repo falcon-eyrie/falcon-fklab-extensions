@@ -17,18 +17,18 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#pragma once
+// #pragma once
 
-#include "iprocessor.hpp"
+// #include "iprocessor.hpp"
 
-class DummySink : public IProcessor {
-   public:
-    void CreatePorts() override;
-    void Process(ProcessingContext& context) override;
+// class DummySink : public IProcessor {
+//    public:
+//     void CreatePorts() override;
+//     void Process(ProcessingContext& context) override;
 
-    YAML::Node Kick(const YAML::Node& node);
+//     YAML::Node Kick(const YAML::Node& node);
 
-   protected:
-    PortIn<AnyType>* data_port_;
-    ReadableState<bool>* tickle_state_;
-};
+//    protected:
+//     PortIn<AnyType>* data_port_;
+//     ReadableState<bool>* tickle_state_;
+// };

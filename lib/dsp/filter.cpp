@@ -289,6 +289,33 @@ void FirFilter::process_sample(double* input, double* output) {
     }
 }
 
+// void FirFilter::process_sample(std::vector<double> input, std::vector<double> output) {
+//     // Increment and wrap head
+//     if (++head_ >= ntaps_) head_ = 0;
+
+//     for (unsigned int channel = 0; channel < nchannels_; ++channel) {
+//         registers_[channel][head_] = input[channel];
+
+//         double result = 0;
+//         // Iterate backwards from head for the convolution
+//         for (unsigned int k = 0; k < ntaps_; ++k) {
+//             // This is still slow-ish but better than std::rotate
+//             int idx = (int) head_ - (int) k;
+//             if (idx < 0) idx += ntaps_;
+//             result += coefficients_[k] * registers_[channel][idx];
+//         }
+//         output[channel] = result;
+//     }
+// }
+
+// void FirFilter::process_by_channel(uint64_t nsamples, std::vector<double> input,
+//                                    std::vector<double> output) {
+//     for (uint64_t s = 0; s < nsamples; ++s) {
+//         process_sample(input.subspan(s * nchannels_, nchannels_),
+//                        output.subspan(s * nchannels_, nchannels_));
+//     }
+// }
+
 void FirFilter::process_channel(std::vector<double>& input, std::vector<double>& output,
                                 unsigned int channel) {
     double result;
@@ -359,13 +386,14 @@ void FirFilter::process_by_channel(uint64_t nsamples, double** input, double** o
 
 void FirFilter::process_by_sample(uint64_t nsamples, double** input, double** output) {
     for (unsigned int c = 0; c < nchannels_; ++c) {
-        process_channel(nsamples, input[c], output[c]);
+        process_channel(nsamples, input[c], output[c], c);
     }
 }
 
 void FirFilter::process_by_channel(uint64_t nsamples, std::vector<double>& input,
                                    std::vector<double>& output) {
-    assert(nsamples * nchannels_ == input.size() && input.size() == output.size());
+    assert(input.size() == output.size());
+    assert(nsamples * nchannels_ == input.size());
     auto in_it = input.begin();
     auto out_it = output.begin();
     for (unsigned int s = 0; s < nsamples; ++s) {
@@ -572,6 +600,31 @@ void BiquadFilter::process_by_channel(uint64_t nsamples, std::vector<double>& in
         out_it += nchannels_;
     }
 }
+
+// void BiquadFilter::process_by_channel(uint64_t nsamples, std::vector<double> input,
+//                                       std::vector<double> output) {
+//     if (input.size() < nsamples * nchannels_ || output.size() < nsamples * nchannels_) {
+//         throw std::runtime_error("Input/Output span size too small.");
+//     }
+
+//     for (uint64_t s = 0; s < nsamples; ++s) {
+//         process_sample(input.subspan(s * nchannels_, nchannels_),
+//                        output.subspan(s * nchannels_, nchannels_));
+//     }
+// }
+
+// void BiquadFilter::process_sample(std::vector<double> input, std::vector<double> output) {
+//     if (!realized_) {
+//         throw std::runtime_error("Filter has not been realized yet.");
+//     }
+//     if (input.size() != nchannels_ || output.size() != nchannels_) {
+//         throw std::runtime_error("Input/Output span size mismatch.");
+//     }
+
+//     for (unsigned int c = 0; c < nchannels_; ++c) {
+//         output[c] = process_channel(input[c], c);
+//     }
+// }
 
 void BiquadFilter::process_by_sample(uint64_t nsamples, std::vector<double>& input,
                                      std::vector<double>& output) {

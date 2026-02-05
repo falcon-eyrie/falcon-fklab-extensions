@@ -156,6 +156,74 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
     }
 }
 
+void LevelCrossingDetector::ExecutePrepare() {
+    n_detections_ = 0;
+    nblock_ = 0;
+    last_post_block_ = initial_post_detect_block_();
+
+    // Initialize previous_sample_ based on input port prototype
+    double init_value = initial_upslope_() ? std::numeric_limits<double>::max()
+                                           : std::numeric_limits<double>::min();
+    previous_sample_.assign(4, init_value);
+}
+
+void LevelCrossingDetector::ExecuteStep(std::vector<double> input, void* data_out_ptr) {
+    auto* data_out = static_cast<EventType::Data*>(data_out_ptr);
+
+    const double threshold = 0;
+    const bool upslope = true;
+    const unsigned int post_detect_block = 2;
+
+    if (post_detect_block != last_post_block_) {
+        last_post_block_ = post_detect_block;
+        if (nblock_ > post_detect_block) nblock_ = post_detect_block;
+    }
+
+    const unsigned int ncolumns = previous_sample_.size();
+    if (ncolumns == 0) [[unlikely]]
+        return;
+    const unsigned int nsamples = input.size() / ncolumns;
+
+    for (unsigned int s = 0; s < nsamples; ++s) {
+        const double* current_sample = &input[s * ncolumns];
+
+        if (nblock_ > 0) {
+            --nblock_;
+            if (nblock_ == 0) {
+                std::memcpy(previous_sample_.data(), current_sample, ncolumns * sizeof(double));
+            }
+            continue;
+        }
+
+        bool crossing_detected = false;
+        for (unsigned int c = 0; c < ncolumns; ++c) {
+            const double val = current_sample[c];
+            const double prev = previous_sample_[c];
+
+            if ((upslope && prev <= threshold && val > threshold) ||
+                (!upslope && prev >= threshold && val < threshold)) {
+                crossing_detected = true;
+                break;
+            }
+        }
+
+        if (crossing_detected) {
+            data_out->set_event(event_prototype_());
+
+            nblock_ = post_detect_block;
+            ++n_detections_;
+        }
+
+        std::memcpy(previous_sample_.data(), current_sample, ncolumns * sizeof(double));
+    }
+}
+
+void LevelCrossingDetector::ExecuteCleanup() {
+    LOG(INFO) << name() << ". " << n_detections_ << " detections of event "
+              << event_prototype_().event() << " occurred.";
+    n_detections_ = 0;
+}
+
 void LevelCrossingDetector::Postprocess(ProcessingContext& context) {
     LOG(INFO) << name() << ". " << n_detections_ << " detections of event "
               << event_prototype_().event() << " occurred.";
