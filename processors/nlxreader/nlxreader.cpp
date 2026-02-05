@@ -107,10 +107,13 @@ void NlxReader::Preprocess(ProcessingContext& context) {
 }
 
 void NlxReader::Process(ProcessingContext& context) {
-    bool update_time = false;
     int data_index = 0;
     TimeSeriesType<double>::Data::sample_iterator data_iter;
     std::vector<TimeSeriesType<double>::Data*> data_vector(data_ports_.size());
+
+    // TODO(ben): use update interval option and sample rate to determine
+    // appropriate update frequency
+    constexpr uint64_t UPDATE_MASK = (1 << 15) - 1;
 
     while (!context.terminated() && valid_packet_counter_ < npackets_()) {
         // check if packets have arrived (with time-out)
@@ -125,7 +128,6 @@ void NlxReader::Process(ProcessingContext& context) {
 
         // packets available?
         ssize_t size = select(udp_socket_ + 1, &file_descriptor_set_, 0, 0, &timeout_);
-
         if (size == 0) {
             LOG(DEBUG) << name() << ": Timed out waiting for data. Connection lost?";
             continue;
@@ -165,11 +167,13 @@ void NlxReader::Process(ProcessingContext& context) {
                             << " (TS = " << timestamp_ << ").";
             }
 
-            update_time = valid_packet_counter_ % update_interval_() == 0;
-            LOG_IF(UPDATE, update_time)
-                << name() << ": " << valid_packet_counter_ << " packets ("
-                << valid_packet_counter_ / nlx::NLX_SIGNAL_SAMPLING_FREQUENCY << " s) received.";
-            print_stats(update_time);
+            if ((valid_packet_counter_ & UPDATE_MASK) == 0) {
+                LOG(UPDATE) << name() << ". Received " << valid_packet_counter_
+                            << " valid packets. Stats: " << stats_.n_invalid << " invalid, "
+                            << stats_.n_duplicated << " duplicated, " << stats_.n_outoforder
+                            << " out of order, " << stats_.n_missed << " missed, " << stats_.n_gaps
+                            << " gaps.";
+            }
 
             if (triggered_()) {
                 LOG_IF(UPDATE, (valid_packet_counter_ == 1))
@@ -202,6 +206,7 @@ void NlxReader::Process(ProcessingContext& context) {
             for (auto& it : channelmap_()) {
                 data_vector[data_index]->set_sample_timestamp(sample_counter_,
                                                               nlxrecord_.timestamp());
+
                 data_iter = data_vector[data_index]->begin_sample(sample_counter_);
                 for (auto& channel : it.second.get_channel_numbers()) {
                     (*data_iter) = nlxrecord_.sample_microvolt(channel);
@@ -252,10 +257,9 @@ void NlxReader::Postprocess(ProcessingContext& context) {
 }
 
 void NlxReader::print_stats(bool condition) {
-    LOG_IF(UPDATE, condition) << name() << ". Stats report: " << stats_.n_invalid << " invalid, "
-                              << stats_.n_duplicated << " duplicated, " << stats_.n_outoforder
-                              << " out of order, " << stats_.n_missed << " missed, "
-                              << stats_.n_gaps << " gaps.";
+    LOG(UPDATE) << name() << ": " << stats_.n_invalid << " invalid, " << stats_.n_duplicated
+                << " duplicated, " << stats_.n_outoforder << " out of order, " << stats_.n_missed
+                << " missed, " << stats_.n_gaps << " gaps.";
 }
 
 REGISTERPROCESSOR(NlxReader)
