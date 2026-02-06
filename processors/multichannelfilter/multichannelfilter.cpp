@@ -104,7 +104,6 @@ void MultiChannelFilter::Process(ProcessingContext& context) {
             data_out_port_->slot(k)->PublishData();
             data_in_port_->slot(k)->ReleaseData();
 
-            
             uint64_t work_end = __rdtsc();
 
             record_metrics(sync_end - sync_start, work_end - work_start);
