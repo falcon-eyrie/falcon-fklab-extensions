@@ -110,8 +110,8 @@ class EventDelayed : public IProcessor {
 
     // CONSTANT
    protected:
-    const std::string DISABLED_S = "detection only mode";
-    const std::string DELAYED_S = "delayed mode";
-    const std::string STOP_DETECTION_TIME_S = "event trigger lockout time";
-    const std::string STOP_ANALYSIS_TIME_S = "analysis lockout time";
+    const std::string DISABLED_S = "detection_only_mode";
+    const std::string DELAYED_S = "delayed_mode";
+    const std::string STOP_DETECTION_TIME_S = "event_trigger_lockout_time";
+    const std::string STOP_ANALYSIS_TIME_S = "analysis_lockout_time";
 };

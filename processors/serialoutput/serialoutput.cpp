@@ -22,9 +22,9 @@
 #include <iostream>
 
 SerialOutput::SerialOutput() {
-    add_option("port address", port_address_, "Address of serial port");
-    add_option("baud rate", baudrate_, "Serial rate exchange");
-    add_option("event logging", event_log_, "Log message (UPDATE level) if true");
+    add_option("port_address", port_address_, "Address of serial port");
+    add_option("baud_rate", baudrate_, "Serial rate exchange");
+    add_option("event_logging", event_log_, "Log message (UPDATE level) if true");
 }
 
 void SerialOutput::CreatePorts() {

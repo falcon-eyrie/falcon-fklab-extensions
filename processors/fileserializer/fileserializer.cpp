@@ -31,12 +31,12 @@ FileSerializer::FileSerializer() : IProcessor() {
     add_option("encoding", encoding_, "Binary or YAML encoding.");
     add_option("format", format_, "Data format (none, full, headeronly, streamheader, compact).");
     add_option("overwrite", overwrite_, "Overwrite existing files.");
-    add_option("throttle/enabled", throttle_,
+    add_option("throttle_enabled", throttle_,
                "Progressively drop incoming data packets if saving cannot keep up.");
-    add_option("throttle/threshold", throttle_threshold_,
+    add_option("throttle_threshold", throttle_threshold_,
                "Buffer fill level (fraction between 0 and 1) at which throttling "
                "kicks in.");
-    add_option("throttle/smooth", throttle_smooth_,
+    add_option("throttle_smooth", throttle_smooth_,
                "Smoothly changes throttle level as threshold is reached "
                "(value between 0 and 1).");
     add_option("preamble", preamble_, "Add YAML preamble to file.");

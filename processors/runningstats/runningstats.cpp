@@ -20,17 +20,17 @@
 #include "runningstats.hpp"
 
 RunningStats::RunningStats() : IProcessor() {
-    add_option("integration time", integration_time_, "Time window for exponential smoothing.");
+    add_option("integration_time", integration_time_, "Time window for exponential smoothing.");
 
-    add_option("outlier/protection", outlier_protection_,
+    add_option("outlier_protection", outlier_protection_,
                "enable outlier protection. "
                "Outliers are values larger than a predefined z-score. "
                "The contribution of an outlier is reduced by an amount "
                "that depends on the magnitude of the outlier.");
 
-    add_option("outlier/zscore", outlier_zscore_, "z-score that defines an outlier.");
+    add_option("outlier_zscore", outlier_zscore_, "z-score that defines an outlier.");
 
-    add_option("outlier/half life", outlier_half_life_,
+    add_option("outlier_half_life", outlier_half_life_,
                "The number of standard deviations above the outlier "
                "z-score at which the influence of the outlier is halved.");
 }

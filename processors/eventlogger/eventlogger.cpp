@@ -22,7 +22,7 @@
 #include <thread>
 
 EventLogger::EventLogger() : IProcessor() {
-    add_option("target event", target_event_, "The event to be logged.");
+    add_option("target_event", target_event_, "The event to be logged.");
 }
 
 void EventLogger::CreatePorts() {

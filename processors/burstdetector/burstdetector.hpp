@@ -72,11 +72,11 @@ class BurstDetector : public IProcessor {
 
    public:
     // configure options names ( keep common between options and states )
-    const std::string THRESHOLD_DEV = "threshold dev";
-    const std::string SMOOTH_TIME = "smooth time";
-    const std::string DETECTION_LOCKOUT_TIME = "detection lockout time";
-    const std::string STREAM_EVENTS = "stream events";
-    const std::string STREAM_STATISTICS = "stream statistics";
+    const std::string THRESHOLD_DEV = "threshold_dev";
+    const std::string SMOOTH_TIME = "smooth_time";
+    const std::string DETECTION_LOCKOUT_TIME = "detection_lockout_time";
+    const std::string STREAM_EVENTS = "stream_events";
+    const std::string STREAM_STATISTICS = "stream_statistics";
 
    protected:
     const unsigned int N_STATS_OUT = 2;

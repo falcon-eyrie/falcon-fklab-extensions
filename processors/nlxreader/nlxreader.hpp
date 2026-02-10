@@ -98,10 +98,7 @@ class NlxReader : public IProcessor {
     options::Value<std::uint64_t, false> npackets_{0, options::zeroismax<std::uint64_t>()};
     options::Value<unsigned int, false> batch_size_{1};
     options::Value<unsigned int, false> nchannels_{nlx::NLX_DEFAULT_NCHANNELS};
-    options::Measurement<std::uint64_t, false> update_interval_{
-        20, "second",
-        options::multiplied<std::uint64_t>(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
-            options::zeroismax<std::uint64_t>()};
+    options::Measurement<std::uint64_t, false> update_interval_{5, "second"};
     options::Bool triggered_{false};
     options::Value<uint32_t, false> hardware_trigger_channel_{0};
 };

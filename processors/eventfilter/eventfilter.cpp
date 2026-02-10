@@ -39,21 +39,21 @@ void DetectionCriterionValue::from_yaml(const YAML::Node& node) {
 }
 
 EventFilter::EventFilter() : EventSync() {
-    add_option("block duration", blockout_time_,
+    add_option("block_duration", blockout_time_,
                "The duration over which events will be filtered out "
                "following the arrival of a blocking event.");
 
-    add_option("block wait time", block_wait_time_,
+    add_option("block_wait_time", block_wait_time_,
                "The waiting time after a target event has been received "
                "to check if any blocking event also occurred.");
 
-    add_option("sync time", sync_time_,
+    add_option("sync_time", sync_time_,
                "Time interval over which incoming events are considered to be "
                "synchronuous.");
 
-    add_option("discard warnings", discard_warnings_, "Do not emit warnings for discarded events.");
+    add_option("discard_warnings", discard_warnings_, "Do not emit warnings for discarded events.");
 
-    add_option("detection criterion", detections_to_criterion_,
+    add_option("detection_criterion", detections_to_criterion_,
                "The criterion for triggering a detection, which is the number of "
                "input slots with a target event. Acceptable values range from 1 to "
                "the total number of input slots. A value of 0 or 'all' is equivalent "
@@ -65,7 +65,7 @@ void EventFilter::CreatePorts() {
     data_in_port_ = create_input_port<EventType>(EVENTDATA, EventType::Capabilities(),
                                                  PortInPolicy(SlotRange(1, 256), false));
 
-    block_in_port_ = create_input_port<EventType>("blocking events", EventType::Capabilities(),
+    block_in_port_ = create_input_port<EventType>("blocking_events", EventType::Capabilities(),
                                                   PortInPolicy(SlotRange(1, 256), false));
 
     data_out_port_ = create_output_port<EventType>(

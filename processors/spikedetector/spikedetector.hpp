@@ -63,7 +63,7 @@ class SpikeDetector : public IProcessor {
     // CONSTANTS
    public:
     unsigned int MAX_N_CHANNELS = 8;
-    const std::string PEAK_LIFETIME = "peak lifetime";
+    const std::string PEAK_LIFETIME = "peak_lifetime";
     const std::string THRESHOLD = "threshold";
     const int RINGBUFFER_SIZE = 1e5;
 

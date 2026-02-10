@@ -25,36 +25,36 @@ EventDelayed::EventDelayed() : delayed_range_(150, 200) {
     add_option(DELAYED_S, initial_delayed_event_,
                "Enable the delay of the event for a time randomly chosen "
                "between the delay range");
-    add_option("delayed range", initial_delayed_range_,
+    add_option("delayed_range", initial_delayed_range_,
                "if delayed event is true, the delayed time will be pseudo-randomly "
                "chosen in this range.");
     // message feature
-    add_option("message/detection", msg_detection_, "Message to send on the detection channel");
-    add_option("message/delayed", msg_delayed_, "Message to send on the stimulation channel");
-    add_option("message/ontime", msg_ontime_, "Message to send on ontime mode.");
+    add_option("message_detection", msg_detection_, "Message to send on the detection channel");
+    add_option("message_delayed", msg_delayed_, "Message to send on the stimulation channel");
+    add_option("message_ontime", msg_ontime_, "Message to send on ontime mode.");
 
     // Lock-out time
 
-    add_option(STOP_ANALYSIS_TIME_S + "/starting time", when_stop_analysis_period_,
+    add_option(STOP_ANALYSIS_TIME_S + "_starting_time", when_stop_analysis_period_,
                "when to start stopping detection after a stimulation.");
 
-    add_option(STOP_ANALYSIS_TIME_S + "/period", initial_stop_analysis_period_,
+    add_option(STOP_ANALYSIS_TIME_S + "_period", initial_stop_analysis_period_,
                "Lock out time for detecting pattern after a stimulation");
 
-    add_option(STOP_DETECTION_TIME_S + "/period", initial_stop_detection_period_,
+    add_option(STOP_DETECTION_TIME_S + "_period", initial_stop_detection_period_,
                "Lock out time for sending new detection/stimulation after a "
                "stimulation.");
 
-    add_option(STOP_DETECTION_TIME_S + "/detection", start_after_detection_,
+    add_option(STOP_DETECTION_TIME_S + "_detection", start_after_detection_,
                "Start stopping for detecting pattern after a detection");
 
-    add_option(STOP_DETECTION_TIME_S + "/stimulation", start_after_stimulation_,
+    add_option(STOP_DETECTION_TIME_S + "_stimulation", start_after_stimulation_,
                "Start stopping for detecting pattern after a stimulation");
 
     // saving feature
-    add_option("enable saving", save_events_, "Enable saving of target events to disk.");
+    add_option("enable_saving", save_events_, "Enable saving of target events to disk.");
 
-    add_option("filename prefix", prefix_,
+    add_option("filename_prefix", prefix_,
                "if enable saving is true, the saving file is name 'prefix + event'");
 }
 

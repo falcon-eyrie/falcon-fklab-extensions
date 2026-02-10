@@ -28,7 +28,7 @@ OpenEphysZMQ::OpenEphysZMQ() : IProcessor(PRIORITY_HIGH), builder_(flatbuilder_)
     add_option("npackets", npackets_,
                "The total number of data packets to read "
                "(0 means continuous recording).");
-    add_option("batch size", batch_size_,
+    add_option("batch_size", batch_size_,
                "The number of data packets to concatenate into "
                "single multi-channel data bucket.");
     add_option("nchannels", nchannels_,

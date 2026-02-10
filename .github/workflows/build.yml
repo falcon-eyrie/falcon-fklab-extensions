@@ -9,6 +9,10 @@ jobs:
     name: Format and Compile
     runs-on: ubuntu-24.04
 
+    strategy:
+      matrix:
+        compiler: [clang] # gcc is disabled for now
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,25 +31,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            libzmq3-dev \
-            pkg-config \
-            git \
-            wget \
-            xz-utils
-
-          cd ../falcon-core
+          sh scripts/setup/install_deps.sh
           sh scripts/setup/install_cmake.sh
-          sh scripts/setup/install_clang_format.sh
+          if [ "${{ matrix.compiler }}" == "clang" ]; then
+            sh scripts/setup/install_llvm.sh
+          fi
 
-      - name: Run format check
+      - name: Run clang-format (only for clang)
+        if: matrix.compiler == 'clang'
         run: |
           sh scripts/format.sh
-          # Check for any changes caused by formatting
           if [[ -n "$(git status --porcelain)" ]]; then
-            echo "Following files seems to be not formatted. Please run './scripts/format.sh' locally and commit the changes."
+            echo "Following files seem to be not formatted. Please run './scripts/format.sh' locally and commit the changes."
             git --no-pager diff --name-only
             exit 1
           fi
@@ -53,16 +50,27 @@ jobs:
       - name: Configure CMake
         run: |
           cd ../falcon-core
-
-          # Enable falcon-fklab-extensions
-          printf 'enable, extension name, extension path, extension version (optional)\ndev, core, extensions/falcon-fklab-extensions\n' > extensions.txt
-
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          if [ "${{ matrix.compiler }}" == "clang" ]; then
+            C_PATH=/usr/local/bin/clang
+            CXX_PATH=/usr/local/bin/clang++
+          else
+            C_PATH=/usr/bin/gcc
+            CXX_PATH=/usr/bin/g++
+          fi
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=$C_PATH \
+            -DCMAKE_CXX_COMPILER=$CXX_PATH
 
       - name: Build project
         run: |
-          cd ../falcon-core
-          cd build
+          cd ../falcon-core/build
           make -j$(nproc)
+
+      # Clang tidy is not yet enabled for the project
+      # - name: Run clang-tidy (only for clang)
+      #   if: matrix.compiler == 'clang'
+      #   run: |
+      #     sh scripts/tidy.sh
