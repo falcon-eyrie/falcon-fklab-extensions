@@ -46,11 +46,11 @@ Options:
     type: uint64_t
     default: 20 seconds
     description: The time interval for updates on the received data from the Digilynx acquisition system.
-  - name: trigger/enable
+  - name: trigger_enable
     type: bool
     default: false
     description: Whether or not to wait for hardware trigger to start streaming data packets.
-  - name: trigger/channel
+  - name: trigger_channel
     type: uint32_t
     default: 0
     description: Digital input channel to use as hardware trigger

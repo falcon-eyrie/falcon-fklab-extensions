@@ -115,11 +115,13 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
 
             // loop through each channel
             for (unsigned int c = 0; c < data_in_->ncolumns(); ++c) {
-                // for up slope:
-                if ((upslope && (previous_sample_[c] <= threshold) &&
-                     (data_in_->data_sample(s, c) > threshold)) ||
-                    (!upslope && (previous_sample_[c] >= threshold) &&
-                     (data_in_->data_sample(s, c) < threshold))) {
+                double current_val = data_in_->data_sample(s, c);
+                double prev_val = previous_sample_[c];
+
+                bool cross_up = upslope && (prev_val <= threshold) && (current_val > threshold);
+                bool cross_down = !upslope && (prev_val >= threshold) && (current_val < threshold);
+
+                if (cross_up || cross_down) {
                     crossing_detected = true;
                     break;
                 }
@@ -139,9 +141,10 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
 
                 nblock = post_detect_block;
 
-                if ((n_detections_ % 50) == 0) {
+                if ((n_detections_ & 1023) == 0) {
                     LOG(DEBUG) << name() << ". " << n_detections_ << " detections of event "
                                << event_prototype_().event() << " occurred.";
+                    checkNonvoluntaryContextSwitches();
                 }
             }
 

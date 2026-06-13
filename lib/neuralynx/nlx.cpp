@@ -321,8 +321,8 @@ uint64_t nlx::CheckTimestamp(const NlxSignalRecord& rec, uint64_t& last_timestam
             int64_t n_missed = round(delta / nlx::SAMPLING_PERIOD_MICROSEC) - 1;
             stats.n_missed += n_missed;
             ++stats.n_gaps;
-            // LOG(DEBUG) << n_missed << " timestamps were found to be missing.
-            // ";
+            LOG(ERROR) << "Timestamps were " << delta
+                       << " microseconds away from each other for the last 2 packets";
         }
         last_timestamp = timestamp;
     }

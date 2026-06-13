@@ -51,7 +51,7 @@ class LevelCrossingDetector : public IProcessor {
     // VARIABLES
    protected:
     std::vector<double> previous_sample_;
-    uint64_t n_detections_;
+    uint64_t n_detections_ = 0;
     TimeSeriesType<double>::Data* data_in_;
     EventType::Data* data_out_;
 

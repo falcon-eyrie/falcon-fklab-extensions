@@ -1,0 +1,14 @@
+# This config is to stream Nlx recording from an .nrd file
+
+network:
+      ip: 127.0.0.1
+      port: 5000
+stream:
+      rate: 32000
+      # npackets: 16
+      autostart: 0
+sources:
+      - class: nlx
+        options:
+           file: rat_hc.nrd
+           cycle: true

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-VERSION=21.1.7
+VERSION=22.1.7
 
 cd /usr/local
 

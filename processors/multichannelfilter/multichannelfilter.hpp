@@ -49,7 +49,6 @@ class MultiChannelFilter : public IProcessor {
 
     // OPTIONS
    protected:
-    options::Value<YAML::Node, false> filter_def_{};
-
+    options::String filter_file_path_{""};
     const uint32_t MAX_NCHANNELS = 384;
 };

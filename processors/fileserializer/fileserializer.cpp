@@ -47,7 +47,7 @@ void FileSerializer::CreatePorts() {
                                             PortInPolicy(SlotRange(1, 256), false));
 }
 
-void FileSerializer::Configure(const GlobalContext& context) {
+void FileSerializer::Configure(const GlobalContext& _) {
     LOG(INFO) << "format: " << format_.to_yaml();
     LOG(INFO) << "encoding: " << encoding_.to_yaml();
     LOG(INFO) << "throttle enabled: " << throttle_();
@@ -119,15 +119,16 @@ void FileSerializer::create_preamble(std::ostream& out, int slot) {
     emit << node;
     emit << YAML::EndDoc;
 }
-
 void FileSerializer::Process(ProcessingContext& context) {
     std::vector<AnyType::Data*> data;
-
     int nslots = data_port_->number_of_slots();
     uint64_t remainder;
     uint64_t nread;
+    int empty_cycles = 0;
 
     while (!context.terminated()) {
+        bool data_processed = false;
+
         for (int k = 0; k < nslots; ++k) {
             if (!data_port_->slot(k)->RetrieveDataAll(data, 0)) {
                 break;
@@ -140,6 +141,8 @@ void FileSerializer::Process(ProcessingContext& context) {
                 continue;
             }
 
+            data_processed = true;
+
             if (!throttle_()) {
                 LOG_IF(WARNING, (nread > 0.5 * upstream_buffer_size_[k]))
                     << name() << ": buffer is more than half full (stream " << k << ")";
@@ -150,7 +153,6 @@ void FileSerializer::Process(ProcessingContext& context) {
                                            data_port_->slot(k)->upstream_address().slot());
                 }
             } else {
-                // update throttle level
                 throttle_level_ *= (1 - throttle_smooth_());
                 if (nread > throttle_threshold_() * upstream_buffer_size_[k]) {
                     throttle_level_ += throttle_smooth_();
@@ -159,7 +161,6 @@ void FileSerializer::Process(ProcessingContext& context) {
                 remainder = std::floor(1.0 / (0.5 - std::abs(throttle_level_ - 0.5)));
 
                 if (throttle_level_ == 0 || (throttle_level_ < 0.5 && remainder > nread)) {
-                    // keep all
                     for (auto& it : data) {
                         serializer_->Serialize(*(streams_[k]), it, k, packetid_[k]++,
                                                data_port_->slot(k)->upstream_address().processor(),
@@ -167,7 +168,6 @@ void FileSerializer::Process(ProcessingContext& context) {
                                                data_port_->slot(k)->upstream_address().slot());
                     }
                 } else if (throttle_level_ < 0.5) {
-                    // skip small fraction
                     for (uint64_t n = 0; n < nread; ++n) {
                         if (n % remainder == 0) {
                             packetid_[k]++;
@@ -180,11 +180,9 @@ void FileSerializer::Process(ProcessingContext& context) {
                                                data_port_->slot(k)->upstream_address().slot());
                     }
                 } else if (throttle_level_ == 1 || (throttle_level_ >= 0.5 && remainder > nread)) {
-                    // skip all
                     packetid_[k] += nread;
                     nskipped_[k] += nread;
                 } else {
-                    // eep small fraction
                     for (uint64_t n = 0; n < nread; ++n) {
                         if (n % remainder != 0) {
                             packetid_[k]++;
@@ -199,6 +197,19 @@ void FileSerializer::Process(ProcessingContext& context) {
                 }
             }
             data_port_->slot(k)->ReleaseData();
+        }
+
+        if (!data_processed) {
+            empty_cycles++;
+            if (empty_cycles < 10) {
+                __builtin_ia32_pause();
+            } else if (empty_cycles < 100) {
+                std::this_thread::yield();
+            } else {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        } else {
+            empty_cycles = 0;
         }
     }
 }

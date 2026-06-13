@@ -283,7 +283,7 @@ struct convert<ChannelList<T>> {
             auto channels = node.as<std::vector<std::string>>();
             for (auto part : channels) {
                 part = std::regex_replace(part, std::regex(" "), "");
-                auto range = split(part, '-');
+                auto range = str_split(part, '-');
                 if (range.size() == 1) {
                     rhs.add_channels(atoi(range[0].c_str()));
                 } else if (range.size() == 2) {

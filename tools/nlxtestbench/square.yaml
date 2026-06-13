@@ -1,0 +1,16 @@
+# This config is to stream square wave
+
+network:
+      ip: 127.0.0.1
+      port: 5000
+stream:
+      rate: 4096
+      # npackets: 16
+      autostart: 0
+sources:
+      - class: square
+        options:
+            nchannels: 128
+            sampling_rate: 4096
+            frequency: 1
+            amplitude: 150

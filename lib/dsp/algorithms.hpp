@@ -51,7 +51,7 @@ class ThresholdCrosser {
    private:
     double threshold_;
     Slope slope_;
-    double prev_sample_;
+    double prev_sample_ = 0.0;
 };
 
 class RunningStatistics {

@@ -47,7 +47,7 @@ class SquareSource : public DataSource {
     uint64_t timestamp_ = 0;
     uint64_t delta_;
 
-    uint64_t counter_;
+    int64_t counter_;
     double current_amplitude_;
 
     std::vector<char> buffer_;

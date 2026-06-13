@@ -25,16 +25,17 @@
 #include <thread>
 
 MultiChannelFilter::MultiChannelFilter() : IProcessor() {
-    add_option("filter", filter_def_, "Filter definition.", true);
+    add_option("filter_file", filter_file_path_, "Filter definition.", true);
 }
 
 void MultiChannelFilter::Configure(const GlobalContext& context) {
-    if (!filter_def_()["file"]) {
-        filter_template_.reset(dsp::filter::construct_from_yaml(filter_def_()));
-    } else {
-        std::string f = context.resolve_path(filter_def_()["file"].as<std::string>(), "filters");
-        filter_template_.reset(dsp::filter::construct_from_file(f));
-    }
+    // Direct filter coefficients definitions via graph YAML is disabled
+    // for the moment. Will enable it again if needed in the future.
+    // if (!filter_def_()["file"]) {
+    //     filter_template_.reset(dsp::filter::construct_from_yaml(filter_def_()));
+    // } else {
+    std::string f = context.resolve_path(filter_file_path_(), "filters");
+    filter_template_.reset(dsp::filter::construct_from_file(f));
 }
 
 void MultiChannelFilter::CreatePorts() {

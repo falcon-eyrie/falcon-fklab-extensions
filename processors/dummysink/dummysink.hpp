@@ -30,5 +30,5 @@ class DummySink : public IProcessor {
 
    protected:
     PortIn<AnyType>* data_port_;
-    ReadableState<bool>* tickle_state_;
+    FollowerState<bool>* tickle_state_;
 };

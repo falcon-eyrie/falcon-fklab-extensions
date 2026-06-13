@@ -19,7 +19,7 @@
 #include "nlxreader.hpp"
 
 #include <chrono>
-#include <limits>
+#include <ranges>
 
 constexpr uint16_t NlxReader::MAX_NCHANNELS;
 constexpr decltype(NlxReader::MAX_NCHANNELS) NlxReader::UDP_BUFFER_SIZE;
@@ -39,14 +39,14 @@ NlxReader::NlxReader() : IProcessor(PRIORITY_HIGH) {
     add_option("update_interval", update_interval_,
                "The time interval for updates on the received data from "
                "the Digilynx acquisition system.");
-    add_option("trigger/enable", triggered_,
+    add_option("trigger_enable", triggered_,
                "Whether or not to wait for hardware trigger to start "
                "streaming data packets.");
-    add_option("trigger/channel", hardware_trigger_channel_,
+    add_option("trigger_channel", hardware_trigger_channel_,
                "Digital input channel to use as hardware trigger");
 }
 
-void NlxReader::Configure(const GlobalContext& context) {
+void NlxReader::Configure(const GlobalContext& _) {
     nlxrecord_.set_nchannels(nchannels_());
 }
 
@@ -71,7 +71,7 @@ void NlxReader::CompleteStreamInfo() {
     }
 }
 
-void NlxReader::Prepare(GlobalContext& context) {
+void NlxReader::Prepare(GlobalContext& _) {
     memset(reinterpret_cast<char*>(&server_addr_), 0, sizeof(server_addr_));
     server_addr_.sin_family = AF_INET;
     server_addr_.sin_addr.s_addr = inet_addr(address_().c_str());
@@ -128,6 +128,7 @@ void NlxReader::Process(ProcessingContext& context) {
 
         // packets available?
         ssize_t size = select(udp_socket_ + 1, &file_descriptor_set_, 0, 0, &timeout_);
+
         if (size == 0) {
             LOG(DEBUG) << name() << ": Timed out waiting for data. Connection lost?";
             continue;
@@ -136,6 +137,9 @@ void NlxReader::Process(ProcessingContext& context) {
             continue;
         } else if (size > 0) {  // receive packet
             int recvlen = recvfrom(udp_socket_, buffer_, UDP_BUFFER_SIZE, 0, NULL, NULL);
+
+            timestamp_ = nlx::CheckTimestamp(nlxrecord_, last_timestamp_, stats_);
+            valid_packet_counter_++;
 
             int rc = nlxrecord_.FromNetworkBuffer(buffer_, recvlen);
 
@@ -158,9 +162,6 @@ void NlxReader::Process(ProcessingContext& context) {
                 continue;
             }
 
-            timestamp_ = nlx::CheckTimestamp(nlxrecord_, last_timestamp_, stats_);
-            valid_packet_counter_++;
-
             if (valid_packet_counter_ == 1) {
                 first_valid_packet_arrival_time_ = Clock::now();
                 LOG(UPDATE) << name() << ": Received first valid data packet"
@@ -173,6 +174,8 @@ void NlxReader::Process(ProcessingContext& context) {
                             << stats_.n_duplicated << " duplicated, " << stats_.n_outoforder
                             << " out of order, " << stats_.n_missed << " missed, " << stats_.n_gaps
                             << " gaps.";
+
+                checkNonvoluntaryContextSwitches();
             }
 
             if (triggered_()) {
@@ -186,41 +189,39 @@ void NlxReader::Process(ProcessingContext& context) {
                     continue;
                 }
             }
-
-            // claim new data buckets
+            
+            // Claim clean data buckets at the start of a batch
             if (sample_counter_ == batch_size_()) {
-                data_index = 0;
-                for (auto& it : data_ports_) {
-                    data_vector[data_index] = it.second->slot(0)->ClaimData(false);
-                    // set data bucket metadata
-                    data_vector[data_index]->set_hardware_timestamp(timestamp_);
-                    data_vector[data_index]->set_source_timestamp();
-                    data_vector[data_index]->set_ingestion_ns();
-                    data_index++;
+                for (auto [index, port_pair] : std::views::enumerate(data_ports_)) {
+                    auto* data_bucket = port_pair.second->slot(0)->ClaimData(false);
+
+                    data_bucket->set_hardware_timestamp(timestamp_);
+                    data_bucket->set_source_timestamp();
+                    data_bucket->set_ingestion_ns();
+
+                    data_vector[index] = data_bucket;
                 }
                 sample_counter_ = 0;
             }
 
-            // copy data onto buffers for each configured channel group
-            data_index = 0;
-            for (auto& it : channelmap_()) {
-                data_vector[data_index]->set_sample_timestamp(sample_counter_,
-                                                              nlxrecord_.timestamp());
+            // Copy channel data into the active sample row
+            for (auto [index, map_pair] : std::views::enumerate(channelmap_())) {
+                auto* current_data = data_vector[index];
+                current_data->set_sample_timestamp(sample_counter_, nlxrecord_.timestamp());
 
-                data_iter = data_vector[data_index]->begin_sample(sample_counter_);
-                for (auto& channel : it.second.get_channel_numbers()) {
-                    (*data_iter) = nlxrecord_.sample_microvolt(channel);
+                data_iter = current_data->begin_sample(sample_counter_);
+                for (const auto& channel : map_pair.second.get_channel_numbers()) {
+                    *data_iter = nlxrecord_.sample_microvolt(channel);
                     ++data_iter;
                 }
-                data_index++;
             }
 
             ++sample_counter_;
 
-            // publish data buckets
+            // Publish completed data blocks down the pipeline
             if (sample_counter_ == batch_size_()) {
-                for (auto& it : data_ports_) {
-                    it.second->slot(0)->PublishData();
+                for (auto& [name, port] : data_ports_) {
+                    port->slot(0)->PublishData();
                 }
             }
         }

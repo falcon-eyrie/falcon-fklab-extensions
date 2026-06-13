@@ -21,7 +21,8 @@ void LatencyBenchmark::Preprocess(ProcessingContext& context) {
 
 void LatencyBenchmark::Process(ProcessingContext& context) {
     AnyType::Data* data_in = nullptr;
-
+    auto min_latency_ns = std::numeric_limits<uint64_t>::max();
+    auto max_latency_ns = 0;
     while (!context.terminated()) {
         for (SlotType s = 0; s < data_in_port_->number_of_slots(); ++s) {
             if (!data_in_port_->slot(s)->RetrieveData(data_in)) {
@@ -36,7 +37,7 @@ void LatencyBenchmark::Process(ProcessingContext& context) {
                                      .count();
             samples_buffer_.push_back({ingestedAt, benchmarkedAt});
 
-            auto separate_digits = [](int64_t n) {
+            auto separate_digits = [](auto n) {
                 std::string num_str = std::to_string(n);
                 int insert_position = num_str.length() - 3;
                 while (insert_position > 0) {
@@ -45,13 +46,25 @@ void LatencyBenchmark::Process(ProcessingContext& context) {
                 }
                 return num_str;
             };
+            auto latency_ns = benchmarkedAt - ingestedAt;
+            if (latency_ns > max_latency_ns) {
+                max_latency_ns = latency_ns;
+            }
+            if (latency_ns < min_latency_ns) {
+                min_latency_ns = latency_ns;
+            }
+            auto min_latency_str = separate_digits(min_latency_ns);
+            auto max_latency_str = separate_digits(max_latency_ns);
 
             if (samples_buffer_.size() == BATCH) {
-                LOG(INFO) << separate_digits(benchmarkedAt - ingestedAt);
+                LOG(INFO) << "min: " << min_latency_str << " max: " << max_latency_str
+                          << " nanoseconds";
                 output_file_.write(reinterpret_cast<const char*>(samples_buffer_.data()),
                                    samples_buffer_.size() * sizeof(LatencySample));
+                output_file_.flush();
                 samples_buffer_.clear();
                 samples_buffer_.reserve(BATCH);
+                max_latency_ns = 0;
             }
         }
     }

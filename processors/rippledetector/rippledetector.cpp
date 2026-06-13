@@ -188,7 +188,8 @@ void RippleDetector::Process(ProcessingContext& context) {
                 if (stream_events_->get()) {
                     event_out = event_out_port_->slot(0)->ClaimData(false);
                     event_out->set_source_timestamp(data_in->source_timestamp());
-                    event_out->set_hardware_timestamp(data_in->sample_timestamp(sample));
+                    event_out->set_hardware_timestamp(data_in->hardware_timestamp());
+                    event_out->forward_ingestion_ns(*data_in);
                     event_out_port_->slot(0)->PublishData();
                 }
             }
@@ -209,12 +210,23 @@ void RippleDetector::Postprocess(ProcessingContext& context) {
 inline double RippleDetector::compute_value(TimeSeriesType<double>::Data* data_in,
                                             unsigned int sample) {
     if (use_power_()) {
-        acc_ = std::pow(*data_in->begin_sample(sample), 2);
-        for (auto c = data_in->begin_sample(sample) + 1; c != data_in->end_sample(sample); ++c) {
-            acc_ += std::pow(*c, 2);
+        // Grab first column pointer for this row slice
+        auto c = data_in->begin_sample(sample);
+        const auto end = data_in->end_sample(sample);
+
+        // Square the first channel directly
+        acc_ = (*c) * (*c);
+
+        // Loop horizontally across remaining channels
+        for (++c; c != end; ++c) {
+            acc_ += (*c) * (*c);  // Accumulate squared voltage
         }
+
+        // Flatten to spatial average power
         return acc_ / data_in->ncolumns();
     }
+
+    // Fallback: simple spatial mean across channels
     return data_in->mean_sample(sample);
 }
 
