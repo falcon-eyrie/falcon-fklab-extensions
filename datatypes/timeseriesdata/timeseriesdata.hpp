@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <string>
 #include <vector>
 
@@ -195,6 +194,18 @@ class Data : public IData<Data<T>, Base<T>> {
             for (size_t k = 0; k < this->nsamples_; ++k) {
                 stream.write(reinterpret_cast<const char*>(&timestamps_[k]), sizeof(uint64_t));
             }
+        }
+    }
+
+    std::string_view serialized_type_name() const override {
+        if constexpr (std::is_same_v<T, double>) {
+            return "TimeSeriesType<double>";
+        } else if constexpr (std::is_same_v<T, float>) {
+            return "TimeSeriesType<float>";
+        } else if constexpr (std::is_same_v<T, uint8_t>) {
+            return "TimeSeriesType<uint8_t>";
+        } else {
+            return "TimeSeriesType<Unknown>";
         }
     }
 

@@ -75,7 +75,7 @@ class Data : public IData<Data, ParentType> {
 
     const std::vector<uint64_t>& ts_detected_spikes() const;
 
-    const uint64_t ts_detected_spikes(int index) const;
+    uint64_t ts_detected_spikes(int index) const;
 
     std::vector<double>::const_iterator spike_amplitudes(std::size_t spike_index) const;
 

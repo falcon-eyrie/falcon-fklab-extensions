@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "idata.hpp"
 #include "yaml-cpp/yaml.h"
@@ -62,6 +63,9 @@ class Data : public IData<Data, ParentType> {
 
     void SerializeBinary(std::ostream& stream,
                          Serialization::Format format = Serialization::Format::FULL) const override;
+
+    std::string_view serialized_type_name() const override { return "EventType"; }
+
     void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override;
 

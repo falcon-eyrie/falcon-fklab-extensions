@@ -19,6 +19,8 @@
 
 #include "eventdata.hpp"
 
+#include <cstdio>
+#include <iostream>
 #include <string>
 
 using namespace nsEventType;
@@ -71,9 +73,9 @@ bool operator!=(const Data& e1, const Data& e2) {
 void Data::SerializeBinary(std::ostream& stream, Serialization::Format format) const {
     BaseClass::SerializeBinary(stream, format);
     if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
-        std::string buffer = event_;
-        buffer.resize(EVENT_STRING_LENGTH);
-        stream.write(buffer.data(), EVENT_STRING_LENGTH);
+        uint16_t event_len = static_cast<uint16_t>(event_.size());
+        stream.write(reinterpret_cast<const char*>(&event_len), sizeof(uint16_t));
+        stream.write(event_.data(), event_len);
     }
 }
 

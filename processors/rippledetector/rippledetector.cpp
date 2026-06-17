@@ -40,7 +40,7 @@ RippleDetector::RippleDetector() : IProcessor() {
 
 void RippleDetector::CreatePorts() {
     data_in_port_ = create_input_port<TimeSeriesType<double>>(
-        "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
+        "in_signal", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
         PortInPolicy(SlotRange(1)));
 
     event_out_port_ = create_output_port<EventType>(EVENTDATA, EventType::Parameters("ripple"),

@@ -102,7 +102,7 @@ const std::vector<uint64_t>& Data::ts_detected_spikes() const {
     return hw_ts_detected_spikes_;
 }
 
-const uint64_t Data::ts_detected_spikes(int index) const {
+uint64_t Data::ts_detected_spikes(int index) const {
     assert(n_detected_spikes_ == ts_detected_spikes().size());
     assert(index < (static_cast<int>(n_detected_spikes_)));
     return hw_ts_detected_spikes_[index];

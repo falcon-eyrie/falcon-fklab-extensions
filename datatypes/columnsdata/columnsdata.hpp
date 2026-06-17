@@ -287,6 +287,11 @@ class Data : public IData<Data<T>, ParentType> {
         }
 
         if (format == Serialization::Format::COMPACT) {
+            uint32_t nsamples_out = static_cast<uint32_t>(nsamples_);
+            uint32_t ncolumns_out = static_cast<uint32_t>(ncolumns_);
+            stream.write(reinterpret_cast<const char*>(&nsamples_out), sizeof(uint32_t));
+            stream.write(reinterpret_cast<const char*>(&ncolumns_out), sizeof(uint32_t));
+
             for (size_t k = 0; k < nsamples_; ++k) {
                 stream.write(reinterpret_cast<const char*>(&data_[flat_index(k)]),
                              sizeof(T) * ncolumns_);
@@ -304,7 +309,7 @@ class Data : public IData<Data<T>, ParentType> {
         BaseClass::SerializeFlatBuffer(flex_builder);
 
         flex_builder.TypedVector("labels", [&] {
-            for (auto label : labels_) flex_builder.Add(label);
+            for (const auto& label : labels_) flex_builder.Add(label);
         });
 
         flex_builder.TypedVector("data", [&] {

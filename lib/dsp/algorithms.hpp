@@ -31,7 +31,7 @@
 namespace dsp {
 namespace algorithms {
 
-enum class Slope { UP, DOWN };
+enum class Slope : std::uint8_t { UP, DOWN };
 
 class ThresholdCrosser {
    public:
@@ -174,8 +174,8 @@ class ExponentialSmoother {
     double value_;
 };
 
-enum class SpikeDetectionMode { PEAK = 0, THRESHOLD };
-enum class SpikeDetectionSign { UP = 1, DOWN = -1 };
+enum class SpikeDetectionMode : std::uint8_t { PEAK = 0, THRESHOLD };
+enum class SpikeDetectionSign : std::int8_t { UP = 1, DOWN = -1 };
 
 class SpikeDetector {
    public:

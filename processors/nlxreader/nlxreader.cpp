@@ -107,7 +107,7 @@ void NlxReader::Preprocess(ProcessingContext& context) {
 }
 
 void NlxReader::Process(ProcessingContext& context) {
-    int data_index = 0;
+    // int data_index = 0;
     TimeSeriesType<double>::Data::sample_iterator data_iter;
     std::vector<TimeSeriesType<double>::Data*> data_vector(data_ports_.size());
 
@@ -189,7 +189,7 @@ void NlxReader::Process(ProcessingContext& context) {
                     continue;
                 }
             }
-            
+
             // Claim clean data buckets at the start of a batch
             if (sample_counter_ == batch_size_()) {
                 for (auto [index, port_pair] : std::views::enumerate(data_ports_)) {
@@ -257,7 +257,7 @@ void NlxReader::Postprocess(ProcessingContext& context) {
     }
 }
 
-void NlxReader::print_stats(bool condition) {
+void NlxReader::print_stats(bool) {
     LOG(UPDATE) << name() << ": " << stats_.n_invalid << " invalid, " << stats_.n_duplicated
                 << " duplicated, " << stats_.n_outoforder << " out of order, " << stats_.n_missed
                 << " missed, " << stats_.n_gaps << " gaps.";

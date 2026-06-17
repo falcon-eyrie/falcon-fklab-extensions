@@ -84,7 +84,7 @@ void BurstDetector::CompleteStreamInfo() {
                                                         data_in_port_->streaminfo(0).stream_name());
 }
 
-void BurstDetector::Preprocess(ProcessingContext& context) {
+void BurstDetector::Preprocess(ProcessingContext& _) {
     signal_mean_->set(0);
     signal_dev_->set(0);
     threshold_->set(0);

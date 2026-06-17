@@ -51,7 +51,7 @@ void EventLogger::Process(ProcessingContext& context) {
     }
 }
 
-void EventLogger::Postprocess(ProcessingContext& context) {
+void EventLogger::Postprocess(ProcessingContext& _) {
     LOG(UPDATE) << name() << ". Received " << event_counter_.all_received << " events, of which "
                 << event_counter_.target << " were targets.";
     if (event_counter_.consistent_counters()) {
