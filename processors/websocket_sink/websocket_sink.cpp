@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include <string_view>
@@ -16,6 +17,8 @@
 
 class WebsocketSink : public IProcessor {
    private:
+    using ClientSet = std::unordered_set<uWS::WebSocket<false, true, std::string>*>;
+
     PortIn<AnyType>* data_in_port_ = nullptr;
     options::Value<unsigned int, false> port_{5550};
 
@@ -23,9 +26,10 @@ class WebsocketSink : public IProcessor {
     std::vector<std::thread> worker_threads_;
     std::atomic<bool> running_{false};
 
-    std::mutex clients_mutex_;
-    std::unordered_set<uWS::WebSocket<false, true, std::string>*> active_clients_;
-    std::vector<std::string> upstream_headers_;
+    // Atomic pointer provides lock-free reads for worker threads
+    std::atomic<std::shared_ptr<const ClientSet>> active_clients_{
+        std::make_shared<const ClientSet>()};
+    std::vector<std::string> upstream_address_headers_;
 
     us_listen_socket_t* listen_socket_ = nullptr;
     uWS::Loop* server_loop_ = nullptr;
@@ -54,24 +58,21 @@ class WebsocketSink : public IProcessor {
         std::string proc_name = name();
 
         auto nslots = data_in_port_->number_of_slots();
-        upstream_headers_.resize(nslots);
+        upstream_address_headers_.resize(nslots);
 
         for (decltype(nslots) k = 0; k < nslots; ++k) {
             auto slot = data_in_port_->slot(k);
-            std::string upstream_processor = slot->upstream_address().processor();
-            std::string upstream_port = slot->upstream_address().port();
+            std::string upstream_addr =
+                slot->upstream_address().processor() + "." + slot->upstream_address().port();
 
-            uint8_t proc_len =
-                static_cast<uint8_t>(std::min<size_t>(upstream_processor.size(), 255));
-            uint8_t port_len = static_cast<uint8_t>(std::min<size_t>(upstream_port.size(), 255));
+            uint8_t upstream_addr_len =
+                static_cast<uint8_t>(std::min<size_t>(upstream_addr.size(), 255));
 
             std::string header;
-            header.push_back(static_cast<char>(proc_len));
-            header.append(upstream_processor.data(), proc_len);
-            header.push_back(static_cast<char>(port_len));
-            header.append(upstream_port.data(), port_len);
+            header.push_back(static_cast<char>(upstream_addr_len));
+            header.append(upstream_addr.data(), upstream_addr_len);
 
-            upstream_headers_[k] = std::move(header);
+            upstream_address_headers_[k] = std::move(header);
         }
 
         running_ = true;
@@ -87,17 +88,18 @@ class WebsocketSink : public IProcessor {
             behavior.closeOnBackpressureLimit = true;
 
             behavior.open = [this, proc_name](auto* ws) {
-                std::lock_guard<std::mutex> lock(clients_mutex_);
-                active_clients_.insert(ws);
-                LOG(INFO) << proc_name
-                          << ": Client connected. Active total: " << active_clients_.size();
+                auto new_set = std::make_shared<ClientSet>(*active_clients_.load());
+                new_set->insert(ws);
+                active_clients_.store(new_set);
+                LOG(INFO) << proc_name << ": Client connected. Active total: " << new_set->size();
             };
 
             behavior.close = [this, proc_name](auto* ws, int, std::string_view) {
-                std::lock_guard<std::mutex> lock(clients_mutex_);
-                active_clients_.erase(ws);
+                auto new_set = std::make_shared<ClientSet>(*active_clients_.load());
+                new_set->erase(ws);
+                active_clients_.store(new_set);
                 LOG(INFO) << proc_name
-                          << ": Client disconnected. Active total: " << active_clients_.size();
+                          << ": Client disconnected. Active total: " << new_set->size();
             };
 
             behavior.message = [](auto* _, std::string_view, uWS::OpCode) {};
@@ -140,18 +142,15 @@ class WebsocketSink : public IProcessor {
                         continue;
                     }
 
-                    std::unordered_set<uWS::WebSocket<false, true, std::string>*> clients_snapshot;
-                    {
-                        std::lock_guard<std::mutex> lock(clients_mutex_);
-                        clients_snapshot = active_clients_;
-                    }
+                    // ZERO LOCKING: Atomically get a pointer copy of the live registry
+                    auto clients_snapshot = active_clients_.load();
 
-                    if (!clients_snapshot.empty()) {
+                    if (!clients_snapshot->empty()) {
                         thread_buffer.str("");
                         thread_buffer.clear();
 
-                        thread_buffer.write(upstream_headers_[k].data(),
-                                            upstream_headers_[k].size());
+                        thread_buffer.write(upstream_address_headers_[k].data(),
+                                            upstream_address_headers_[k].size());
                         data_in->SerializeBinary(thread_buffer, Serialization::Format::COMPACT);
 
                         auto shared_payload = std::make_shared<std::string>(thread_buffer.str());
@@ -163,10 +162,12 @@ class WebsocketSink : public IProcessor {
                         }
 
                         if (target_loop) {
+                            // Defer executes strictly within the event loop thread
                             target_loop->defer([this, clients_snapshot, shared_payload]() {
-                                std::lock_guard<std::mutex> lock(clients_mutex_);
-                                for (auto* ws : clients_snapshot) {
-                                    if (active_clients_.count(ws)) {
+                                // Double check against the most current active list
+                                auto current_active = active_clients_.load();
+                                for (auto* ws : *clients_snapshot) {
+                                    if (current_active->count(ws)) {
                                         if (ws->getBufferedAmount() < 2 * 1024 * 1024) {
                                             ws->send(*shared_payload, uWS::OpCode::BINARY);
                                         }
@@ -185,9 +186,9 @@ class WebsocketSink : public IProcessor {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
-
     void Postprocess(ProcessingContext& _) override {
         running_ = false;
+
         stop_server_();
         join_threads_();
         reset_state_();
@@ -196,9 +197,24 @@ class WebsocketSink : public IProcessor {
    private:
     void stop_server_() {
         std::lock_guard<std::mutex> lock(loop_mutex_);
+
+        auto empty_set = std::make_shared<const ClientSet>();
+        auto clients_to_close = active_clients_.exchange(empty_set);
+
         if (listen_socket_) {
             us_listen_socket_close(0, listen_socket_);
             listen_socket_ = nullptr;
+        }
+
+        if (server_loop_) {
+            if (clients_to_close && !clients_to_close->empty()) {
+                server_loop_->defer([clients_to_close]() {
+                    for (auto* ws : *clients_to_close) {
+                        ws->close();
+                    }
+                });
+            }
+            server_loop_ = nullptr;
         }
     }
 
@@ -215,9 +231,8 @@ class WebsocketSink : public IProcessor {
 
     void reset_state_() {
         worker_threads_.clear();
-        upstream_headers_.clear();
-        std::lock_guard<std::mutex> lock(clients_mutex_);
-        active_clients_.clear();
+        upstream_address_headers_.clear();
+        active_clients_.store(std::make_shared<const ClientSet>());
     }
 };
 
