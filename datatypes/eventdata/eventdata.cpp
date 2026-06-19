@@ -73,6 +73,9 @@ bool operator!=(const Data& e1, const Data& e2) {
 void Data::SerializeBinary(std::ostream& stream, Serialization::Format format) const {
     BaseClass::SerializeBinary(stream, format);
     if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
+        uint8_t timestamp_len = sizeof(hardware_timestamp_);
+        stream.write(reinterpret_cast<const char*>(&timestamp_len), sizeof(uint8_t));
+        stream.write(reinterpret_cast<const char*>(&hardware_timestamp_), timestamp_len);
         uint16_t event_len = static_cast<uint16_t>(event_.size());
         stream.write(reinterpret_cast<const char*>(&event_len), sizeof(uint16_t));
         stream.write(event_.data(), event_len);

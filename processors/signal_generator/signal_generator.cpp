@@ -1,11 +1,13 @@
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <cmath>
 #include <fstream>
 #include <g3log/g3log.hpp>
 #include <sstream>
 #include <string>
 #include <thread>
-#include <vector>
-#include "context.hpp"
 #include "iprocessor.hpp"
 #include "portpolicy.hpp"
 #include "timeseriesdata/timeseriesdata.hpp"
@@ -35,8 +37,14 @@ class SignalGenerator : public IProcessor {
     unsigned unique_buffers_ = 0;
     unsigned hardware_timestamp_counter_ = 0;
 
-    std::vector<double> file_buffer_;
-    size_t file_sample_offset_ = 0;
+    int file_fd_ = -1;
+    char* mmap_ptr_ = nullptr;
+    size_t mmap_size_ = 0;
+
+    size_t total_records_ = 0;
+    size_t current_record_idx_ = 0;
+    uint32_t current_sample_idx_ = 0;  // 0 to 511
+
     double file_sampling_freq_ = 0.0;
     double ad_bit_volts_ = 0.0;
 
@@ -83,50 +91,86 @@ class SignalGenerator : public IProcessor {
     }
 
     void load_ncs_file_to_ram() {
-        // TODO(ben): Use memory mapped file instead of loading the whole file
-        LOG(INFO) << name() << ": Preloading file from " << file_path_();
+        LOG(INFO) << name() << ": Memory mapping file from " << file_path_();
 
-        std::ifstream file(file_path_(), std::ios::binary);
-        if (!file.is_open()) {
-            throw ProcessingPreprocessingError("Unable to open offline file path: " + file_path_(),
-                                               name());
+        file_fd_ = open(file_path_().c_str(), O_RDONLY);
+        if (file_fd_ < 0) {
+            throw ProcessingPreprocessingError("Unable to open file: " + file_path_(), name());
         }
 
-        std::string header_text(16384, '\0');
-        file.read(&header_text[0], 16384);
-        file.clear();
-        CSCRecord record;
-        while (file.read(reinterpret_cast<char*>(&record), sizeof(CSCRecord))) {
-            for (uint32_t i = 0; i < record.num_valid_samples; ++i) {
-                file_buffer_.push_back(static_cast<double>(record.samples[i]) * ad_bit_volts_);
-            }
+        struct stat sb;
+        if (fstat(file_fd_, &sb) == -1) {
+            close(file_fd_);
+            throw ProcessingPreprocessingError("Failed stat on: " + file_path_(), name());
         }
-        file_sample_offset_ = 0;
+        mmap_size_ = sb.st_size;
+
+        mmap_ptr_ =
+            static_cast<char*>(mmap(nullptr, mmap_size_, PROT_READ, MAP_SHARED, file_fd_, 0));
+        if (mmap_ptr_ == MAP_FAILED) {
+            close(file_fd_);
+            throw ProcessingPreprocessingError("Mmap failed for: " + file_path_(), name());
+        }
+
+        constexpr size_t header_offset = 16384;
+        if (mmap_size_ <= header_offset) {
+            throw ProcessingPreprocessingError("File contains no records: " + file_path_(), name());
+        }
+
+        total_records_ = (mmap_size_ - header_offset) / sizeof(CSCRecord);
+        current_record_idx_ = 0;
+        current_sample_idx_ = 0;
     }
 
     void generate_signal_samples(TimeSeriesType<double>::Data* data_out) {
+        constexpr size_t header_offset = 16384;
+        const CSCRecord* records = reinterpret_cast<const CSCRecord*>(mmap_ptr_ + header_offset);
+
         for (unsigned int sample_idx = 0; sample_idx < buffer_size_(); ++sample_idx) {
             unsigned int current_ts = hardware_timestamp_counter_ + sample_idx;
-            data_out->set_sample_timestamp(sample_idx, current_ts);
 
-            auto data_iter = data_out->begin_sample(sample_idx);
-            double t = static_cast<double>(current_ts) / effective_sfreq();
-            for (unsigned int elect_idx = 0; elect_idx < effective_channel_count(); ++elect_idx) {
-                double val = 0.0;
+            if (signal_type_() == "file" && total_records_ > 0) {
+                const CSCRecord& rec = records[current_record_idx_];
 
-                if (signal_type_() == "sine") {
-                    val = std::sin(2.0 * M_PI * 10.0 * t + elect_idx);
-                } else if (signal_type_() == "square") {
-                    val = (std::sin(2.0 * M_PI * 5.0 * t) >= 0.0) ? 1.0 : -1.0;
-                } else if (signal_type_() == "file") {
-                    if (elect_idx == 0 && !file_buffer_.empty()) {
-                        val = file_buffer_[file_sample_offset_];
-                        file_sample_offset_ = (file_sample_offset_ + 1) % file_buffer_.size();
-                    }
-                }
+                // 1. Calculate microsecond interpolation
+                double dt_us = 1000000.0 / static_cast<double>(rec.sample_freq_hz);
+                uint64_t interpolated_ts =
+                    rec.timestamp_us +
+                    static_cast<uint64_t>(std::round(current_sample_idx_ * dt_us));
 
+                // 2. Assign real timestamp
+                data_out->set_sample_timestamp(sample_idx,
+                                               static_cast<unsigned int>(interpolated_ts));
+
+                // 3. Process voltage value
+                double val = static_cast<double>(rec.samples[current_sample_idx_]) * ad_bit_volts_;
+
+                auto data_iter = data_out->begin_sample(sample_idx);
                 *data_iter = val;
-                ++data_iter;
+
+                // 4. Advance stream offsets safely
+                current_sample_idx_++;
+                if (current_sample_idx_ >= rec.num_valid_samples) {
+                    current_sample_idx_ = 0;
+                    current_record_idx_ = (current_record_idx_ + 1) % total_records_;
+                }
+            } else {
+                // Fallback path for synthetic signals
+                data_out->set_sample_timestamp(sample_idx, current_ts);
+                auto data_iter = data_out->begin_sample(sample_idx);
+                double t = static_cast<double>(current_ts) / effective_sfreq();
+
+                for (unsigned int elect_idx = 0; elect_idx < effective_channel_count();
+                     ++elect_idx) {
+                    double val = 0.0;
+                    if (signal_type_() == "sine") {
+                        val = std::sin(2.0 * M_PI * 10.0 * t + elect_idx);
+                    } else if (signal_type_() == "square") {
+                        val = (std::sin(2.0 * M_PI * 5.0 * t) >= 0.0) ? 1.0 : -1.0;
+                    }
+                    *data_iter = val;
+                    ++data_iter;
+                }
             }
         }
     }
@@ -196,7 +240,14 @@ class SignalGenerator : public IProcessor {
 
     void Postprocess(ProcessingContext& _) override {
         LOG(INFO) << name() << ": Generated " << unique_buffers_ << " simulated buffers.";
-        file_buffer_.clear();
+        if (mmap_ptr_ && mmap_ptr_ != MAP_FAILED) {
+            munmap(mmap_ptr_, mmap_size_);
+            mmap_ptr_ = nullptr;
+        }
+        if (file_fd_ >= 0) {
+            close(file_fd_);
+            file_fd_ = -1;
+        }
     }
 };
 

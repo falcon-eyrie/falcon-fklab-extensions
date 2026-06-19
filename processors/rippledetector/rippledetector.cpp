@@ -202,7 +202,7 @@ void RippleDetector::Process(ProcessingContext& context) {
     }
 }
 
-void RippleDetector::Postprocess(ProcessingContext& context) {
+void RippleDetector::Postprocess(ProcessingContext& _) {
     LOG(INFO) << name() << ". Streamed " << event_out_port_->slot(0)->nitems_produced()
               << " ripple events.";
 }

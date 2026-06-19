@@ -26,7 +26,6 @@ class WebsocketSink : public IProcessor {
     std::vector<std::thread> worker_threads_;
     std::atomic<bool> running_{false};
 
-    // Atomic pointer provides lock-free reads for worker threads
     std::atomic<std::shared_ptr<const ClientSet>> active_clients_{
         std::make_shared<const ClientSet>()};
     std::vector<std::string> upstream_address_headers_;
@@ -142,7 +141,6 @@ class WebsocketSink : public IProcessor {
                         continue;
                     }
 
-                    // ZERO LOCKING: Atomically get a pointer copy of the live registry
                     auto clients_snapshot = active_clients_.load();
 
                     if (!clients_snapshot->empty()) {
