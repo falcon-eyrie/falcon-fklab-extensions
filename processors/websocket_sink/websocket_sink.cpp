@@ -34,6 +34,10 @@ class WebsocketSink : public IProcessor {
     uWS::Loop* server_loop_ = nullptr;
     std::mutex loop_mutex_;
 
+    struct ThreadBuffer {
+        std::ostringstream stream;
+    };
+
    public:
     WebsocketSink() : IProcessor() {
         add_option("port", port_, "Network port for WebSocket server.", false);
@@ -129,8 +133,9 @@ class WebsocketSink : public IProcessor {
         for (decltype(nslots) k = 0; k < nslots; ++k) {
             worker_threads_.emplace_back([this, k, &context]() {
                 AnyType::Data* data_in = nullptr;
-                std::stringstream thread_buffer;
                 auto* slot = data_in_port_->slot(k);
+
+                auto thread_buffer = std::make_shared<ThreadBuffer>();
 
                 while (running_ && !context.terminated()) {
                     if (!slot->RetrieveData(data_in)) {
@@ -144,14 +149,14 @@ class WebsocketSink : public IProcessor {
                     auto clients_snapshot = active_clients_.load();
 
                     if (!clients_snapshot->empty()) {
-                        thread_buffer.str("");
-                        thread_buffer.clear();
+                        thread_buffer->stream.clear();
+                        thread_buffer->stream.str("");
 
-                        thread_buffer.write(upstream_address_headers_[k].data(),
-                                            upstream_address_headers_[k].size());
-                        data_in->SerializeBinary(thread_buffer, Serialization::Format::COMPACT);
+                        thread_buffer->stream.write(upstream_address_headers_[k].data(),
+                                                    upstream_address_headers_[k].size());
 
-                        auto shared_payload = std::make_shared<std::string>(thread_buffer.str());
+                        data_in->SerializeBinary(thread_buffer->stream,
+                                                 Serialization::Format::COMPACT);
 
                         uWS::Loop* target_loop = nullptr;
                         {
@@ -160,14 +165,16 @@ class WebsocketSink : public IProcessor {
                         }
 
                         if (target_loop) {
-                            // Defer executes strictly within the event loop thread
-                            target_loop->defer([this, clients_snapshot, shared_payload]() {
-                                // Double check against the most current active list
+                            target_loop->defer([this, clients_snapshot, thread_buffer]() {
                                 auto current_active = active_clients_.load();
+
+                                // Direct zero-copy string_view of the allocated buffer
+                                std::string_view payload = thread_buffer->stream.view();
+
                                 for (auto* ws : *clients_snapshot) {
                                     if (current_active->count(ws)) {
                                         if (ws->getBufferedAmount() < 2 * 1024 * 1024) {
-                                            ws->send(*shared_payload, uWS::OpCode::BINARY);
+                                            ws->send(payload, uWS::OpCode::BINARY);
                                         }
                                     }
                                 }
@@ -184,6 +191,7 @@ class WebsocketSink : public IProcessor {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
+
     void Postprocess(ProcessingContext& _) override {
         running_ = false;
 
@@ -199,19 +207,19 @@ class WebsocketSink : public IProcessor {
         auto empty_set = std::make_shared<const ClientSet>();
         auto clients_to_close = active_clients_.exchange(empty_set);
 
-        if (listen_socket_) {
-            us_listen_socket_close(0, listen_socket_);
-            listen_socket_ = nullptr;
-        }
-
         if (server_loop_) {
-            if (clients_to_close && !clients_to_close->empty()) {
-                server_loop_->defer([clients_to_close]() {
+            server_loop_->defer([listen_sock = listen_socket_, clients_to_close]() {
+                if (clients_to_close) {
                     for (auto* ws : *clients_to_close) {
                         ws->close();
                     }
-                });
-            }
+                }
+                if (listen_sock) {
+                    us_listen_socket_close(0, listen_sock);
+                }
+            });
+
+            listen_socket_ = nullptr;
             server_loop_ = nullptr;
         }
     }
