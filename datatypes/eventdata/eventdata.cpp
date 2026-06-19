@@ -25,7 +25,7 @@
 
 using namespace nsEventType;
 
-Data::Data(std::string event) : default_event_(event) {
+Data::Data(const std::string& event) : default_event_(event) {
     set_event(event);
 }
 
@@ -45,7 +45,7 @@ size_t Data::size() const {
     return event_.size();
 }
 
-void Data::set_event(std::string event) {
+void Data::set_event(const std::string& event) {
     if (event.size() == 0) {
         throw std::runtime_error("Event string cannot be empty.");
     }

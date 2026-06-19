@@ -24,10 +24,11 @@ class WebsocketSink : public IProcessor {
 
     std::thread server_thread_;
     std::vector<std::thread> worker_threads_;
-    std::atomic<bool> running_{false};
+    alignas(std::hardware_destructive_interference_size) std::atomic<bool> running_{false};
+    alignas(std::hardware_destructive_interference_size)
+        std::atomic<std::shared_ptr<const ClientSet>> active_clients_{
+            std::make_shared<const ClientSet>()};
 
-    std::atomic<std::shared_ptr<const ClientSet>> active_clients_{
-        std::make_shared<const ClientSet>()};
     std::vector<std::string> upstream_address_headers_;
 
     us_listen_socket_t* listen_socket_ = nullptr;
@@ -114,8 +115,7 @@ class WebsocketSink : public IProcessor {
                 if (listen_socket) {
                     listen_socket_ = listen_socket;
                     server_loop_ = uWS::Loop::get();
-                    LOG(INFO) << proc_name << ": Universal Push Broadcaster listening on 0.0.0.0:"
-                              << listen_port;
+                    LOG(INFO) << proc_name << ": Websocket active on ws://0.0.0.0:" << listen_port;
                 } else {
                     LOG(ERROR) << "Failed to bind WebSocket server port.";
                 }

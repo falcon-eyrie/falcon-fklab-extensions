@@ -34,85 +34,74 @@ void MultiChannelFilter::Configure(const GlobalContext& context) {
     // if (!filter_def_()["file"]) {
     //     filter_template_.reset(dsp::filter::construct_from_yaml(filter_def_()));
     // } else {
-    std::string f = context.resolve_path(filter_file_path_(), "filters");
-    filter_template_.reset(dsp::filter::construct_from_file(f));
+    std::string filter_file_path = context.resolve_path(filter_file_path_(), "filters");
+    filter_template_.reset(dsp::filter::construct_from_file(filter_file_path));
 }
 
 void MultiChannelFilter::CreatePorts() {
-    data_in_port_ = create_input_port<TimeSeriesType<double>>(
-        "input", TimeSeriesType<double>::Capabilities(ChannelRange(1, MAX_NCHANNELS)),
-        PortInPolicy(SlotRange(0, MAX_NCHANNELS)));
+    in_port_ = create_input_port<TimeSeriesType<double>>(
+        "input", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
+        PortInPolicy(SlotRange(1, 1)));
 
-    data_out_port_ = create_output_port<TimeSeriesType<double>>(
-        "output", TimeSeriesType<double>::Parameters(), PortOutPolicy(SlotRange(0, MAX_NCHANNELS)));
+    out_port_ = create_output_port<TimeSeriesType<double>>(
+        "output", TimeSeriesType<double>::Parameters(), PortOutPolicy());
 }
 
 void MultiChannelFilter::CompleteStreamInfo() {
-    // check if we have the same number of input and output slots
-    if (data_in_port_->number_of_slots() != data_out_port_->number_of_slots()) {
-        auto err_msg = "Number of output slots (" +
-                       std::to_string(data_out_port_->number_of_slots()) + ") on port '" +
-                       data_out_port_->name() + "' does not match number of input slots (" +
-                       std::to_string(data_in_port_->number_of_slots()) + ") on port '" +
-                       data_in_port_->name() + "'.";
-        throw ProcessingStreamInfoError(err_msg, name());
-    }
+    for (int k = 0; k < in_port_->number_of_slots(); ++k) {
+        out_port_->streaminfo(k).set_stream_parameters(in_port_->streaminfo(k));
 
-    for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
-        data_out_port_->streaminfo(k).set_stream_parameters(data_in_port_->streaminfo(k));
-
-        data_out_port_->streaminfo(k).set_parameters(data_in_port_->prototype(k).parameters());
+        out_port_->streaminfo(k).set_parameters(in_port_->prototype(k).parameters());
     }
 }
 
 void MultiChannelFilter::Prepare(GlobalContext& _) {
-    // realize filter for each input slot, dependent on the number of channels
-    // upstream is sending
-    filters_.clear();
-    for (int k = 0; k < data_in_port_->number_of_slots(); ++k) {
-        filters_.push_back(
-            std::move(std::unique_ptr<dsp::filter::IFilter>(filter_template_->clone())));
-        filters_.back()->realize(data_in_port_->prototype(k).ncolumns());
-    }
+    auto upstream_data = in_port_->prototype(0);
+
+    filter_ = std::unique_ptr<dsp::filter::IFilter>(filter_template_->clone());
+    filter_->realize(upstream_data.ncolumns());
+
+    auto input_buffer_size = upstream_data.ncolumns() * upstream_data.nsamples();
+    filtered_signal_buffer_.resize(input_buffer_size);
 }
 
 void MultiChannelFilter::Process(ProcessingContext& context) {
     TimeSeriesType<double>::Data* data_in = nullptr;
-    TimeSeriesType<double>::Data* data_out = nullptr;
-    auto nslots = data_in_port_->number_of_slots();
-    decltype(nslots) k = 0;
+    ;
+    auto n_out_slots = out_port_->number_of_slots();
 
     while (!context.terminated()) {
-        // go through all slots
-        for (k = 0; k < nslots; ++k) {
-            uint64_t sync_start = __rdtsc();
+        uint64_t sync_start = __rdtsc();
 
-            bool has_data = data_in_port_->slot(k)->RetrieveData(data_in);
-            if (!has_data) break;
-            data_out = data_out_port_->slot(k)->ClaimData(false);
+        bool has_data = in_port_->slot(0)->RetrieveData(data_in);
 
-            uint64_t sync_end = __rdtsc();
+        if (!has_data) break;
 
-            uint64_t work_start = __rdtsc();
+        uint64_t sync_end = __rdtsc();
 
-            filters_[k]->process_by_channel(data_in->nsamples(), data_in->data(), data_out->data());
+        uint64_t work_start = __rdtsc();
+
+        filter_->process_by_channel(data_in->nsamples(), data_in->data(), filtered_signal_buffer_);
+
+        for (unsigned k = 0; k < n_out_slots; k++) {
+            auto data_out = out_port_->slot(k)->ClaimData(false);
+            data_out->data() = filtered_signal_buffer_;
 
             data_out->set_sample_timestamps(data_in->sample_timestamps());
             data_out->CloneTimestamps(*data_in);
             data_out->forward_ingestion_ns(*data_in);
-
-            // publish and release data
-            data_out_port_->slot(k)->PublishData();
-            data_in_port_->slot(k)->ReleaseData();
-
-            uint64_t work_end = __rdtsc();
-
-            record_metrics(sync_end - sync_start, work_end - work_start);
+            out_port_->slot(k)->PublishData();
         }
+
+        in_port_->slot(0)->ReleaseData();
+
+        uint64_t work_end = __rdtsc();
+
+        record_metrics(sync_end - sync_start, work_end - work_start);
     }
 }
 
-void MultiChannelFilter::Postprocess(ProcessingContext& context) {
+void MultiChannelFilter::Postprocess(ProcessingContext& _) {
     dump_benchmarks();
 }
 

@@ -40,15 +40,14 @@ class MultiChannelFilter : public IProcessor {
     // VARIABLES
    protected:
     std::unique_ptr<dsp::filter::IFilter> filter_template_;
-    std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
-
+    std::unique_ptr<dsp::filter::IFilter> filter_;
+    std::vector<double> filtered_signal_buffer_;
     // DATA PORTS
    protected:
-    PortIn<TimeSeriesType<double>>* data_in_port_;
-    PortOut<TimeSeriesType<double>>* data_out_port_;
+    PortIn<TimeSeriesType<double>>* in_port_;
+    PortOut<TimeSeriesType<double>>* out_port_;
 
     // OPTIONS
    protected:
     options::String filter_file_path_{""};
-    const uint32_t MAX_NCHANNELS = 384;
 };
