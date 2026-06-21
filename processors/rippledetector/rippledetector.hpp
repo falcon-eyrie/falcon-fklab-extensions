@@ -75,7 +75,7 @@ class RippleDetector : public IProcessor {
 
     // CONSTANTS
    public:
-    const std::vector<std::string> STATS_LABEL = {"statistics", "threshold"};
+    const std::vector<std::string> STATS_LABEL = {"statistics", "threshold", "deviation"};
     const std::string THRESHOLD_DEV = "threshold_dev";
     const std::string SMOOTH_TIME = "smooth_time";
     const std::string DETECTION_LOCKOUT_TIME = "analysis_lockout_time";

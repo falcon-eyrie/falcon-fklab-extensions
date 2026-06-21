@@ -165,6 +165,8 @@ void RippleDetector::Process(ProcessingContext& context) {
                     stats_out->set_data_sample(stats_nsamples_counter, "statistics", test_value);
                     stats_out->set_data_sample(stats_nsamples_counter, "threshold",
                                                threshold_detector_->threshold());
+                    stats_out->set_data_sample(stats_nsamples_counter, "deviation",
+                                               running_statistics_->dispersion());
                     stats_out->set_sample_timestamp(stats_nsamples_counter,
                                                     data_in->sample_timestamp(sample_index));
                     stats_skip_counter = stats_downsample_factor_();

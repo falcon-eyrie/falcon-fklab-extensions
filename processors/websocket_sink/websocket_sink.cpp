@@ -17,6 +17,7 @@ class WebsocketSink : public IProcessor {
    private:
     PortIn<AnyType>* data_in_port_ = nullptr;
     options::Value<unsigned int, false> port_{5550};
+    options::Value<unsigned int, false> interval_ms_{1000};
 
     UWSServerController uws_server_controller_;
     std::vector<std::thread> worker_threads_;
@@ -27,6 +28,7 @@ class WebsocketSink : public IProcessor {
    public:
     WebsocketSink() : IProcessor() {
         add_option("port", port_, "Network port for WebSocket server.", false);
+        add_option("interval", interval_ms_, "Batch publish interval (ms)", false);
     }
 
     ~WebsocketSink() {
@@ -102,7 +104,7 @@ class WebsocketSink : public IProcessor {
         }
 
         while (!context.terminated() && running_) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(std::chrono::milliseconds(interval_ms_()));
             publish_batch_();
         }
     }
