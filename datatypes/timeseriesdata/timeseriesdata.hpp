@@ -185,15 +185,9 @@ class Data : public IData<Data<T>, Base<T>> {
                                                    Serialization::Format::FULL) const override {
         BaseClass::SerializeBinary(stream, format);
 
-        if (format == Serialization::Format::FULL) {
+        if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
             stream.write(reinterpret_cast<const char*>(timestamps_.data()),
                          timestamps_.size() * sizeof(uint64_t));
-        }
-
-        if (format == Serialization::Format::COMPACT) {
-            for (size_t k = 0; k < this->nsamples_; ++k) {
-                stream.write(reinterpret_cast<const char*>(&timestamps_[k]), sizeof(uint64_t));
-            }
         }
     }
 

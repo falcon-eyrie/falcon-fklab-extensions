@@ -100,7 +100,7 @@ void ZMQSerializer::Process(ProcessingContext& context) {
     }
 }
 
-void ZMQSerializer::Postprocess(ProcessingContext& context) {
+void ZMQSerializer::Postprocess(ProcessingContext& _) {
     sockets_.clear();
     serializer_.reset();
 

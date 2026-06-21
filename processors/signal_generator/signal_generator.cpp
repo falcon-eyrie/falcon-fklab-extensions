@@ -127,35 +127,29 @@ class SignalGenerator : public IProcessor {
         const CSCRecord* records = reinterpret_cast<const CSCRecord*>(mmap_ptr_ + header_offset);
 
         for (unsigned int sample_idx = 0; sample_idx < buffer_size_(); ++sample_idx) {
-            unsigned int current_ts = hardware_timestamp_counter_ + sample_idx;
-
             if (signal_type_() == "file" && total_records_ > 0) {
                 const CSCRecord& rec = records[current_record_idx_];
 
-                // 1. Calculate microsecond interpolation
                 double dt_us = 1000000.0 / static_cast<double>(rec.sample_freq_hz);
                 uint64_t interpolated_ts =
                     rec.timestamp_us +
                     static_cast<uint64_t>(std::round(current_sample_idx_ * dt_us));
 
-                // 2. Assign real timestamp
-                data_out->set_sample_timestamp(sample_idx,
-                                               static_cast<unsigned int>(interpolated_ts));
+                data_out->set_sample_timestamp(sample_idx, interpolated_ts);
 
-                // 3. Process voltage value
                 double val = static_cast<double>(rec.samples[current_sample_idx_]) * ad_bit_volts_;
 
                 auto data_iter = data_out->begin_sample(sample_idx);
                 *data_iter = val;
 
-                // 4. Advance stream offsets safely
                 current_sample_idx_++;
                 if (current_sample_idx_ >= rec.num_valid_samples) {
                     current_sample_idx_ = 0;
                     current_record_idx_ = (current_record_idx_ + 1) % total_records_;
                 }
             } else {
-                // Fallback path for synthetic signals
+                unsigned int current_ts = hardware_timestamp_counter_ + sample_idx;
+
                 data_out->set_sample_timestamp(sample_idx, current_ts);
                 auto data_iter = data_out->begin_sample(sample_idx);
                 double t = static_cast<double>(current_ts) / effective_sfreq();

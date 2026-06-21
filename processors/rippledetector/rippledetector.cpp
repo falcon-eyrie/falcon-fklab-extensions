@@ -86,7 +86,7 @@ void RippleDetector::CompleteStreamInfo() {
     stats_out_port_->streaminfo(0).set_stream_parameters(data_in_port_->streaminfo(0));
 }
 
-void RippleDetector::Preprocess(ProcessingContext& context) {
+void RippleDetector::Preprocess(ProcessingContext& _) {
     signal_mean_->set(0);
     signal_dev_->set(0);
     threshold_->set(0);
@@ -148,8 +148,8 @@ void RippleDetector::Process(ProcessingContext& context) {
         running_statistics_->set_alpha(1.0 / (smooth_time_->get() * sample_rate_));
 
         // loop through each sample
-        for (unsigned int sample = 0; sample < data_in->nsamples(); ++sample) {
-            value = compute_value(data_in, sample);
+        for (unsigned int sample_index = 0; sample_index < data_in->nsamples(); sample_index++) {
+            value = compute_value(data_in, sample_index);
             test_value = std::abs(value - running_statistics_->center());
 
             if (stats_out_->get()) {
@@ -157,16 +157,16 @@ void RippleDetector::Process(ProcessingContext& context) {
                     stats_out_port_->slot(0)->PublishData();
                     stats_out = stats_out_port_->slot(0)->ClaimData(false);
                     stats_out->set_source_timestamp(data_in->source_timestamp());
-                    stats_out->set_hardware_timestamp(data_in->sample_timestamp(sample));
+                    stats_out->set_hardware_timestamp(data_in->sample_timestamp(sample_index));
                     stats_nsamples_counter = 0;
                 }
 
                 if (stats_skip_counter == 0) {
                     stats_out->set_data_sample(stats_nsamples_counter, "statistics", test_value);
                     stats_out->set_data_sample(stats_nsamples_counter, "threshold",
-                                               threshold_detector_->threshold());
+                                               threshold_detector_->threshold() * 1e6);
                     stats_out->set_sample_timestamp(stats_nsamples_counter,
-                                                    data_in->sample_timestamp(sample));
+                                                    data_in->sample_timestamp(sample_index));
                     stats_skip_counter = stats_downsample_factor_();
                     ++stats_nsamples_counter;
                 }
@@ -188,7 +188,7 @@ void RippleDetector::Process(ProcessingContext& context) {
                 if (stream_events_->get()) {
                     event_out = event_out_port_->slot(0)->ClaimData(false);
                     event_out->set_source_timestamp(data_in->source_timestamp());
-                    event_out->set_hardware_timestamp(data_in->hardware_timestamp());
+                    event_out->set_hardware_timestamp(data_in->sample_timestamp(sample_index));
                     event_out->forward_ingestion_ns(*data_in);
                     event_out_port_->slot(0)->PublishData();
                 }
