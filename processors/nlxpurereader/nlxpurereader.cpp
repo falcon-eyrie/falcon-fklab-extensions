@@ -118,7 +118,7 @@ void NlxPureReader::Process(ProcessingContext& context) {
             }
 
             data_out_->set_source_timestamp();
-            data_out_->set_ingestion_ns();
+            data_out_->set_ingestion_tsc();
             output_port_->slot(0)->PublishData();
         } else {
             throw ProcessingError("Unexpected size value returned.", name());

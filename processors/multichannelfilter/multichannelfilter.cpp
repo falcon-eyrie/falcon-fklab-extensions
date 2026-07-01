@@ -89,7 +89,7 @@ void MultiChannelFilter::Process(ProcessingContext& context) {
 
             data_out->set_sample_timestamps(data_in->sample_timestamps());
             data_out->CloneTimestamps(*data_in);
-            data_out->forward_ingestion_ns(*data_in);
+            data_out->forward_ingestion_tsc(*data_in);
             out_port_->slot(k)->PublishData();
         }
 

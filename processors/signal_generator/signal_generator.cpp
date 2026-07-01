@@ -224,7 +224,7 @@ class SignalGenerator : public IProcessor {
 
             data_out->set_hardware_timestamp(hardware_timestamp_counter_);
             data_out->set_source_timestamp();
-            data_out->set_ingestion_ns();
+            data_out->set_ingestion_tsc();
 
             output_port_->slot(0)->PublishData();
 

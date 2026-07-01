@@ -197,7 +197,7 @@ void NlxReader::Process(ProcessingContext& context) {
 
                     data_bucket->set_hardware_timestamp(timestamp_);
                     data_bucket->set_source_timestamp();
-                    data_bucket->set_ingestion_ns();
+                    data_bucket->set_ingestion_tsc();
 
                     data_vector[index] = data_bucket;
                 }

@@ -20,7 +20,6 @@
 #include "levelcrossingdetector.hpp"
 
 #include <limits>
-
 LevelCrossingDetector::LevelCrossingDetector() : IProcessor() {
     add_option(THRESHOLD, initial_threshold_,
                "Threshold (in data units) that needs to be crossed.");
@@ -53,7 +52,7 @@ void LevelCrossingDetector::CompleteStreamInfo() {
                                                         data_in_port_->streaminfo(0).stream_name());
 }
 
-void LevelCrossingDetector::Preprocess(ProcessingContext& context) {
+void LevelCrossingDetector::Preprocess(ProcessingContext& _) {
     double init_value;
     post_detection_block_update(initial_post_detect_block_());
 
@@ -93,14 +92,12 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
         if (post_detect_block_old != post_detect_block) {
             post_detection_block_update(post_detect_block);
         }
-
         // if blocking and post_detect_block value changed to a lower value,
         // make sure to update the current block value
         if (nblock > post_detect_block) {
             nblock = post_detect_block;
         }
 
-        // loop through each sample
         for (unsigned int s = 0; s < data_in_->nsamples(); ++s) {
             if (nblock > 0) {
                 --nblock;
@@ -113,7 +110,6 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
                 continue;
             }
 
-            // loop through each channel
             for (unsigned int c = 0; c < data_in_->ncolumns(); ++c) {
                 double current_val = data_in_->data_sample(s, c);
                 double prev_val = previous_sample_[c];
@@ -132,20 +128,13 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
                 data_out_->set_source_timestamp(data_in_->source_timestamp());
                 data_out_->set_hardware_timestamp(data_in_->sample_timestamp(s));
                 data_out_->set_serial_number(data_in_->serial_number());
-                data_out_->forward_ingestion_ns(*data_in_);
+                data_out_->forward_ingestion_tsc(*data_in_);
                 data_out_->set_event(event_prototype_());
                 data_out_port_->slot(0)->PublishData();
 
                 crossing_detected = false;
                 ++n_detections_;
-
                 nblock = post_detect_block;
-
-                if ((n_detections_ & 1023) == 0) {
-                    LOG(DEBUG) << name() << ". " << n_detections_ << " detections of event "
-                               << event_prototype_().event() << " occurred.";
-                    checkNonvoluntaryContextSwitches();
-                }
             }
 
             for (unsigned int c = 0; c < data_in_->ncolumns(); ++c) {
@@ -159,7 +148,7 @@ void LevelCrossingDetector::Process(ProcessingContext& context) {
     }
 }
 
-void LevelCrossingDetector::Postprocess(ProcessingContext& context) {
+void LevelCrossingDetector::Postprocess(ProcessingContext& _) {
     LOG(INFO) << name() << ". " << n_detections_ << " detections of event "
               << event_prototype_().event() << " occurred.";
     n_detections_ = 0;

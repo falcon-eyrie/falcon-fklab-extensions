@@ -191,7 +191,7 @@ void RippleDetector::Process(ProcessingContext& context) {
                     event_out = event_out_port_->slot(0)->ClaimData(false);
                     event_out->set_source_timestamp(data_in->source_timestamp());
                     event_out->set_hardware_timestamp(data_in->sample_timestamp(sample_index));
-                    event_out->forward_ingestion_ns(*data_in);
+                    event_out->forward_ingestion_tsc(*data_in);
                     event_out_port_->slot(0)->PublishData();
                 }
             }

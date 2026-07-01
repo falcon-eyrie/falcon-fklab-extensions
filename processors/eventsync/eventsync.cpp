@@ -56,10 +56,11 @@ void EventSync::Process(ProcessingContext& context) {
 
         if (target_events_counter == data_in_port_->number_of_slots()) {
             data_out = data_out_port_->slot(0)->ClaimData(false);
-            data_out->set_source_timestamp();
-            data_out->set_hardware_timestamp(timestamps_.hw);
+
+            data_out->set_source_timestamp(data_in->source_timestamp());
+            data_out->set_hardware_timestamp(data_in->hardware_timestamp());
             data_out->set_event(target_event_());
-            data_out->forward_ingestion_ns(*data_in);
+            data_out->forward_ingestion_tsc(*data_in);
             data_out_port_->slot(0)->PublishData();
             target_events_counter = 0;
             ++n_events_synced_;
@@ -68,7 +69,7 @@ void EventSync::Process(ProcessingContext& context) {
     }
 }
 
-void EventSync::Postprocess(ProcessingContext& context) {
+void EventSync::Postprocess(ProcessingContext& _) {
     log_and_reset_counters(data_in_port_->name(), event_counter_);
 
     LOG(INFO) << name() << ". " << n_events_synced_ << " events synced.";
