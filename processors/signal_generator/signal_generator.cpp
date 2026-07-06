@@ -210,8 +210,15 @@ class SignalGenerator : public IProcessor {
                     std::this_thread::sleep_until(std::chrono::steady_clock::now() +
                                                   sleep_duration);
                 } else {
+#if defined(__x86_64__) || defined(__i386__)
                     asm volatile("pause" ::: "memory");
+#elif defined(__aarch64__)
+                    asm volatile("isb" ::: "memory");
+#else
+                    std::this_thread::yield();
+#endif
                 }
+
                 continue;
             }
 

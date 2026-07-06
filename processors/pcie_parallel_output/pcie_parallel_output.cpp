@@ -1,3 +1,6 @@
+
+#if defined(__x86_64__) || defined(__i386__)
+
 #pragma once
 
 #include <sched.h>
@@ -85,3 +88,4 @@ class PCIeParallelOutput : public IProcessor {
 };
 
 REGISTERPROCESSOR(PCIeParallelOutput)
+#endif

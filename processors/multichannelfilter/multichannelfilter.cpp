@@ -71,15 +71,9 @@ void MultiChannelFilter::Process(ProcessingContext& context) {
     auto n_out_slots = out_port_->number_of_slots();
 
     while (!context.terminated()) {
-        uint64_t sync_start = __rdtsc();
-
         bool has_data = in_port_->slot(0)->RetrieveData(data_in);
 
         if (!has_data) break;
-
-        uint64_t sync_end = __rdtsc();
-
-        uint64_t work_start = __rdtsc();
 
         filter_->process_by_channel(data_in->nsamples(), data_in->data(), filtered_signal_buffer_);
 
@@ -94,10 +88,6 @@ void MultiChannelFilter::Process(ProcessingContext& context) {
         }
 
         in_port_->slot(0)->ReleaseData();
-
-        uint64_t work_end = __rdtsc();
-
-        record_metrics(sync_end - sync_start, work_end - work_start);
     }
 }
 

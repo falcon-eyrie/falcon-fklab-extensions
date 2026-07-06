@@ -202,7 +202,14 @@ void FileSerializer::Process(ProcessingContext& context) {
         if (!data_processed) {
             empty_cycles++;
             if (empty_cycles < 10) {
+#if defined(__x86_64__) || defined(__i386__)
                 __builtin_ia32_pause();
+#elif defined(__aarch64__)
+                // ARM64 equivalent structure for instruction-level spin stall
+                __builtin_arm_isb(15);
+#else
+                std::this_thread::yield();
+#endif
             } else if (empty_cycles < 100) {
                 std::this_thread::yield();
             } else {
