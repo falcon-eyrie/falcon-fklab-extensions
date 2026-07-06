@@ -48,7 +48,7 @@ void Event2State::Process(ProcessingContext& context) {
             enabled_->set(true);
         } else {
             ++event_counter_.non_target;
-            LOG_IF(DEBUG, enabled_->exchange(true)) << name() << ". Mode False.";
+            LOG_IF(INFO, enabled_->exchange(true)) << name() << ". Mode False.";
             enabled_->set(false);
         }
 

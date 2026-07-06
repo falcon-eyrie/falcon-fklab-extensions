@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <limits>
 #include <vector>
+#include "logging/log.hpp"
 
 namespace nlx {
 
@@ -73,7 +74,8 @@ constexpr uint16_t NLX_FIELD_DIO = 6;
 constexpr uint16_t NLX_FIELD_EXTRA_FIRST = 7;
 constexpr uint16_t NLX_FIELD_DATA_FIRST = NLX_FIELD_EXTRA_FIRST + NLX_NFIELDS_EXTRA;
 
-constexpr double NLX_AD_BIT_MICROVOLTS = 0.015624999960550667;
+// constexpr double NLX_AD_BIT_MICROVOLTS = 0.015624999960550667;
+constexpr double NLX_AD_BIT_MICROVOLTS = 0.000000305175781250000006;
 constexpr int32_t NLX_STX = 2048;
 constexpr int32_t NLX_RAWPACKETID = 1;
 constexpr uint16_t NLX_DEFAULT_NCHANNELS = 128;

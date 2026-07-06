@@ -72,7 +72,7 @@ void EventFilter::CreatePorts() {
         EVENTDATA, EventType::Parameters(target_event_().event()), PortOutPolicy(SlotRange(1)));
 }
 
-void EventFilter::Prepare(GlobalContext& context) {
+void EventFilter::Prepare(GlobalContext& _) {
     auto nslots = data_in_port_->number_of_slots();
 
     // complete Configure
@@ -91,7 +91,7 @@ void EventFilter::Prepare(GlobalContext& context) {
     LOG(INFO) << name() << ". Criterion for triggering a blocking event is set to 1 event.";
 }
 
-void EventFilter::Preprocess(ProcessingContext& context) {
+void EventFilter::Preprocess(ProcessingContext& _) {
     // init gate_close_time, but make sure the first event won't be excluded
     // if no blocking event will be received
     gate_close_time_ = Clock::now();
@@ -212,7 +212,7 @@ void EventFilter::Process(ProcessingContext& context) {
     }
 }
 
-void EventFilter::Postprocess(ProcessingContext& context) {
+void EventFilter::Postprocess(ProcessingContext& _) {
     log_and_reset_counters(data_in_port_->name(), event_counter_);
     log_and_reset_counters(block_in_port_->name(), blocking_events_counter_);
 

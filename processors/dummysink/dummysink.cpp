@@ -31,7 +31,7 @@ void DummySink::CreatePorts() {
     data_port_ =
         create_input_port<AnyType>("data", AnyType::Capabilities(), PortInPolicy(SlotRange(1)));
 
-    tickle_state_ = create_static_state("tickle", false, true, Permission::WRITE);
+    tickle_state_ = create_follower_state("tickle", false);
     expose_method("kick", &DummySink::Kick);
 }
 

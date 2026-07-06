@@ -118,7 +118,7 @@ void NlxPureReader::Process(ProcessingContext& context) {
             }
 
             data_out_->set_source_timestamp();
-            data_out_->set_ingestion_ns();
+            data_out_->set_ingestion_tsc();
             output_port_->slot(0)->PublishData();
         } else {
             throw ProcessingError("Unexpected size value returned.", name());
@@ -129,7 +129,7 @@ void NlxPureReader::Process(ProcessingContext& context) {
                    "processing.";
 }
 
-void NlxPureReader::Postprocess(ProcessingContext& context) {
+void NlxPureReader::Postprocess(ProcessingContext& _) {
     std::chrono::milliseconds runtime(std::chrono::duration_cast<std::chrono::milliseconds>(
         Clock::now() - first_valid_packet_arrival_time_));
 

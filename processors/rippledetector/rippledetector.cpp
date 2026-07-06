@@ -40,7 +40,7 @@ RippleDetector::RippleDetector() : IProcessor() {
 
 void RippleDetector::CreatePorts() {
     data_in_port_ = create_input_port<TimeSeriesType<double>>(
-        "data", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
+        "in_signal", TimeSeriesType<double>::Capabilities(ChannelRange(1, 256)),
         PortInPolicy(SlotRange(1)));
 
     event_out_port_ = create_output_port<EventType>(EVENTDATA, EventType::Parameters("ripple"),
@@ -86,7 +86,7 @@ void RippleDetector::CompleteStreamInfo() {
     stats_out_port_->streaminfo(0).set_stream_parameters(data_in_port_->streaminfo(0));
 }
 
-void RippleDetector::Preprocess(ProcessingContext& context) {
+void RippleDetector::Preprocess(ProcessingContext& _) {
     signal_mean_->set(0);
     signal_dev_->set(0);
     threshold_->set(0);
@@ -148,8 +148,8 @@ void RippleDetector::Process(ProcessingContext& context) {
         running_statistics_->set_alpha(1.0 / (smooth_time_->get() * sample_rate_));
 
         // loop through each sample
-        for (unsigned int sample = 0; sample < data_in->nsamples(); ++sample) {
-            value = compute_value(data_in, sample);
+        for (unsigned int sample_index = 0; sample_index < data_in->nsamples(); sample_index++) {
+            value = compute_value(data_in, sample_index);
             test_value = std::abs(value - running_statistics_->center());
 
             if (stats_out_->get()) {
@@ -157,7 +157,7 @@ void RippleDetector::Process(ProcessingContext& context) {
                     stats_out_port_->slot(0)->PublishData();
                     stats_out = stats_out_port_->slot(0)->ClaimData(false);
                     stats_out->set_source_timestamp(data_in->source_timestamp());
-                    stats_out->set_hardware_timestamp(data_in->sample_timestamp(sample));
+                    stats_out->set_hardware_timestamp(data_in->sample_timestamp(sample_index));
                     stats_nsamples_counter = 0;
                 }
 
@@ -165,8 +165,10 @@ void RippleDetector::Process(ProcessingContext& context) {
                     stats_out->set_data_sample(stats_nsamples_counter, "statistics", test_value);
                     stats_out->set_data_sample(stats_nsamples_counter, "threshold",
                                                threshold_detector_->threshold());
+                    stats_out->set_data_sample(stats_nsamples_counter, "deviation",
+                                               running_statistics_->dispersion());
                     stats_out->set_sample_timestamp(stats_nsamples_counter,
-                                                    data_in->sample_timestamp(sample));
+                                                    data_in->sample_timestamp(sample_index));
                     stats_skip_counter = stats_downsample_factor_();
                     ++stats_nsamples_counter;
                 }
@@ -188,7 +190,8 @@ void RippleDetector::Process(ProcessingContext& context) {
                 if (stream_events_->get()) {
                     event_out = event_out_port_->slot(0)->ClaimData(false);
                     event_out->set_source_timestamp(data_in->source_timestamp());
-                    event_out->set_hardware_timestamp(data_in->sample_timestamp(sample));
+                    event_out->set_hardware_timestamp(data_in->sample_timestamp(sample_index));
+                    event_out->forward_ingestion_tsc(*data_in);
                     event_out_port_->slot(0)->PublishData();
                 }
             }
@@ -201,7 +204,7 @@ void RippleDetector::Process(ProcessingContext& context) {
     }
 }
 
-void RippleDetector::Postprocess(ProcessingContext& context) {
+void RippleDetector::Postprocess(ProcessingContext& _) {
     LOG(INFO) << name() << ". Streamed " << event_out_port_->slot(0)->nitems_produced()
               << " ripple events.";
 }
@@ -209,12 +212,23 @@ void RippleDetector::Postprocess(ProcessingContext& context) {
 inline double RippleDetector::compute_value(TimeSeriesType<double>::Data* data_in,
                                             unsigned int sample) {
     if (use_power_()) {
-        acc_ = std::pow(*data_in->begin_sample(sample), 2);
-        for (auto c = data_in->begin_sample(sample) + 1; c != data_in->end_sample(sample); ++c) {
-            acc_ += std::pow(*c, 2);
+        // Grab first column pointer for this row slice
+        auto c = data_in->begin_sample(sample);
+        const auto end = data_in->end_sample(sample);
+
+        // Square the first channel directly
+        acc_ = (*c) * (*c);
+
+        // Loop horizontally across remaining channels
+        for (++c; c != end; ++c) {
+            acc_ += (*c) * (*c);  // Accumulate squared voltage
         }
+
+        // Flatten to spatial average power
         return acc_ / data_in->ncolumns();
     }
+
+    // Fallback: simple spatial mean across channels
     return data_in->mean_sample(sample);
 }
 

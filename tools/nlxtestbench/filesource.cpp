@@ -35,9 +35,11 @@ FileSource::FileSource(std::string file, bool cycle) : file_(file), cycle_(cycle
                                  ". Check if filepath is correct.\n");
     }
 
+    raw_data_file.seekg(0x4000, std::ios::beg);
+
     // read first three int32 to determine of this is a proper raw nlx file
     // and to determine the number of channels
-    std::vector<int32_t> local_buffer{3};
+    std::vector<int32_t> local_buffer(3, 0);
     raw_data_file.read((char*) local_buffer.data(), 3 * sizeof(int32_t));
 
     convert_byte_order_ = false;
@@ -66,6 +68,7 @@ FileSource::FileSource(std::string file, bool cycle) : file_(file), cycle_(cycle
     // check that file size is multiple of buffer size
     raw_data_file.seekg(0, std::ios::end);
     uint64_t length = raw_data_file.tellg();
+    length = length - 16384;
     raw_data_file.seekg(0, std::ios::beg);
 
     if (length % buffer_size_ != 0) {
@@ -73,6 +76,8 @@ FileSource::FileSource(std::string file, bool cycle) : file_(file), cycle_(cycle
     }
 
     buffer_.resize(buffer_size_);
+
+    raw_data_file.seekg(0x4000, std::ios::beg);
 }
 
 FileSource::~FileSource() {
@@ -80,7 +85,8 @@ FileSource::~FileSource() {
 }
 
 std::string FileSource::string() {
-    return "file \"" + file() + "\" (fs = " + to_string_n(nlx::NLX_SIGNAL_SAMPLING_FREQUENCY) +
+    // TODO(ben): get sampling frequency of the file from the header
+    return "file \"" + file() + "\" (fs = unknown" +
            ", "
            "nchannels = " +
            std::to_string(nchannels_) + ", " +
@@ -90,6 +96,10 @@ std::string FileSource::string() {
 std::string FileSource::file() const {
     return file_;
 }
+
+uint64_t lastLastTimestamp = 0;  // belongs to packet n-2
+uint64_t lastTimestamp = 0;      // belongs to packet n-1
+uint64_t packetCount = 0;
 
 int64_t FileSource::Produce(char** data) {
     raw_data_file.read((char*) buffer_.data(), buffer_size_);
@@ -109,6 +119,25 @@ int64_t FileSource::Produce(char** data) {
                   << raw_data_file.fail() << " " << raw_data_file.eof() << std::endl;
         return 0;
     }
+
+    size_t n = 200;
+    std::vector<int32_t> buffer(n);
+
+    std::memcpy(buffer.data(), buffer_.data(), n * sizeof(int32_t));
+
+    uint64_t t;
+    t = static_cast<uint64_t>(static_cast<uint32_t>(buffer[3]));
+    t = (t << 32) + static_cast<uint32_t>(buffer[4]);
+
+    auto lastDelta = lastTimestamp - lastLastTimestamp;
+    auto currentDelta = t - lastTimestamp;
+    auto delta_allowance_us = 1;
+    if (abs(currentDelta - lastDelta) > delta_allowance_us && packetCount > 1) {
+        std::cout << "abnormal delta detected between two samples: " << lastDelta << std::endl;
+    }
+    lastLastTimestamp = lastTimestamp;
+    lastTimestamp = t;
+    packetCount++;
 
     *data = (char*) buffer_.data();
     return buffer_size_;

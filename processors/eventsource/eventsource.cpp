@@ -28,7 +28,7 @@ EventSource::EventSource() : IProcessor() {
     add_option("rate", event_rate_, "Rate (in Hz) at which events are generated.");
 }
 
-void EventSource::Configure(const GlobalContext& context) {
+void EventSource::Configure(const GlobalContext& _) {
     for (auto& el : event_list_()) {
         LOG(INFO) << name() << ". Event " << el << " configured for streaming.";
     }
@@ -56,7 +56,7 @@ void EventSource::Process(ProcessingContext& context) {
     while (!context.terminated()) {
         std::this_thread::sleep_for(delay);
         data = event_port_->slot(0)->ClaimData(false);
-        data->set_ingestion_ns();
+        data->set_ingestion_tsc();
         data->set_source_timestamp();
         data->set_hardware_timestamp(
             static_cast<uint64_t>(data->time_since(context.run().start_time()).count()));

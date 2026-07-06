@@ -1,4 +1,4 @@
-![Falcon version](https://img.shields.io/badge/Falcon-v1.0.0-blue)
+![Falcon version](https://img.shields.io/badge/Falcon-v1.3.0-blue)
 
 # Falcon extensions
 
@@ -23,6 +23,7 @@ The full documentation can be found [here](https://falcon-fklab-extensions.readt
 - ripple detector
 - running stats
 - spike detector
+- OpenEphysZMQ (input node to work with neuropixels from Open-Ephys)
 - zmq serializer
 
 **Datatype** :

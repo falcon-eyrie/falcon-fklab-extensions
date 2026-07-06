@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "idata.hpp"
 #include "yaml-cpp/yaml.h"
@@ -33,7 +34,7 @@ namespace nsEventType {
 using ParentType = AnyType;
 
 struct Parameters {
-    Parameters(std::string event = DEFAULT_EVENT) : default_event(event) {}
+    Parameters(const std::string& event = DEFAULT_EVENT) : default_event(event) {}
 
     std::string default_event;
 };
@@ -42,7 +43,7 @@ class Data : public IData<Data, ParentType> {
    public:
     using BaseClass = IData<Data, ParentType>;
 
-    Data(std::string event = DEFAULT_EVENT);
+    Data(const std::string& event = DEFAULT_EVENT);
     Data(const Parameters& parameters) : Data(parameters.default_event) {}
 
     static const std::string static_datatype() { return "event"; }
@@ -54,7 +55,7 @@ class Data : public IData<Data, ParentType> {
     std::string event() const;
     size_t hash() const;
     size_t size() const;
-    void set_event(std::string event);
+    void set_event(const std::string& event);
     void set_event(const Data& source);
 
     friend bool operator==(const Data& e1, const Data& e2);
@@ -62,6 +63,9 @@ class Data : public IData<Data, ParentType> {
 
     void SerializeBinary(std::ostream& stream,
                          Serialization::Format format = Serialization::Format::FULL) const override;
+
+    std::string_view serialized_type_name() const override { return "EventType"; }
+
     void SerializeYAML(YAML::Node& node,
                        Serialization::Format format = Serialization::Format::FULL) const override;
 

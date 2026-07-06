@@ -19,11 +19,13 @@
 
 #include "eventdata.hpp"
 
+#include <cstdio>
+#include <iostream>
 #include <string>
 
 using namespace nsEventType;
 
-Data::Data(std::string event) : default_event_(event) {
+Data::Data(const std::string& event) : default_event_(event) {
     set_event(event);
 }
 
@@ -43,7 +45,7 @@ size_t Data::size() const {
     return event_.size();
 }
 
-void Data::set_event(std::string event) {
+void Data::set_event(const std::string& event) {
     if (event.size() == 0) {
         throw std::runtime_error("Event string cannot be empty.");
     }
@@ -71,9 +73,12 @@ bool operator!=(const Data& e1, const Data& e2) {
 void Data::SerializeBinary(std::ostream& stream, Serialization::Format format) const {
     BaseClass::SerializeBinary(stream, format);
     if (format == Serialization::Format::FULL || format == Serialization::Format::COMPACT) {
-        std::string buffer = event_;
-        buffer.resize(EVENT_STRING_LENGTH);
-        stream.write(buffer.data(), EVENT_STRING_LENGTH);
+        uint8_t timestamp_len = sizeof(hardware_timestamp_);
+        stream.write(reinterpret_cast<const char*>(&timestamp_len), sizeof(uint8_t));
+        stream.write(reinterpret_cast<const char*>(&hardware_timestamp_), timestamp_len);
+        uint16_t event_len = static_cast<uint16_t>(event_.size());
+        stream.write(reinterpret_cast<const char*>(&event_len), sizeof(uint16_t));
+        stream.write(event_.data(), event_len);
     }
 }
 

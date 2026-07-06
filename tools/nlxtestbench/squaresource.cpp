@@ -58,7 +58,7 @@ std::string SquareSource::string() {
 
 int64_t SquareSource::Produce(char** data) {
     --counter_;
-    if (counter_ == 0) {
+    if (counter_ <= 0) {
         if (current_amplitude_ > 0) {
             current_amplitude_ = -amplitude_;
             counter_ = (1 - duty_cycle_) * sampling_rate_ / frequency_;
