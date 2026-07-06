@@ -92,7 +92,6 @@ void MultiChannelFilter::Process(ProcessingContext& context) {
 }
 
 void MultiChannelFilter::Postprocess(ProcessingContext& _) {
-    dump_benchmarks();
 }
 
 REGISTERPROCESSOR(MultiChannelFilter)

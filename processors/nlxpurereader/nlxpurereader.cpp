@@ -129,7 +129,7 @@ void NlxPureReader::Process(ProcessingContext& context) {
                    "processing.";
 }
 
-void NlxPureReader::Postprocess(ProcessingContext& context) {
+void NlxPureReader::Postprocess(ProcessingContext& _) {
     std::chrono::milliseconds runtime(std::chrono::duration_cast<std::chrono::milliseconds>(
         Clock::now() - first_valid_packet_arrival_time_));
 

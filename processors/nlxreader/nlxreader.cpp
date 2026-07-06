@@ -128,7 +128,6 @@ void NlxReader::Process(ProcessingContext& context) {
 
         // packets available?
         ssize_t size = select(udp_socket_ + 1, &file_descriptor_set_, 0, 0, &timeout_);
-
         if (size == 0) {
             LOG(DEBUG) << name() << ": Timed out waiting for data. Connection lost?";
             continue;
