@@ -1,5 +1,7 @@
 add_library(websocket_sink STATIC "websocket_sink.cpp")
 
+cmake_policy(SET CMP0135 NEW)
+
 FetchContent_Declare(
     uWebSockets
     URL https://github.com/uNetworking/uWebSockets/archive/refs/tags/v20.79.0.zip
