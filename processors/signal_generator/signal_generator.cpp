@@ -48,7 +48,7 @@ class SignalGenerator : public IProcessor {
     double file_sampling_freq_ = 0.0;
     double ad_bit_volts_ = 0.0;
 
-    /// @brief Computes active channels based on execution mode. test
+    /// @brief Computes active channels based on execution mode.
     /// @note Returns 1 if `signal_type` is `"file"`, otherwise falls back to `n_channels_`.
     unsigned effective_channel_count() const noexcept {
         return signal_type_() == "file" ? 1 : n_channels_();
