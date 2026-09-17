@@ -9,4 +9,5 @@ sudo apt-get install -y \
   pixz \
   zlib1g-dev \
   libssl-dev \
-  ninja-build
+  ninja-build \
+  libxml2-dev
