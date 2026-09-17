@@ -2,7 +2,7 @@
 > Falcon has been moved to:
 > https://github.com/falcon-neuro/falcon
 
-![Falcon version](https://img.shields.io/badge/Falcon-v1.3.0-blue)
+
 
 # Falcon extensions
 
