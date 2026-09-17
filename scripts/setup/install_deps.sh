@@ -7,6 +7,4 @@ sudo apt-get install -y \
   wget \
   xz-utils \
   pixz \
-  zlib1g-dev \
-  libssl-dev \
-  ninja-build
+  libxml2-dev

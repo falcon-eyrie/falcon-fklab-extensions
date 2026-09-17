@@ -43,7 +43,7 @@ class Data : public IData<Data, ParentType> {
 
     Parameters parameters() const { return Parameters(bin_size_); }
 
-    void ClearData() override;
+    void ClearData();
     void set_n_spikes(unsigned int n_spikes);
     double mua() const;
     void set_bin_size(double bin_size);
@@ -51,15 +51,15 @@ class Data : public IData<Data, ParentType> {
     unsigned int n_spikes();
 
     void SerializeBinary(std::ostream& stream,
-                         Serialization::Format format = Serialization::Format::FULL) const final;
+                         Serialization::Format format = Serialization::Format::FULL) const;
 
     void SerializeYAML(YAML::Node& node,
-                       Serialization::Format format = Serialization::Format::FULL) const final;
+                       Serialization::Format format = Serialization::Format::FULL) const;
 
     void YAMLDescription(YAML::Node& node,
-                         Serialization::Format format = Serialization::Format::FULL) const final;
+                         Serialization::Format format = Serialization::Format::FULL) const;
 
-    void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
+    void SerializeFlatBuffer(flexbuffers::Builder& flex_builder);
 
    protected:
     double bin_size_;  // in ms
